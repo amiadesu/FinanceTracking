@@ -74,11 +74,11 @@ Using this application user can track how they spend their finances on their pur
 
 Use-case diagram:
 
-![Use-case diagram](img/FinanceTrackingUseCase.png)
+![Use-case diagram](img/FinanceTrackingUseCase.svg)
 
 ERD diagram:
 
-![ERD diagram](img/FinanceTrackingERD.png)
+![ERD diagram](img/FinanceTrackingERD.svg)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
