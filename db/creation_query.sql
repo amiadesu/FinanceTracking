@@ -16,13 +16,13 @@ CREATE TABLE roles (
 
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
-    owner_id UUID NOT NULL,
+    owner_id UUID,
     name TEXT NOT NULL,
     is_personal BOOLEAN DEFAULT TRUE,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_groups_owner FOREIGN KEY (owner_id) REFERENCES asp_net_users(id)
+    CONSTRAINT fk_groups_owner FOREIGN KEY (owner_id) REFERENCES asp_net_users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE group_members (
@@ -43,7 +43,7 @@ CREATE TABLE group_members (
 CREATE TABLE group_member_history (
     id SERIAL,
     group_id INT NOT NULL,
-    user_id UUID NOT NULL,
+    user_id UUID,
     changed_by_user_id UUID,
     role_id_before INT,
     role_id_after INT,
@@ -54,7 +54,12 @@ CREATE TABLE group_member_history (
 
     PRIMARY KEY (id, group_id), 
 
-    CONSTRAINT fk_history_user FOREIGN KEY (user_id) REFERENCES asp_net_users(id),
+    CONSTRAINT fk_history_user FOREIGN KEY (user_id) 
+        REFERENCES asp_net_users(id) ON DELETE SET NULL,
+
+    CONSTRAINT fk_history_changer FOREIGN KEY (changed_by_user_id) 
+        REFERENCES asp_net_users(id) ON DELETE SET NULL,
+        
     CONSTRAINT fk_history_group FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
 
@@ -86,7 +91,7 @@ CREATE TABLE sellers (
 CREATE TABLE receipts (
     id SERIAL,
     group_id INT NOT NULL,
-    created_by_user_id UUID NOT NULL,
+    created_by_user_id UUID,
     seller_id INT, 
     total_amount DECIMAL(18, 2),
     payment_date TIMESTAMP,
@@ -98,7 +103,8 @@ CREATE TABLE receipts (
     PRIMARY KEY (id, group_id),
 
     CONSTRAINT fk_receipts_group FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
-    CONSTRAINT fk_receipts_user FOREIGN KEY (created_by_user_id) REFERENCES asp_net_users(id),
+    CONSTRAINT fk_receipts_user FOREIGN KEY (created_by_user_id) 
+        REFERENCES asp_net_users(id) ON DELETE SET NULL,
     
     CONSTRAINT fk_receipts_seller FOREIGN KEY (seller_id, group_id) 
         REFERENCES sellers(id, group_id) ON DELETE SET NULL
