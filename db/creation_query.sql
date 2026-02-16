@@ -134,7 +134,10 @@ CREATE TABLE product_data_categories (
         REFERENCES product_data(id, group_id) ON DELETE CASCADE,
     
     CONSTRAINT fk_pdc_category FOREIGN KEY (category_id) 
-        REFERENCES categories(id) ON DELETE CASCADE
+        REFERENCES categories(id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_pdc_group FOREIGN KEY (group_id) 
+        REFERENCES groups(id) ON DELETE CASCADE
 );
 
 CREATE TABLE product_entries (
@@ -143,7 +146,7 @@ CREATE TABLE product_entries (
     receipt_id INT NOT NULL,
     product_data_id INT NOT NULL,
     price DECIMAL(18, 2),
-    quantity DECIMAL(18, 2),
+    quantity DECIMAL(18, 3),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
