@@ -29,6 +29,7 @@ builder.Services.AddOpenIddict()
     .AddServer(options =>
     {
         options.SetAuthorizationEndpointUris("/connect/authorize")
+                .SetEndSessionEndpointUris("/connect/logout")
                .SetTokenEndpointUris("/connect/token")
                .SetUserInfoEndpointUris("/connect/userinfo");
 
@@ -48,7 +49,8 @@ builder.Services.AddOpenIddict()
 
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()
-               .EnableTokenEndpointPassthrough();
+               .EnableTokenEndpointPassthrough()
+               .EnableEndSessionEndpointPassthrough();
     });
 
 builder.Services.AddRazorPages();
