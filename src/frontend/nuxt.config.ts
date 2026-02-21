@@ -2,10 +2,51 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  runtimeConfig: {
+    apiSecret: process.env.PRIVATE_API_KEY,
+    public: {
+      apiBase: process.env.PRIVATE_API_BASE_URL
+    }
+  },
+  oidc: {
+    defaultProvider: 'oidc',
+    session: {
+      automaticRefresh: true,
+      expirationCheck: true,
+      maxAge: 60 * 60 * 24,
+    },
+    middleware: {
+      globalMiddlewareEnabled: false,
+      customLoginPage: false,
+    },
+    providers: {
+      oidc: {
+        clientId: process.env.OIDC_AUTH_SERVER_CLIENT_ID,
+        clientSecret: process.env.OIDC_AUTH_SERVER_CLIENT_SECRET,
+
+        // baseUrl: process.env.OIDC_AUTH_SERVER_ISSUER_URL,
+        authorizationUrl: process.env.OIDC_AUTH_SERVER_AUTHORIZATION_URL,
+        tokenUrl: process.env.OIDC_AUTH_SERVER_TOKEN_URL,
+        userinfoUrl: process.env.OIDC_AUTH_SERVER_USER_INFO_URL,
+        logoutUrl: process.env.OIDC_AUTH_SERVER_LOGOUT_URL,
+
+        responseType: 'code',
+        authenticationScheme: 'header', 
+        scope: ['openid', 'profile', 'offline_access', 'roles'],
+        pkce: true, 
+
+        redirectUri: 'http://192.168.0.181:/auth/oidc/callback',
+        callbackRedirectUrl: '/',
+        logoutRedirectUrl: '/'
+      }
+    }
+  },
+  pages: true,
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: [
-    '@nuxtjs/color-mode'
+    '@nuxtjs/color-mode',
+    'nuxt-oidc-auth'
   ],
   css: ['~/assets/css/main.css'],
   vite: {
