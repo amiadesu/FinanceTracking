@@ -32,12 +32,15 @@ export default defineNuxtConfig({
 
         responseType: 'code',
         authenticationScheme: 'header', 
-        scope: ['openid', 'profile', 'offline_access', 'roles'],
-        pkce: true, 
+        scope: ['openid', 'profile', 'offline_access'],
+        pkce: false, // TEMPORARY, FIX LATER 
 
-        redirectUri: 'http://192.168.0.181:/auth/oidc/callback',
+        redirectUri: 'http://localhost:3000/auth/oidc/callback',
         callbackRedirectUrl: '/',
-        logoutRedirectUrl: '/'
+        logoutRedirectUrl: '/',
+        
+        openIdConfiguration: 'https://localhost:5001/.well-known/openid-configuration',
+        tokenRequestType: 'form-urlencoded'
       }
     }
   },
