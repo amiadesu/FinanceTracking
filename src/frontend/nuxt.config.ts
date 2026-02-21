@@ -33,7 +33,7 @@ export default defineNuxtConfig({
         responseType: 'code',
         authenticationScheme: 'header', 
         scope: ['openid', 'profile', 'offline_access'],
-        pkce: false, // TEMPORARY, FIX LATER 
+        pkce: true,
 
         redirectUri: 'http://localhost:3000/auth/oidc/callback',
         callbackRedirectUrl: '/',

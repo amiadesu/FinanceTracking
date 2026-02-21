@@ -36,8 +36,7 @@ builder.Services.AddOpenIddict()
         options.DisableAccessTokenEncryption();
 
         options.AllowAuthorizationCodeFlow()
-                // TEMPORARY, FIX LATER:
-                // .RequireProofKeyForCodeExchange()
+                .RequireProofKeyForCodeExchange()
                 .AllowRefreshTokenFlow();;
         options.AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
 
