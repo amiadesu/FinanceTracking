@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using FinanceTracking.API.Data;
+using FinanceTracking.API.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddMemoryCache();
 
 // 1. Add Services
 builder.Services.AddControllers();
@@ -49,6 +54,62 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 Console.WriteLine($"[Auth JWT Error] {context.Exception.Message}");
                 return Task.CompletedTask;
+            },
+
+            OnTokenValidated = async context =>
+            {
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<FinanceDbContext>();
+                var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+
+                var userIdString = context.Principal?.FindFirst("sub")?.Value 
+                                ?? context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (Guid.TryParse(userIdString, out Guid userId))
+                {
+                    var cacheKey = $"UserExists_{userId}";
+
+                    // Only hit the database if the cache doesn't have the user
+                    if (!cache.TryGetValue(cacheKey, out bool isUserInDb))
+                    {
+                        var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId);
+
+                        if (!userExists)
+                        {
+                            var email = context.Principal?.FindFirst("email")?.Value ?? "unknown@email.com";
+                            var username = context.Principal?.FindFirst("preferred_username")?.Value 
+                                        ?? context.Principal?.FindFirst("name")?.Value 
+                                        ?? "New User";
+
+                            var newUser = new AppUser
+                            {
+                                Id = userId,
+                                UserName = username,
+                                Email = email,
+                                CreatedDate = DateTime.UtcNow,
+                                UpdatedDate = DateTime.UtcNow
+                            };
+
+                            dbContext.Users.Add(newUser);
+
+                            try
+                            {
+                                await dbContext.SaveChangesAsync();
+                            }
+                            catch (DbUpdateException)
+                            {
+                                // A parallel request beat us to the database insert.
+                                // We can safely ignore this, as the user now exists in the database.
+                            }
+                        }
+
+                        // Cache the result for 1 hour so subsequent requests are lightning fast
+                        cache.Set(cacheKey, true, TimeSpan.FromHours(1));
+                    }
+                }
+                else
+                {
+                    context.Fail("Token 'sub' claim is not a valid GUID.");
+                }
             }
         };
 
