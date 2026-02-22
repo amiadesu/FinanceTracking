@@ -62,8 +62,6 @@ builder.Services.AddOpenIddict()
 
         options.AddSigningCertificate(certificate)
                .AddEncryptionCertificate(certificate);
-        
-        options.AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
 
         options.RegisterScopes(
             OpenIddictConstants.Scopes.OpenId, 
