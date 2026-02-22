@@ -23,11 +23,10 @@ namespace FinanceTracking.API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // 1. AppUser (Exclude from API migrations)
+            // 1. AppUser
             modelBuilder.Entity<AppUser>(entity =>
             {
-                entity.ToTable("asp_net_users", t => t.ExcludeFromMigrations());
-                entity.HasKey(e => e.Id);
+                  entity.HasKey(e => e.Id);
             });
 
             // 2. Groups
