@@ -27,12 +27,12 @@ export default defineNuxtConfig({
         // baseUrl: process.env.OIDC_AUTH_SERVER_ISSUER_URL,
         authorizationUrl: process.env.OIDC_AUTH_SERVER_AUTHORIZATION_URL,
         tokenUrl: process.env.OIDC_AUTH_SERVER_TOKEN_URL,
-        userinfoUrl: process.env.OIDC_AUTH_SERVER_USER_INFO_URL,
+        userInfoUrl: process.env.OIDC_AUTH_SERVER_USER_INFO_URL,
         logoutUrl: process.env.OIDC_AUTH_SERVER_LOGOUT_URL,
 
         responseType: 'code',
         authenticationScheme: 'header', 
-        scope: ['openid', 'profile', 'offline_access'],
+        scope: ['openid', 'profile', 'email', 'offline_access'],
         pkce: true,
 
         redirectUri: 'http://localhost:3000/auth/oidc/callback',

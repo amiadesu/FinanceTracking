@@ -86,10 +86,22 @@
                     <!-- Custom button -->
                     <template #button="{ opened, toggle }">
                         <button
+                            v-if="!loggedIn"
                             @click="toggle"
                             class="inline-flex items-center gap-x-1.5 px-1 py-1 rounded-lg text-sm text-center font-medium hover:bg-gray-200 transition"
                         >
                             Account
+                            <Icon 
+                                name="mdi-light:account"
+                                class="text-xl align-middle"
+                            />
+                        </button>
+                        <button
+                            v-else
+                            @click="toggle"
+                            class="inline-flex items-center gap-x-1.5 px-1 py-1 rounded-lg text-sm text-center font-medium hover:bg-gray-200 transition"
+                        >
+                            {{ user?.userInfo?.name }}
                             <Icon 
                                 name="mdi-light:account"
                                 class="text-xl align-middle"
@@ -145,8 +157,6 @@ const colorMode = useColorMode()
 const isDark = computed(() => colorMode.value === 'dark');
 
 const { loggedIn, user, login, logout } = useOidcAuth();
-console.log(loggedIn.value);
-console.log(user.value);
 
 function toggleTheme() {
   colorMode.preference = isDark.value ? 'light' : 'dark'

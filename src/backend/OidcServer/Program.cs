@@ -57,7 +57,8 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()
                .EnableTokenEndpointPassthrough()
-               .EnableEndSessionEndpointPassthrough();
+               .EnableEndSessionEndpointPassthrough()
+               .EnableUserInfoEndpointPassthrough();
     });
 
 builder.Services.AddRazorPages();
