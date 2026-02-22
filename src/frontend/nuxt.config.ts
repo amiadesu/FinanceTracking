@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 
         responseType: 'code',
         authenticationScheme: 'header', 
-        scope: ['openid', 'profile', 'email', 'offline_access'],
+        scope: ['openid', 'profile', 'email', 'offline_access', 'my_api_resource'],
         pkce: true,
 
         redirectUri: 'http://localhost:3000/auth/oidc/callback',
@@ -41,6 +41,7 @@ export default defineNuxtConfig({
         
         openIdConfiguration: 'https://localhost:5001/.well-known/openid-configuration',
         allowedClientAuthParameters: ['action'],
+        exposeAccessToken: true,
         tokenRequestType: 'form-urlencoded'
       }
     }
