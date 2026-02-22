@@ -1,44 +1,81 @@
 version: '3.8'
 
 services:
-  postgres_db:
+  oidc_db:
     image: postgres:15-alpine
-    container_name: financetracking_db
+    container_name: financetracking_identity_db
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${IDENTITY_DB_USER}
+      POSTGRES_PASSWORD: ${IDENTITY_DB_PASSWORD}
+      POSTGRES_DB: ${IDENTITY_DB_NAME}
     ports:
-      - "${DB_HOST_PORT}:5432"
+      - "${IDENTITY_DB_HOST_PORT}:5432"
     volumes:
-      - ./database/creation_query.sql:/docker-entrypoint-initdb.d/init.sql
-      - pgdata:/var/lib/postgresql/data
+      - oidc_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${IDENTITY_DB_USER} -d ${IDENTITY_DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+  api_db:
+    image: postgres:15-alpine
+    container_name: financetracking_api_db
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres_db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      POSTGRES_USER: ${API_DB_USER}
+      POSTGRES_PASSWORD: ${API_DB_PASSWORD}
+      POSTGRES_DB: ${API_DB_NAME}
+    ports:
+      - "${API_DB_HOST_PORT}:5432"
+    volumes:
+      - api_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${API_DB_USER} -d ${API_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  oidc_server:
+    build: 
+      context: .
+      dockerfile: ./backend/OidcServer/Dockerfile
+    container_name: financetracking_oidc
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=oidc_db;Port=5432;Database=${IDENTITY_DB_NAME};Username=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD}
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_URLS=https://+:8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/identityserver.pfx
       - IdentitySettings__FrontendUrl=${FRONTEND_URL}
       - IdentitySettings__CallbackPath=${OIDC_CALLBACK_PATH}
+      - ApiSettings__BaseUrl=http://api_server:8080
     ports:
-      - "${BACKEND_HOST_PORT}:8080"
-      - "5001:8081" 
+      - "${IDENTITY_SERVER_HOST_PORT}:8081"
     volumes:
       - ./backend/https/identityserver.pfx:/https/identityserver.pfx:ro
     depends_on:
-      postgres_db:
+      oidc_db:
         condition: service_healthy
 
+  api_server:
+    build: 
+      context: .
+      dockerfile: ./backend/FinanceTracking.API/Dockerfile
+    container_name: financetracking_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=api_db;Port=5432;Database=${API_DB_NAME};Username=${API_DB_USER};Password=${API_DB_PASSWORD}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Authentication__Authority=https://oidc_server:8081
+      - Authentication__ValidIssuer=${IDENTITY_SERVER_URL}
+    ports:
+      - "${API_SERVER_HOST_PORT}:8080"
+    depends_on:
+      api_db:
+        condition: service_healthy
+      oidc_server:
+        condition: service_started
+
 volumes:
-  pgdata:
+  oidc_pgdata:
+  api_pgdata:

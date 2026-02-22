@@ -1,10 +1,10 @@
 # Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY ["OidcServer/OidcServer.csproj", "OidcServer/"]
-RUN dotnet restore "OidcServer/OidcServer.csproj"
+COPY ["backend/OidcServer/OidcServer.csproj", "backend/OidcServer/"]
+RUN dotnet restore "backend/OidcServer/OidcServer.csproj"
 COPY . .
-WORKDIR "/src/OidcServer"
+WORKDIR "/src/backend/OidcServer"
 RUN dotnet build "OidcServer.csproj" -c Release -o /app/build
 
 # Publish Stage
