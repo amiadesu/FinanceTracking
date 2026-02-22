@@ -12,6 +12,12 @@
     <div asp-validation-summary="All" style="color: red;"></div>
 
     <div>
+        <label asp-for="Input.Username"></label>
+        <input asp-for="Input.Username" />
+        <span asp-validation-for="Input.Username" style="color: red;"></span>
+    </div>
+
+    <div>
         <label asp-for="Input.Email"></label>
         <input asp-for="Input.Email" />
         <span asp-validation-for="Input.Email" style="color: red;"></span>

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using OpenIddict.Abstractions;
+using OidcServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +13,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseOpenIddict();
 });
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+        options.User.RequireUniqueEmail = true;
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -42,7 +50,7 @@ builder.Services.AddOpenIddict()
 
         options.RegisterScopes(
             OpenIddictConstants.Scopes.OpenId, 
-            OpenIddictConstants.Scopes.Profile, 
+            OpenIddictConstants.Scopes.Profile,
             OpenIddictConstants.Scopes.Email
         );
 

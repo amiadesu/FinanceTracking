@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace OidcServer.Pages.Account;
 
@@ -9,13 +13,16 @@ public class RegisterModel : PageModel
 {
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IEmailSender _emailSender;
 
     public RegisterModel(
         UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager)
+        SignInManager<IdentityUser> signInManager,
+        IEmailSender emailSender)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailSender = emailSender;
     }
 
     [BindProperty]
@@ -26,6 +33,10 @@ public class RegisterModel : PageModel
 
     public class InputModel
     {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
         [Required]
         [EmailAddress]
         public string Email { get; set; }
@@ -46,17 +57,29 @@ public class RegisterModel : PageModel
     {
         if (ModelState.IsValid)
         {
-            // Create a new IdentityUser using the provided email
-            var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+            var user = new IdentityUser { UserName = Input.Username, Email = Input.Email };
             var result = await _userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)
             {
-                // Sign the user in immediately after successful registration
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                
-                // Redirect back to the OpenIddict /connect/authorize endpoint
-                return LocalRedirect(ReturnUrl ?? "/");
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { userId = user.Id, code = code, returnUrl = ReturnUrl },
+                    protocol: Request.Scheme
+                );
+
+                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
+
+                // Development only, remove in production!
+                Console.WriteLine($"\nDevelopment Email link:\n{callbackUrl}\n");
+
+                return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = ReturnUrl });
             }
 
             foreach (var error in result.Errors)
@@ -65,7 +88,6 @@ public class RegisterModel : PageModel
             }
         }
 
-        // If we got this far, something failed, redisplay form
         return Page();
     }
 }
