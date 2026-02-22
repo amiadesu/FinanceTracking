@@ -72,13 +72,18 @@ public class AuthorizationController : Controller
 
         var principal = new ClaimsPrincipal(identity);
 
-        principal.SetScopes(new[] 
+        var allowedScopes = new[] 
         { 
             OpenIddictConstants.Scopes.OpenId, 
             OpenIddictConstants.Scopes.Email, 
             OpenIddictConstants.Scopes.Profile,
-            OpenIddictConstants.Scopes.OfflineAccess
-        }.Intersect(HttpContext.GetOpenIddictServerRequest()?.GetScopes() ?? ImmutableArray<string>.Empty));
+            OpenIddictConstants.Scopes.OfflineAccess,
+            "my_api_resource"
+        };
+
+        principal.SetResources("my_api_resource");
+
+        principal.SetScopes(allowedScopes.Intersect(HttpContext.GetOpenIddictServerRequest()?.GetScopes() ?? ImmutableArray<string>.Empty));
 
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }

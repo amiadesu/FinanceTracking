@@ -3,8 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using OpenIddict.Abstractions;
 using OidcServer.Services;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+var certPath = "/https/identityserver.pfx";
+var certPassword = builder.Configuration["ASPNETCORE_Kestrel:Certificates:Default:Password"];
+var certificate = new X509Certificate2(certPath, certPassword, 
+    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -51,14 +58,21 @@ builder.Services.AddOpenIddict()
 
         options.AllowAuthorizationCodeFlow()
                 .RequireProofKeyForCodeExchange()
-                .AllowRefreshTokenFlow();;
+                .AllowRefreshTokenFlow();
+
+        options.AddSigningCertificate(certificate)
+               .AddEncryptionCertificate(certificate);
+        
         options.AddDevelopmentEncryptionCertificate().AddDevelopmentSigningCertificate();
 
         options.RegisterScopes(
             OpenIddictConstants.Scopes.OpenId, 
             OpenIddictConstants.Scopes.Profile,
-            OpenIddictConstants.Scopes.Email
+            OpenIddictConstants.Scopes.Email,
+            "my_api_resource"
         );
+
+        // options.RegisterResources("my_api_resource");
 
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()

@@ -1,5 +1,7 @@
 using FinanceTracking.API.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,59 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .UseSnakeCaseNamingConvention());
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var authority = builder.Configuration["Authentication:Authority"];
+        var rawIssuer = builder.Configuration["Authentication:ValidIssuer"];
+        var audience = builder.Configuration["Authentication:Audience"];
+
+        string validIssuerWithSlash = rawIssuer?.EndsWith("/") == true ? rawIssuer : $"{rawIssuer}/";
+
+        options.Authority = authority;
+        options.Audience = audience;
+        options.RequireHttpsMetadata = true;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = validIssuerWithSlash,
+            
+            ValidateAudience = true,
+            ValidAudience = audience,
+            
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"[Auth JWT Error] {context.Exception.Message}");
+                return Task.CompletedTask;
+            }
+        };
+
+        if (builder.Environment.IsDevelopment())
+        {
+            options.BackchannelHttpHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+        }
+    });
+
+builder.Services.AddAuthorization();
+
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 var app = builder.Build();
+
+app.UseCors("AllowNuxtApp");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -57,6 +111,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapControllers();
 
 app.Run();
 
