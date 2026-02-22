@@ -40,6 +40,7 @@ export default defineNuxtConfig({
         logoutRedirectUrl: '/',
         
         openIdConfiguration: 'https://localhost:5001/.well-known/openid-configuration',
+        allowedClientAuthParameters: ['action'],
         tokenRequestType: 'form-urlencoded'
       }
     }

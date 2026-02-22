@@ -161,7 +161,9 @@ function handleLogIn() {
 }
 
 function handleRegister() {
-    login();
+    login(undefined, {
+        action: 'register'
+    });
 }
 
 function handleLogout() {

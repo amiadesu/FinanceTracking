@@ -23,10 +23,20 @@ public class AuthorizationController : Controller
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
+        var request = HttpContext.GetOpenIddictServerRequest() ??
+            throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+
         var result = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
 
         if (!result.Succeeded)
         {
+            if (Request.Query["action"] == "register")
+            {
+                var returnUrl = Request.PathBase + Request.Path + Request.QueryString;
+                
+                return RedirectToPage("/Account/Register", new { ReturnUrl = returnUrl });
+            }
+
             return Challenge(IdentityConstants.ApplicationScheme);
         }
 
