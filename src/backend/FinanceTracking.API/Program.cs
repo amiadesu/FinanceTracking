@@ -19,6 +19,8 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
+
         var authority = builder.Configuration["Authentication:Authority"];
         var rawIssuer = builder.Configuration["Authentication:ValidIssuer"];
         var audience = builder.Configuration["Authentication:Audience"];
@@ -60,8 +62,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-
-System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var app = builder.Build();
 
