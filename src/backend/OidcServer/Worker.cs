@@ -4,8 +4,13 @@ using OpenIddict.Abstractions;
 public class Worker : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly IConfiguration _configuration;
 
-    public Worker(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+    public Worker(IServiceProvider serviceProvider, IConfiguration configuration)
+    {
+        _serviceProvider = serviceProvider;
+        _configuration = configuration;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -15,7 +20,14 @@ public class Worker : IHostedService
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        const string clientId = "nuxt-client";
+        var clientId = _configuration["OidcClients:Nuxt:ClientId"] ?? "nuxt-client";
+        var displayName = _configuration["OidcClients:Nuxt:DisplayName"] ?? "Nuxt Frontend";
+        var redirectUri = _configuration["OidcClients:Nuxt:RedirectUri"];
+
+        if (string.IsNullOrEmpty(redirectUri))
+        {
+            throw new InvalidOperationException("OidcClients:Nuxt:RedirectUri configuration is missing.");
+        }
 
         // DEV ONLY, REMOVE LATER!!!
         var client = await manager.FindByClientIdAsync(clientId);
@@ -30,12 +42,11 @@ public class Worker : IHostedService
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = clientId,
-                
                 ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
-                DisplayName = "Nuxt Frontend",
-                
-                RedirectUris = { new Uri("http://localhost:3000/auth/oidc/callback") },
-                
+                DisplayName = displayName,
+                RedirectUris = { new Uri(redirectUri) },
+                // Temporary, change to actual PostLogoutRedirectUris later
+                PostLogoutRedirectUris = { new Uri(redirectUri) },
                 Permissions =
                 {
                     OpenIddictConstants.Permissions.Endpoints.Authorization,
