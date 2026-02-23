@@ -82,6 +82,45 @@ services:
       oidc_server:
         condition: service_started
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: financetracking_frontend
+    extra_hosts:
+      - "localhost:host-gateway"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NUXT_HOST=${NUXT_HOST}
+      - NUXT_PORT=${NUXT_PORT}
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED}
+      
+      - PRIVATE_API_KEY=${PRIVATE_API_KEY}
+      - PRIVATE_API_BASE_URL=${API_SERVER_URL}
+      - PRIVATE_API_RESOURCE_NAME=${API_RESOURCE_NAME}
+
+      - NUXT_OIDC_PROVIDERS_OIDC_CLIENT_ID=${OIDC_AUTH_SERVER_CLIENT_ID}
+      - NUXT_OIDC_PROVIDERS_OIDC_CLIENT_SECRET=${OIDC_AUTH_SERVER_CLIENT_SECRET}
+      - NUXT_OIDC_PROVIDERS_OIDC_AUTHORIZATION_URL=${OIDC_AUTH_SERVER_AUTHORIZATION_URL}
+      - NUXT_OIDC_PROVIDERS_OIDC_TOKEN_URL=${OIDC_AUTH_SERVER_TOKEN_URL}
+      - NUXT_OIDC_PROVIDERS_OIDC_USER_INFO_URL=${OIDC_AUTH_SERVER_USER_INFO_URL}
+      - NUXT_OIDC_PROVIDERS_OIDC_LOGOUT_URL=${OIDC_AUTH_SERVER_LOGOUT_URL}
+      - NUXT_OIDC_PROVIDERS_OIDC_OPEN_ID_CONFIGURATION=${OIDC_AUTH_SERVER_WELL_KNOWN}
+      
+      - NUXT_OIDC_PROVIDERS_OIDC_REDIRECT_URI=${FRONTEND_URL}${OIDC_CALLBACK_PATH}
+      - NUXT_OIDC_PROVIDERS_OIDC_LOGOUT_REDIRECT_URI=${FRONTEND_URL}
+      
+      - NUXT_OIDC_PROVIDERS_OIDC_SCOPE=["openid","profile","email","offline_access","${API_RESOURCE_NAME}"]
+      
+      - NUXT_OIDC_TOKEN_KEY=${NUXT_OIDC_TOKEN_KEY}
+      - NUXT_OIDC_SESSION_SECRET=${NUXT_OIDC_SESSION_SECRET}
+      - NUXT_OIDC_AUTH_SESSION_SECRET=${NUXT_OIDC_AUTH_SESSION_SECRET}
+    ports:
+      - "${FRONTEND_HOST_PORT}:${NUXT_PORT}"
+    depends_on:
+      - api_server
+      - oidc_server
+
 volumes:
   oidc_pgdata:
   api_pgdata:

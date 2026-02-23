@@ -6,6 +6,27 @@ export default defineNuxtConfig({
     apiSecret: process.env.PRIVATE_API_KEY,
     public: {
       apiBase: process.env.PRIVATE_API_BASE_URL
+    },
+    oidc: {
+      providers: {
+        oidc: {
+          clientId: '',
+          clientSecret: '',
+
+          // baseUrl: '',
+          authorizationUrl: '',
+          tokenUrl: '',
+          userInfoUrl: '',
+          logoutUrl: '',
+
+          openIdConfiguration: '',
+
+          redirectUri: '',
+          logoutRedirectUri: '',
+
+          scope: [],
+        }
+      }
     }
   },
   oidc: {
@@ -21,26 +42,13 @@ export default defineNuxtConfig({
     },
     providers: {
       oidc: {
-        clientId: process.env.OIDC_AUTH_SERVER_CLIENT_ID,
-        clientSecret: process.env.OIDC_AUTH_SERVER_CLIENT_SECRET,
-
-        // baseUrl: process.env.OIDC_AUTH_SERVER_ISSUER_URL,
-        authorizationUrl: process.env.OIDC_AUTH_SERVER_AUTHORIZATION_URL,
-        tokenUrl: process.env.OIDC_AUTH_SERVER_TOKEN_URL,
-        userInfoUrl: process.env.OIDC_AUTH_SERVER_USER_INFO_URL,
-        logoutUrl: process.env.OIDC_AUTH_SERVER_LOGOUT_URL,
-
         responseType: 'code',
         authenticationScheme: 'header', 
-        scope: ['openid', 'profile', 'email', 'offline_access', 'financetracking.api'],
         pkce: true,
 
-        redirectUri: 'http://localhost:3000/auth/oidc/callback',
         callbackRedirectUrl: '/',
-        logoutRedirectUri: 'http://localhost:3000',
         logoutRedirectParameterName: 'post_logout_redirect_uri',
         
-        openIdConfiguration: 'https://localhost:5001/.well-known/openid-configuration',
         allowedClientAuthParameters: ['action'],
         exposeAccessToken: true,
         exposeIdToken: true,
