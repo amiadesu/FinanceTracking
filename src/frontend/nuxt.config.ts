@@ -3,9 +3,9 @@ import tailwindcss from '@tailwindcss/vite';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   runtimeConfig: {
-    apiSecret: process.env.PRIVATE_API_KEY,
+    apiSecret: '',
     public: {
-      apiBase: process.env.PRIVATE_API_BASE_URL
+      apiBase: ''
     },
     oidc: {
       providers: {
