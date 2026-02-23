@@ -17,13 +17,13 @@
                     </div>
                 </NuxtLink>
 
-                <!-- Request Button -->
-                <NuxtLink to="/">
+                <!-- Token Info Button -->
+                <NuxtLink v-if="loggedIn" to="/token-info">
                 <button
                         id="main"
                         class="inline-flex items-center gap-x-1.5 px-2 py-1 rounded-lg text-sm font-medium text-gray-500 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 border-gray-200 hover:shadow-md shadow-blue-500/10 transition"
                     >
-                        Main page
+                        View token info
                     </button>
                 </NuxtLink>
             </div>
