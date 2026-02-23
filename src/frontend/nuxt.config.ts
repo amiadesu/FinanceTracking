@@ -37,11 +37,13 @@ export default defineNuxtConfig({
 
         redirectUri: 'http://localhost:3000/auth/oidc/callback',
         callbackRedirectUrl: '/',
-        logoutRedirectUrl: '/',
+        logoutRedirectUri: 'http://localhost:3000',
+        logoutRedirectParameterName: 'post_logout_redirect_uri',
         
         openIdConfiguration: 'https://localhost:5001/.well-known/openid-configuration',
         allowedClientAuthParameters: ['action'],
         exposeAccessToken: true,
+        exposeIdToken: true,
         tokenRequestType: 'form-urlencoded'
       }
     }

@@ -93,12 +93,8 @@ public class AuthorizationController : Controller
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Logout()
     {
-        // 1. Destroy the local ASP.NET Core Identity session (the cookie)
         await _signInManager.SignOutAsync();
 
-        // 2. Return the OpenIddict SignOut result. 
-        // This tells OpenIddict to process the end_session request and safely redirect 
-        // the user back to the PostLogoutRedirectUri you registered in the Worker.
         return SignOut(
             authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
             properties: new AuthenticationProperties

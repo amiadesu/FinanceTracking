@@ -23,6 +23,7 @@ public class Worker : IHostedService
         var clientId = _configuration["OidcClients:Nuxt:ClientId"] ?? "nuxt-client";
         var displayName = _configuration["OidcClients:Nuxt:DisplayName"] ?? "Nuxt Frontend";
         var redirectUri = _configuration["OidcClients:Nuxt:RedirectUri"];
+        var postLogoutRedirectUri = _configuration["OidcClients:Nuxt:PostLogoutRedirectUri"];
 
         if (string.IsNullOrEmpty(redirectUri))
         {
@@ -45,8 +46,7 @@ public class Worker : IHostedService
                 ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
                 DisplayName = displayName,
                 RedirectUris = { new Uri(redirectUri) },
-                // Temporary, change to actual PostLogoutRedirectUris later
-                PostLogoutRedirectUris = { new Uri(redirectUri) },
+                PostLogoutRedirectUris = { new Uri(postLogoutRedirectUri) },
                 Permissions =
                 {
                     OpenIddictConstants.Permissions.Endpoints.Authorization,
