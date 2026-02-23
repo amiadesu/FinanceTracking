@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using Microsoft.AspNetCore;
@@ -11,11 +12,16 @@ public class AuthorizationController : Controller
 {
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IConfiguration _configuration;
 
-    public AuthorizationController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public AuthorizationController(
+        SignInManager<IdentityUser> signInManager, 
+        UserManager<IdentityUser> userManager,
+        IConfiguration configuration)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _configuration = configuration;
     }
 
     [HttpGet("~/connect/authorize")]
@@ -78,10 +84,10 @@ public class AuthorizationController : Controller
             OpenIddictConstants.Scopes.Email, 
             OpenIddictConstants.Scopes.Profile,
             OpenIddictConstants.Scopes.OfflineAccess,
-            "my_api_resource"
+            _configuration["ApiSettings:ApiResourceName"]
         };
 
-        principal.SetResources("my_api_resource");
+        principal.SetResources(_configuration["ApiSettings:ApiResourceName"]);
 
         principal.SetScopes(allowedScopes.Intersect(HttpContext.GetOpenIddictServerRequest()?.GetScopes() ?? ImmutableArray<string>.Empty));
 
@@ -114,6 +120,11 @@ public class AuthorizationController : Controller
         if (request.IsAuthorizationCodeGrantType())
         {
             var authenticateResult = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
+            {
+                return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
             
             var principal = authenticateResult.Principal;
 

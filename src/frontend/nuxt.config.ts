@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 
         responseType: 'code',
         authenticationScheme: 'header', 
-        scope: ['openid', 'profile', 'email', 'offline_access', 'my_api_resource'],
+        scope: ['openid', 'profile', 'email', 'offline_access', 'financetracking.api'],
         pkce: true,
 
         redirectUri: 'http://localhost:3000/auth/oidc/callback',

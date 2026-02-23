@@ -67,10 +67,8 @@ builder.Services.AddOpenIddict()
             OpenIddictConstants.Scopes.OpenId, 
             OpenIddictConstants.Scopes.Profile,
             OpenIddictConstants.Scopes.Email,
-            "my_api_resource"
+            builder.Configuration["ApiSettings:ApiResourceName"]
         );
-
-        // options.RegisterResources("my_api_resource");
 
         options.UseAspNetCore()
                .EnableAuthorizationEndpointPassthrough()

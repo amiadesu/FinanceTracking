@@ -48,6 +48,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/identityserver.pfx
       - IdentitySettings__FrontendUrl=${FRONTEND_URL}
       - IdentitySettings__CallbackPath=${OIDC_CALLBACK_PATH}
+      - ApiSettings__ApiResourceName=${API_RESOURCE_NAME}
       - ApiSettings__BaseUrl=http://api_server:8080
       - OidcClients__Nuxt__ClientId=nuxt-client
       - OidcClients__Nuxt__DisplayName=Nuxt Frontend
@@ -72,7 +73,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - Authentication__Authority=https://oidc_server:8081
       - Authentication__ValidIssuer=${IDENTITY_SERVER_URL}
-      - Authentication__Audience=my_api_resource
+      - Authentication__Audience=${API_RESOURCE_NAME}
     ports:
       - "${API_SERVER_HOST_PORT}:8080"
     depends_on:

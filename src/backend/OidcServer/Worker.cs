@@ -58,7 +58,7 @@ public class Worker : IHostedService
                     OpenIddictConstants.Permissions.Scopes.Email,
                     OpenIddictConstants.Permissions.Scopes.Profile,
                     OpenIddictConstants.Permissions.Scopes.Roles,
-                    OpenIddictConstants.Permissions.Prefixes.Scope + "my_api_resource"
+                    OpenIddictConstants.Permissions.Prefixes.Scope + _configuration["ApiSettings:ApiResourceName"]
                 }
             });
         }
