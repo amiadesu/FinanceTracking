@@ -6,7 +6,7 @@ public class GroupMember
 {
     public Guid UserId { get; set; }
     public int GroupId { get; set; }
-    public int RoleId { get; set; }
+    public GroupRole RoleId { get; set; }
     public bool Active { get; set; }
     public DateTime JoinedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
