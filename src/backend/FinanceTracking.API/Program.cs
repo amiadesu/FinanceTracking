@@ -21,6 +21,8 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .UseSnakeCaseNamingConvention());
 
+builder.Services.AddScoped<FinanceTracking.API.Services.GroupService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -69,42 +71,46 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     var cacheKey = $"UserExists_{userId}";
 
                     // Only hit the database if the cache doesn't have the user
-                    if (!cache.TryGetValue(cacheKey, out bool isUserInDb))
+                    if (cache.TryGetValue(cacheKey, out bool isUserInDb))
                     {
-                        var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId);
-
-                        if (!userExists)
-                        {
-                            var email = context.Principal?.FindFirst("email")?.Value ?? "unknown@email.com";
-                            var username = context.Principal?.FindFirst("preferred_username")?.Value 
-                                        ?? context.Principal?.FindFirst("name")?.Value 
-                                        ?? "New User";
-
-                            var newUser = new AppUser
-                            {
-                                Id = userId,
-                                UserName = username,
-                                Email = email,
-                                CreatedDate = DateTime.UtcNow,
-                                UpdatedDate = DateTime.UtcNow
-                            };
-
-                            dbContext.Users.Add(newUser);
-
-                            try
-                            {
-                                await dbContext.SaveChangesAsync();
-                            }
-                            catch (DbUpdateException)
-                            {
-                                // A parallel request beat us to the database insert.
-                                // We can safely ignore this, as the user now exists in the database.
-                            }
-                        }
-
-                        // Cache the result for 1 hour so subsequent requests are lightning fast
-                        cache.Set(cacheKey, true, TimeSpan.FromHours(1));
+                        return;
                     }
+
+                    var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId);
+
+                    if (!userExists)
+                    {
+                        var groupService = context.HttpContext.RequestServices.GetRequiredService<FinanceTracking.API.Services.GroupService>();
+
+                        var email = context.Principal?.FindFirst("email")?.Value ?? "unknown@email.com";
+                        var username = context.Principal?.FindFirst("preferred_username")?.Value 
+                                    ?? context.Principal?.FindFirst("name")?.Value 
+                                    ?? "New User";
+
+                        var newUser = new AppUser
+                        {
+                            Id = userId,
+                            UserName = username,
+                            Email = email,
+                            CreatedDate = DateTime.UtcNow,
+                            UpdatedDate = DateTime.UtcNow
+                        };
+
+                        dbContext.Users.Add(newUser);
+
+                        try
+                        {
+                            await groupService.CreateGroupAsync(newUser, "Personal", true);
+                        }
+                        catch (DbUpdateException)
+                        {
+                            // A parallel request beat us to the database insert.
+                            // We can safely ignore this, as the user now exists in the database.
+                        }
+                    }
+
+                    // Cache the result for 1 hour so subsequent requests are lightning fast
+                    cache.Set(cacheKey, true, TimeSpan.FromHours(1));
                 }
                 else
                 {
