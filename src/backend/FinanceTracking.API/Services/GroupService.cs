@@ -48,7 +48,7 @@ public class GroupService
             Group = group,
             RoleIdAfter = GroupRole.Owner,
             ActiveAfter = true,
-            Note = "created group",
+            Note = Constants.HistoryNotes.GroupCreated,
             ChangedAt = now
         };
 
@@ -94,5 +94,13 @@ public class GroupService
                 m.Active, 
                 m.JoinedDate))
             .ToListAsync();
+    }
+
+    public async Task<GroupRole?> GetUserRoleInGroupAsync(int groupId, Guid userId)
+    {
+        var member = await _dbContext.GroupMembers
+            .FirstOrDefaultAsync(m => m.GroupId == groupId && m.UserId == userId && m.Active);
+            
+        return member?.RoleId;
     }
 }
