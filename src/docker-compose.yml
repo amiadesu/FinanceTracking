@@ -55,14 +55,22 @@ services:
     container_name: financetracking_oidc
     environment:
       - ConnectionStrings__DefaultConnection=Host=oidc_db;Port=5432;Database=${IDENTITY_DB_NAME};Username=${IDENTITY_DB_USER};Password=${IDENTITY_DB_PASSWORD}
+      
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:8081
       - ASPNETCORE_Kestrel__Certificates__Default__Password=password
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/identityserver.pfx
+
       - IdentitySettings__FrontendUrl=${FRONTEND_URL}
       - IdentitySettings__CallbackPath=${OIDC_CALLBACK_PATH}
+
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Username=${RABBITMQ_USERNAME}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+
       - ApiSettings__ApiResourceName=${API_RESOURCE_NAME}
       - ApiSettings__BaseUrl=http://api_server:8080
+
       - OidcClients__Nuxt__ClientId=nuxt-client
       - OidcClients__Nuxt__DisplayName=Nuxt Frontend
       - OidcClients__Nuxt__RedirectUri=${FRONTEND_URL}${OIDC_CALLBACK_PATH} 
@@ -84,8 +92,14 @@ services:
     container_name: financetracking_api
     environment:
       - ConnectionStrings__DefaultConnection=Host=api_db;Port=5432;Database=${API_DB_NAME};Username=${API_DB_USER};Password=${API_DB_PASSWORD}
+
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Username=${RABBITMQ_USERNAME}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+
       - Authentication__Authority=https://oidc_server:8081
       - Authentication__ValidIssuer=${IDENTITY_SERVER_URL}
       - Authentication__Audience=${API_RESOURCE_NAME}
