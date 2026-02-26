@@ -1,0 +1,1 @@
+public record UserDeletedEvent(Guid UserId);
