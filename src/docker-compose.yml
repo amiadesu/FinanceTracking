@@ -35,6 +35,19 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_message_broker
+    restart: always
+    ports:
+      - "${RABBITMQ_MICROSERVICES_CONNECTION_PORT}:5672" # The standard port for microservices to connect
+      - "${RABBITMQ_MANAGEMENT_CONNECTION_PORT}:15672" # The web management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
   oidc_server:
     build: 
       context: .
@@ -59,6 +72,8 @@ services:
     volumes:
       - ./backend/https/identityserver.pfx:/https/identityserver.pfx:ro
     depends_on:
+      rabbitmq:
+        condition: service_started
       oidc_db:
         condition: service_healthy
 
@@ -79,6 +94,8 @@ services:
     depends_on:
       api_db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
       oidc_server:
         condition: service_started
 
@@ -123,3 +140,4 @@ services:
 volumes:
   oidc_pgdata:
   api_pgdata:
+  rabbitmq_data:
