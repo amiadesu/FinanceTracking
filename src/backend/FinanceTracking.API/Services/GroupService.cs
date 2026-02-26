@@ -95,22 +95,4 @@ public class GroupService
                 m.JoinedDate))
             .ToListAsync();
     }
-
-    public async Task<List<GroupHistoryDto>> GetGroupHistoryAsync(int groupId)
-    {
-        return await _dbContext.GroupMemberHistories
-            .Where(h => h.GroupId == groupId)
-            .OrderByDescending(h => h.ChangedAt)
-            .Select(h => new GroupHistoryDto(
-                h.Id, 
-                h.Note, 
-                h.RoleIdBefore, 
-                h.RoleIdAfter, 
-                h.ActiveBefore, 
-                h.ActiveAfter, 
-                h.ChangedAt, 
-                h.User != null ? h.User.UserName : "Unknown", 
-                h.ChangedByUser != null ? h.ChangedByUser.UserName : "System"))
-            .ToListAsync();
-    }
 }

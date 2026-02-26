@@ -14,10 +14,14 @@ namespace FinanceTracking.API.Controllers;
 public class GroupsController : ControllerBase
 {
     private readonly GroupService _groupService;
+    private readonly GroupHistoryService _historyService;
 
-    public GroupsController(GroupService groupService)
+    public GroupsController(
+        GroupService groupService,
+        GroupHistoryService historyService)
     {
         _groupService = groupService;
+        _historyService = historyService;
     }
 
     [HttpGet]
@@ -73,7 +77,7 @@ public class GroupsController : ControllerBase
             return Forbid();
         }
 
-        var history = await _groupService.GetGroupHistoryAsync(id);
+        var history = await _historyService.GetGroupHistoryAsync(id);
         return Ok(history);
     }
 }
