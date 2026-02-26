@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using OidcServer.Services;
 
 namespace OidcServer.Pages.Account;
 
@@ -14,15 +15,18 @@ public class RegisterModel : PageModel
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IEmailSender _emailSender;
+    private readonly UserEventPublisher _userEventPublisher;
 
     public RegisterModel(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        UserEventPublisher userEventPublisher)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _emailSender = emailSender;
+        _userEventPublisher = userEventPublisher;
     }
 
     [BindProperty]
@@ -62,6 +66,11 @@ public class RegisterModel : PageModel
 
             if (result.Succeeded)
             {
+                // We publish the event before sending the confirmation email, so that if email sending fails, 
+                // we still have the user created and can retry email sending later, but won't have to worry about 
+                // the user created event not being published.
+                await _userEventPublisher.PublishUserCreated(user);
+
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Wolverine;
+using Wolverine.RabbitMQ;
 using OpenIddict.Abstractions;
-using OidcServer.Services;
 using System.Security.Cryptography.X509Certificates;
+using OidcServer.Services;
+using FinanceTracking.Contracts.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +22,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString);
     options.UseOpenIddict();
 });
+
+builder.Host.UseWolverine(opts =>
+{
+    opts.UseRabbitMq(rabbit =>
+    {
+        rabbit.HostName = builder.Configuration["RabbitMq:Host"];
+        rabbit.UserName = builder.Configuration["RabbitMq:Username"];
+        rabbit.Password = builder.Configuration["RabbitMq:Password"];
+    }).AutoProvision();
+
+    opts.PublishMessage<UserCreatedEvent>().ToRabbitQueue("user-created");
+    opts.PublishMessage<UserDeletedEvent>().ToRabbitQueue("user-deleted");
+});
+
+builder.Services.AddScoped<UserEventPublisher>();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
