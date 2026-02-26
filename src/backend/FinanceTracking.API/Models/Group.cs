@@ -13,6 +13,7 @@ public class Group
     public DateTime UpdatedDate { get; set; }
 
     public AppUser Owner { get; set; }
+    public ICollection<GroupInvitation> Invitations { get; set; }
     public ICollection<GroupMember> Members { get; set; }
     public ICollection<Category> Categories { get; set; }
     public ICollection<Seller> Sellers { get; set; }

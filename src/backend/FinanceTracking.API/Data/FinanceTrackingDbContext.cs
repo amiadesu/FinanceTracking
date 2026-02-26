@@ -10,6 +10,7 @@ public class FinanceDbContext : DbContext
       public DbSet<AppUser> Users { get; set; }
       public DbSet<Role> Roles { get; set; }
       public DbSet<Group> Groups { get; set; }
+      public DbSet<GroupInvitation> GroupInvitations { get; set; }
       public DbSet<GroupMember> GroupMembers { get; set; }
       public DbSet<GroupMemberHistory> GroupMemberHistories { get; set; }
       public DbSet<Category> Categories { get; set; }
@@ -147,7 +148,31 @@ public class FinanceDbContext : DbContext
                         .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // 11. Seed Roles
+            // 11. GroupInvitations
+            modelBuilder.Entity<GroupInvitation>(entity =>
+            {
+                  entity.HasKey(e => e.Id);
+
+                  // Group relationship
+                  entity.HasOne(i => i.Group)
+                        .WithMany(g => g.Invitations)
+                        .HasForeignKey(i => i.GroupId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                  // User who sent the invite
+                  entity.HasOne(i => i.InvitedByUser)
+                        .WithMany(u => u.SentInvitations)
+                        .HasForeignKey(i => i.InvitedByUserId)
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                  // User receiving the invite
+                  entity.HasOne(i => i.TargetUser)
+                        .WithMany(u => u.ReceivedInvitations)
+                        .HasForeignKey(i => i.TargetUserId)
+                        .OnDelete(DeleteBehavior.Cascade); 
+            });
+
+            // 12. Seed Roles
             modelBuilder.Entity<Role>().HasData(
                   new Role { Id = GroupRole.Owner, Name = GroupRole.Owner.ToString() },
                   new Role { Id = GroupRole.Admin, Name = GroupRole.Admin.ToString() },

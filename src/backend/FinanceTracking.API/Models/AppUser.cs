@@ -11,6 +11,8 @@ public class AppUser
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 
+    public ICollection<GroupInvitation> SentInvitations { get; set; }
+    public ICollection<GroupInvitation> ReceivedInvitations { get; set; }
     public ICollection<Group> OwnedGroups { get; set; }
     public ICollection<GroupMember> GroupMemberships { get; set; }
     public ICollection<GroupMemberHistory> HistoryActions { get; set; }
