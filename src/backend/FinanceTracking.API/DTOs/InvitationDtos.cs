@@ -15,6 +15,8 @@ public class InvitationResponseDto
     public string GroupName { get; set; }
     public Guid InvitedByUserId { get; set; }
     public string InvitedByUserName { get; set; }
+    public Guid TargetUserId { get; set; }
+    public string TargetUserName { get; set; }
     public string Note { get; set; }
     public string Status { get; set; }
     public DateTime CreatedDate { get; set; }

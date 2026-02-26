@@ -24,6 +24,20 @@ public class GroupInvitationsController : ControllerBase
         _groupService = groupService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetGroupInvitations(int groupId)
+    {
+        var userId = User.GetUserId();
+
+        if (!await _groupService.IsUserActiveMemberAsync(groupId, userId))
+        {
+            return Forbid();
+        }
+
+        var invitations = await _invitationService.GetGroupInvitationsAsync(groupId);
+        return Ok(invitations);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateInvitation(int groupId, [FromBody] CreateInvitationDto dto)
     {

@@ -105,6 +105,7 @@ public class GroupInvitationService
         return await _context.GroupInvitations
             .Include(i => i.Group)
             .Include(i => i.InvitedByUser)
+            .Include(i => i.TargetUser)
             .Where(i => i.TargetUserId == currentUserId && i.Status == InvitationStatus.Pending)
             .Select(i => new InvitationResponseDto
             {
@@ -113,6 +114,8 @@ public class GroupInvitationService
                 GroupName = i.Group.Name,
                 InvitedByUserId = i.InvitedByUserId,
                 InvitedByUserName = i.InvitedByUser.UserName,
+                TargetUserId = i.TargetUserId,
+                TargetUserName = i.TargetUser.UserName,
                 Note = i.Note,
                 Status = i.Status.ToString(),
                 CreatedDate = i.CreatedDate
@@ -120,11 +123,36 @@ public class GroupInvitationService
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<InvitationResponseDto>> GetGroupInvitationsAsync(int groupId)
+{
+    return await _context.GroupInvitations
+        .Include(i => i.Group)
+        .Include(i => i.InvitedByUser)
+        .Include(i => i.TargetUser)
+        .Where(i => i.GroupId == groupId)
+        .OrderByDescending(i => i.CreatedDate)
+        .Select(i => new InvitationResponseDto
+        {
+            Id = i.Id,
+            GroupId = i.GroupId,
+            GroupName = i.Group.Name,
+            InvitedByUserId = i.InvitedByUserId,
+            InvitedByUserName = i.InvitedByUser.UserName,
+            TargetUserId = i.TargetUserId,
+            TargetUserName = i.TargetUser.UserName,
+            Note = i.Note,
+            Status = i.Status.ToString(),
+            CreatedDate = i.CreatedDate
+        })
+        .ToListAsync();
+}
+
     public async Task<InvitationResponseDto> GetInvitationAsync(Guid invitationId, Guid currentUserId)
     {
         var invite = await _context.GroupInvitations
             .Include(i => i.Group)
             .Include(i => i.InvitedByUser)
+            .Include(i => i.TargetUser)
             .FirstOrDefaultAsync(i => i.Id == invitationId);
 
         if (invite == null) 
@@ -137,6 +165,8 @@ public class GroupInvitationService
             GroupName = invite.Group.Name,
             InvitedByUserId = invite.InvitedByUserId,
             InvitedByUserName = invite.InvitedByUser.UserName,
+            TargetUserId = invite.TargetUserId,
+            TargetUserName = invite.TargetUser.UserName,
             Note = invite.Note,
             Status = invite.Status.ToString(),
             CreatedDate = invite.CreatedDate
