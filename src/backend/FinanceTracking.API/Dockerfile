@@ -2,6 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["backend/FinanceTracking.API/FinanceTracking.API.csproj", "backend/FinanceTracking.API/"]
+COPY ["backend/FinanceTracking.Contracts/FinanceTracking.Contracts.csproj", "backend/FinanceTracking.Contracts/"]
 RUN dotnet restore "backend/FinanceTracking.API/FinanceTracking.API.csproj"
 COPY . .
 WORKDIR "/src/backend/FinanceTracking.API"

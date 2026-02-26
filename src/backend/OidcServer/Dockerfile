@@ -2,6 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["backend/OidcServer/OidcServer.csproj", "backend/OidcServer/"]
+COPY ["backend/FinanceTracking.Contracts/FinanceTracking.Contracts.csproj", "backend/FinanceTracking.Contracts/"]
 RUN dotnet restore "backend/OidcServer/OidcServer.csproj"
 COPY . .
 WORKDIR "/src/backend/OidcServer"
