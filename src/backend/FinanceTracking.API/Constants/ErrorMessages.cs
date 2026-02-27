@@ -6,6 +6,10 @@ public static class ErrorMessages
     public const string UserNotFound = "User not found.";
     public const string UnauthorizedAccess = "You do not have permission to perform this action.";
 
+    // Groups
+    public const string InvalidGroupId = "Invalid group ID.";
+    public const string GroupNotFound = "Group not found.";
+
     // Invitations
     public const string InvitationNotFound = "Invitation not found.";
     public const string UserAlreadyActiveMember = "User is already an active member of this group.";
