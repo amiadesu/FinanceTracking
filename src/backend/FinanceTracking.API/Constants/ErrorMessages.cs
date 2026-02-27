@@ -21,4 +21,12 @@ public static class ErrorMessages
     // Budget goals
     public const string BudgetGoalNotFound = "Budget goal not found.";
     public const string InvalidBudgetPeriod = "End date must be after start date.";
+
+    // Categories
+    public const string CategoryNotFound = "Category not found.";
+    public const string CategoryNameRequired = "Category name is required.";
+    public const string CategoryColorRequired = "Category color code is required.";
+    public const string InvalidColorFormat = "Invalid color format. Please provide a valid hex color code.";
+    public const string SystemCategoryCannotBeModified = "System categories cannot be modified.";
+    public const string SystemCategoryCannotBeDeleted = "System categories cannot be deleted.";
 }
