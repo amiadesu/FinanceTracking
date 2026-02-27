@@ -99,13 +99,19 @@
                         <button
                             v-else
                             @click="toggle"
-                            class="inline-flex items-center gap-x-1.5 px-1 py-1 rounded-lg text-sm text-center font-medium hover:bg-gray-200 transition"
+                            class="inline-flex items-center gap-x-1.5 px-1 py-1 rounded-lg text-sm text-center font-medium hover:bg-gray-200 transition relative"
                         >
                             {{ user?.userInfo?.name }}
                             <Icon 
                                 name="mdi-light:account"
                                 class="text-xl align-middle"
                             />
+                            <span
+                                v-if="pendingCount > 0"
+                                class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold leading-none text-white bg-red-500 rounded-full"
+                            >
+                                {{ pendingCount }}
+                            </span>
                         </button>
                     </template>
 
@@ -130,6 +136,16 @@
                                 </div>
                             </div>
                             <div v-else class="py-1">
+                                <NuxtLink
+                                    to="/invitations"
+                                    class="flex justify-between items-center w-full py-1 text-center text-sm text-gray-700 hover:bg-blue-600 hover:text-white cursor-pointer select-none"
+                                    @click="close"
+                                >
+                                    Invitations
+                                    <span v-if="pendingCount > 0" class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold leading-none text-white bg-red-500 rounded-full">
+                                        {{ pendingCount }}
+                                    </span>
+                                </NuxtLink>
                                 <div
                                     @click="handleLogout"
                                     class="block w-full py-1 text-center text-sm text-gray-700 hover:bg-blue-600 hover:text-white cursor-pointer select-none"
@@ -146,8 +162,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useColorMode } from '#imports'
+import { invitationService } from '~/services/invitationService'
 
 const languages = ['en', 'ua'];
 
@@ -158,8 +175,30 @@ const isDark = computed(() => colorMode.value === 'dark');
 
 const { loggedIn, user, login, logout } = useOidcAuth();
 
+const pendingCount = ref<number>(0);
+
+async function loadPendingCount() {
+    if (!loggedIn.value) {
+        pendingCount.value = 0
+        return
+    }
+    try {
+        const res = await invitationService.getPendingCount()
+        pendingCount.value = res.count
+    } catch {
+        pendingCount.value = 0
+    }
+}
+
+// fetch on mount and whenever login state changes
+onMounted(loadPendingCount);
+watch(loggedIn, (val) => {
+    if (val) loadPendingCount()
+    else pendingCount.value = 0
+})
+
 function toggleTheme() {
-  colorMode.preference = isDark.value ? 'light' : 'dark'
+    colorMode.preference = isDark.value ? 'light' : 'dark'
 }
 
 function setLanguage(lang: string) {

@@ -11,7 +11,7 @@ export interface InvitationResponseDto {
   createdDate: string;
 }
 
-const useApiFetch = (await import('@/utils/useApiFetch')).useApiFetch;
+import { useApiFetch } from '@/utils/useApiFetch';
 
 export const invitationService = {
   getPendingInvitations() {
@@ -38,5 +38,9 @@ export const invitationService = {
   },
   cancelInvitation(groupId: number, invitationId: string) {
     return useApiFetch(`/api/groups/${groupId}/invitations/${invitationId}`, { method: 'DELETE' })
+  },
+
+  getPendingCount() {
+    return useApiFetch<{ count: number }>(`/api/invitations/pending/count`, { method: 'GET' })
   }
 }
