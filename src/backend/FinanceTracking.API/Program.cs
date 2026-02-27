@@ -28,6 +28,7 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<GroupHistoryService>();
 builder.Services.AddScoped<GroupInvitationService>();
+builder.Services.AddScoped<BudgetGoalService>();
 
 builder.Host.UseWolverine(opts =>
 {

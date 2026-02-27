@@ -53,6 +53,48 @@ namespace FinanceTracking.API.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("FinanceTracking.API.Models.BudgetGoal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("integer")
+                        .HasColumnName("group_id");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
+
+                    b.Property<decimal>("TargetAmount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("target_amount");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_date");
+
+                    b.HasKey("Id", "GroupId")
+                        .HasName("pk_budget_goals");
+
+                    b.HasIndex("GroupId")
+                        .HasDatabaseName("ix_budget_goals_group_id");
+
+                    b.ToTable("budget_goals", (string)null);
+                });
+
             modelBuilder.Entity("FinanceTracking.API.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -539,6 +581,18 @@ namespace FinanceTracking.API.Migrations
                     b.ToTable("sellers", (string)null);
                 });
 
+            modelBuilder.Entity("FinanceTracking.API.Models.BudgetGoal", b =>
+                {
+                    b.HasOne("FinanceTracking.API.Models.Group", "Group")
+                        .WithMany("BudgetGoals")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_budget_goals_groups_group_id");
+
+                    b.Navigation("Group");
+                });
+
             modelBuilder.Entity("FinanceTracking.API.Models.Category", b =>
                 {
                     b.HasOne("FinanceTracking.API.Models.Group", "Group")
@@ -785,6 +839,8 @@ namespace FinanceTracking.API.Migrations
 
             modelBuilder.Entity("FinanceTracking.API.Models.Group", b =>
                 {
+                    b.Navigation("BudgetGoals");
+
                     b.Navigation("Categories");
 
                     b.Navigation("Invitations");

@@ -17,4 +17,8 @@ public static class ErrorMessages
     public const string InvitationNotPending = "This action can only be performed on pending invitations.";
     public const string CannotCancelInvitation = "You do not have permission to cancel this invitation.";
     public const string InvitationNotFoundOrUnauthorized = "Invitation not found or you are not authorized to view it.";
+
+    // Budget goals
+    public const string BudgetGoalNotFound = "Budget goal not found.";
+    public const string InvalidBudgetPeriod = "End date must be after start date.";
 }
