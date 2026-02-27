@@ -30,8 +30,8 @@ public class BudgetGoalService
         {
             GroupId = groupId,
             TargetAmount = dto.TargetAmount,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
+            StartDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc),
+            EndDate = DateTime.SpecifyKind(dto.EndDate, DateTimeKind.Utc),
             CreatedDate = now,
             UpdatedDate = now
         };
@@ -88,13 +88,13 @@ public class BudgetGoalService
 
         if (dto.StartDate.HasValue)
         {
-            goal.StartDate = dto.StartDate.Value;
+            goal.StartDate = DateTime.SpecifyKind(dto.StartDate.Value, DateTimeKind.Utc);
             changed = true;
         }
 
         if (dto.EndDate.HasValue)
         {
-            goal.EndDate = dto.EndDate.Value;
+            goal.EndDate = DateTime.SpecifyKind(dto.EndDate.Value, DateTimeKind.Utc);
             changed = true;
         }
 
