@@ -60,6 +60,7 @@ public class GroupInvitationsController : ControllerBase
 
     [HttpDelete("{invitationId}")]
     [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> CancelInvitation(int groupId, Guid invitationId)
     {
         var userId = User.GetUserId();

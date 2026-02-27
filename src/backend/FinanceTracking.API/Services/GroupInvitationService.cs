@@ -80,14 +80,6 @@ public class GroupInvitationService
         if (invitation.Status != InvitationStatus.Pending)
             throw new BadRequestException(Constants.ErrorMessages.InvitationNotPending);
 
-        var currentUserRole = await _groupService.GetUserRoleInGroupAsync(groupId, currentUserId);
-        bool canCancel = invitation.InvitedByUserId == currentUserId || 
-                         currentUserRole == GroupRole.Admin || 
-                         currentUserRole == GroupRole.Owner;
-
-        if (!canCancel)
-            throw new ForbiddenException(Constants.ErrorMessages.CannotCancelInvitation);
-
         invitation.Status = InvitationStatus.Cancelled;
 
         _historyService.AddHistoryRecord(
@@ -124,28 +116,28 @@ public class GroupInvitationService
     }
 
     public async Task<IEnumerable<InvitationResponseDto>> GetGroupInvitationsAsync(int groupId)
-{
-    return await _context.GroupInvitations
-        .Include(i => i.Group)
-        .Include(i => i.InvitedByUser)
-        .Include(i => i.TargetUser)
-        .Where(i => i.GroupId == groupId)
-        .OrderByDescending(i => i.CreatedDate)
-        .Select(i => new InvitationResponseDto
-        {
-            Id = i.Id,
-            GroupId = i.GroupId,
-            GroupName = i.Group.Name,
-            InvitedByUserId = i.InvitedByUserId,
-            InvitedByUserName = i.InvitedByUser.UserName,
-            TargetUserId = i.TargetUserId,
-            TargetUserName = i.TargetUser.UserName,
-            Note = i.Note,
-            Status = i.Status.ToString(),
-            CreatedDate = i.CreatedDate
-        })
-        .ToListAsync();
-}
+    {
+        return await _context.GroupInvitations
+            .Include(i => i.Group)
+            .Include(i => i.InvitedByUser)
+            .Include(i => i.TargetUser)
+            .Where(i => i.GroupId == groupId)
+            .OrderByDescending(i => i.CreatedDate)
+            .Select(i => new InvitationResponseDto
+            {
+                Id = i.Id,
+                GroupId = i.GroupId,
+                GroupName = i.Group.Name,
+                InvitedByUserId = i.InvitedByUserId,
+                InvitedByUserName = i.InvitedByUser.UserName,
+                TargetUserId = i.TargetUserId,
+                TargetUserName = i.TargetUser.UserName,
+                Note = i.Note,
+                Status = i.Status.ToString(),
+                CreatedDate = i.CreatedDate
+            })
+            .ToListAsync();
+    }
 
     public async Task<InvitationResponseDto> GetInvitationAsync(Guid invitationId, Guid currentUserId)
     {
