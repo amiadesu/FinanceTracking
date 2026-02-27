@@ -19,6 +19,7 @@ public class FinanceDbContext : DbContext
       public DbSet<ProductDataCategory> ProductDataCategories { get; set; }
       public DbSet<Receipt> Receipts { get; set; }
       public DbSet<ProductEntry> ProductEntries { get; set; }
+      public DbSet<BudgetGoal> BudgetGoals { get; set; }
 
       protected override void OnModelCreating(ModelBuilder modelBuilder)
       {
@@ -148,7 +149,18 @@ public class FinanceDbContext : DbContext
                         .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // 11. GroupInvitations
+            // 11. BudgetGoals (Composite PK)
+            modelBuilder.Entity<BudgetGoal>(entity =>
+            {
+                  entity.HasKey(e => new { e.Id, e.GroupId });
+                  entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                  entity.HasOne(bg => bg.Group).WithMany(g => g.BudgetGoals)
+                        .HasForeignKey(bg => bg.GroupId)
+                        .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // 12. GroupInvitations
             modelBuilder.Entity<GroupInvitation>(entity =>
             {
                   entity.HasKey(e => e.Id);
@@ -172,7 +184,7 @@ public class FinanceDbContext : DbContext
                         .OnDelete(DeleteBehavior.Cascade); 
             });
 
-            // 12. Seed Roles
+            // 13. Seed Roles
             modelBuilder.Entity<Role>().HasData(
                   new Role { Id = GroupRole.Owner, Name = GroupRole.Owner.ToString() },
                   new Role { Id = GroupRole.Admin, Name = GroupRole.Admin.ToString() },

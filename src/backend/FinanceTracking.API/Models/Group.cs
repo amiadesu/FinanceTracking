@@ -15,6 +15,7 @@ public class Group
     public AppUser Owner { get; set; }
     public ICollection<GroupInvitation> Invitations { get; set; }
     public ICollection<GroupMember> Members { get; set; }
+    public ICollection<BudgetGoal> BudgetGoals { get; set; }
     public ICollection<Category> Categories { get; set; }
     public ICollection<Seller> Sellers { get; set; }
     public ICollection<ProductData> Products { get; set; }
