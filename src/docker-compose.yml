@@ -47,6 +47,11 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   oidc_server:
     build: 
@@ -81,7 +86,7 @@ services:
       - ./backend/https/identityserver.pfx:/https/identityserver.pfx:ro
     depends_on:
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       oidc_db:
         condition: service_healthy
 
@@ -109,7 +114,7 @@ services:
       api_db:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       oidc_server:
         condition: service_started
 
