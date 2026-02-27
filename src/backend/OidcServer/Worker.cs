@@ -30,37 +30,37 @@ public class Worker : IHostedService
             throw new InvalidOperationException("OidcClients:Nuxt:RedirectUri configuration is missing.");
         }
 
-        // DEV ONLY, REMOVE LATER!!!
-        var client = await manager.FindByClientIdAsync(clientId);
-        if (client is not null)
+        var descriptor = new OpenIddictApplicationDescriptor
         {
-            // Delete the old client so we can update it
-            await manager.DeleteAsync(client);
-        }
-
-        if (await manager.FindByClientIdAsync(clientId) is null)
-        {
-            await manager.CreateAsync(new OpenIddictApplicationDescriptor
+            ClientId = clientId,
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
+            DisplayName = displayName,
+            RedirectUris = { new Uri(redirectUri) },
+            PostLogoutRedirectUris = { new Uri(postLogoutRedirectUri) },
+            Permissions =
             {
-                ClientId = clientId,
-                ConsentType = OpenIddictConstants.ConsentTypes.Implicit,
-                DisplayName = displayName,
-                RedirectUris = { new Uri(redirectUri) },
-                PostLogoutRedirectUris = { new Uri(postLogoutRedirectUri) },
-                Permissions =
-                {
-                    OpenIddictConstants.Permissions.Endpoints.Authorization,
-                    OpenIddictConstants.Permissions.Endpoints.Token,
-                    OpenIddictConstants.Permissions.Endpoints.EndSession,
-                    OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
-                    OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
-                    OpenIddictConstants.Permissions.ResponseTypes.Code,
-                    OpenIddictConstants.Permissions.Scopes.Email,
-                    OpenIddictConstants.Permissions.Scopes.Profile,
-                    OpenIddictConstants.Permissions.Scopes.Roles,
-                    OpenIddictConstants.Permissions.Prefixes.Scope + _configuration["ApiSettings:ApiResourceName"]
-                }
-            });
+                OpenIddictConstants.Permissions.Endpoints.Authorization,
+                OpenIddictConstants.Permissions.Endpoints.Token,
+                OpenIddictConstants.Permissions.Endpoints.EndSession,
+                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                OpenIddictConstants.Permissions.ResponseTypes.Code,
+                OpenIddictConstants.Permissions.Scopes.Email,
+                OpenIddictConstants.Permissions.Scopes.Profile,
+                OpenIddictConstants.Permissions.Scopes.Roles,
+                OpenIddictConstants.Permissions.Prefixes.Scope + _configuration["ApiSettings:ApiResourceName"]
+            }
+        };
+
+        var client = await manager.FindByClientIdAsync(clientId);
+        if (client is null)
+        {
+            await manager.CreateAsync(descriptor);
+        }
+        else
+        {
+            await manager.UpdateAsync(client, descriptor);
         }
     }
 
