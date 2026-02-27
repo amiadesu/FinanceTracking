@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using FinanceTracking.API.Services;
 using FinanceTracking.API.Extensions;
 using FinanceTracking.API.Attributes;
+using FinanceTracking.API.Models;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -58,6 +59,7 @@ public class GroupsController : ControllerBase
 
     [HttpGet("{groupId}/history")]
     [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> GetGroupHistory(int groupId)
     {
         var history = await _historyService.GetGroupHistoryAsync(groupId);

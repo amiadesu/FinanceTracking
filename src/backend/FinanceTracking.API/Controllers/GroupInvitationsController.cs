@@ -6,6 +6,7 @@ using FinanceTracking.API.Services;
 using FinanceTracking.API.Extensions;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Attributes;
+using FinanceTracking.API.Models;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -35,6 +36,7 @@ public class GroupInvitationsController : ControllerBase
 
     [HttpPost]
     [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> CreateInvitation(int groupId, [FromBody] CreateInvitationDto dto)
     {
         var userId = User.GetUserId();
