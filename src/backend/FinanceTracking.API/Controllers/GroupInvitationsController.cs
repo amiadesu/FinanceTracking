@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using FinanceTracking.API.Services;
 using FinanceTracking.API.Extensions;
 using FinanceTracking.API.DTOs;
+using FinanceTracking.API.Attributes;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -25,28 +26,18 @@ public class GroupInvitationsController : ControllerBase
     }
 
     [HttpGet]
+    [RequireGroupMembership]
     public async Task<IActionResult> GetGroupInvitations(int groupId)
     {
-        var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(groupId, userId))
-        {
-            return Forbid();
-        }
-
         var invitations = await _invitationService.GetGroupInvitationsAsync(groupId);
         return Ok(invitations);
     }
 
     [HttpPost]
+    [RequireGroupMembership]
     public async Task<IActionResult> CreateInvitation(int groupId, [FromBody] CreateInvitationDto dto)
     {
         var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(groupId, userId))
-        {
-            return Forbid();
-        }
 
         try
         {
@@ -66,14 +57,10 @@ public class GroupInvitationsController : ControllerBase
     }
 
     [HttpDelete("{invitationId}")]
+    [RequireGroupMembership]
     public async Task<IActionResult> CancelInvitation(int groupId, Guid invitationId)
     {
         var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(groupId, userId))
-        {
-            return Forbid();
-        }
 
         try
         {

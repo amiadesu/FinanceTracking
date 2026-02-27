@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FinanceTracking.API.Services;
 using FinanceTracking.API.Extensions;
+using FinanceTracking.API.Attributes;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -33,17 +34,11 @@ public class GroupsController : ControllerBase
         return Ok(groups);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetGroup(int id)
+    [HttpGet("{groupId}")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> GetGroup(int groupId)
     {
-        var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(id, userId))
-        {
-            return Forbid();
-        }
-
-        var group = await _groupService.GetGroupByIdAsync(id);
+        var group = await _groupService.GetGroupByIdAsync(groupId);
         
         if (group == null)
         {
@@ -53,31 +48,19 @@ public class GroupsController : ControllerBase
         return Ok(group);
     }
 
-    [HttpGet("{id}/members")]
-    public async Task<IActionResult> GetGroupMembers(int id)
+    [HttpGet("{groupId}/members")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> GetGroupMembers(int groupId)
     {
-        var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(id, userId))
-        {
-            return Forbid();
-        }
-
-        var members = await _groupService.GetGroupMembersAsync(id);
+        var members = await _groupService.GetGroupMembersAsync(groupId);
         return Ok(members);
     }
 
-    [HttpGet("{id}/history")]
-    public async Task<IActionResult> GetGroupHistory(int id)
+    [HttpGet("{groupId}/history")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> GetGroupHistory(int groupId)
     {
-        var userId = User.GetUserId();
-
-        if (!await _groupService.IsUserActiveMemberAsync(id, userId))
-        {
-            return Forbid();
-        }
-
-        var history = await _historyService.GetGroupHistoryAsync(id);
+        var history = await _historyService.GetGroupHistoryAsync(groupId);
         return Ok(history);
     }
 }
