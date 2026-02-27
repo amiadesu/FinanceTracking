@@ -115,6 +115,13 @@ public class GroupInvitationService
             .ToListAsync();
     }
 
+    public async Task<int> GetPendingInvitationCountAsync(Guid currentUserId)
+    {
+        return await _context.GroupInvitations
+            .Where(i => i.TargetUserId == currentUserId && i.Status == InvitationStatus.Pending)
+            .CountAsync();
+    }
+
     public async Task<IEnumerable<InvitationResponseDto>> GetGroupInvitationsAsync(int groupId)
     {
         return await _context.GroupInvitations

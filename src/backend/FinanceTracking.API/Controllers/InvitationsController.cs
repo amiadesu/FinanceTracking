@@ -28,6 +28,14 @@ public class InvitationsController : ControllerBase
         return Ok(invitations);
     }
 
+    [HttpGet("pending/count")]
+    public async Task<IActionResult> GetPendingInvitationCount()
+    {
+        var userId = User.GetUserId();
+        var count = await _invitationService.GetPendingInvitationCountAsync(userId);
+        return Ok(new { count });
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSpecificInvitation(Guid id)
     {
