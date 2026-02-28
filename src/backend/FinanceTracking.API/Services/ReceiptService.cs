@@ -102,6 +102,31 @@ public class ReceiptService
             .ToListAsync();
     }
 
+    public async Task<List<ReceiptDto>> GetReceiptsBySellerAsync(int groupId, int sellerId)
+    {
+        return await _context.Receipts
+            .Where(r => r.GroupId == groupId && r.SellerId == sellerId)
+            .Include(r => r.Seller)
+            .Include(r => r.ProductEntries)
+                .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .Select(r => Map(r))
+            .ToListAsync();
+    }
+
+    public async Task<List<ReceiptDto>> GetReceiptsByProductDataAsync(int groupId, int productDataId)
+    {
+        return await _context.Receipts
+            .Where(r => r.GroupId == groupId && r.ProductEntries.Any(pe => pe.ProductDataId == productDataId))
+            .Include(r => r.Seller)
+            .Include(r => r.ProductEntries)
+                .ThenInclude(pe => pe.ProductData)
+                .ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .Select(r => Map(r))
+            .ToListAsync();
+    }
+
     public async Task<ReceiptDto?> GetReceiptAsync(int groupId, int receiptId)
     {
         var r = await _context.Receipts

@@ -40,10 +40,22 @@ public class ReceiptsController : ControllerBase
 
     [HttpGet]
     [RequireGroupMembership]
-    public async Task<IActionResult> GetReceipts(int groupId)
+    public async Task<IActionResult> GetReceipts(int groupId, [FromQuery] int? sellerId, [FromQuery] int? productDataId)
     {
-        var receipts = await _receiptService.GetReceiptsAsync(groupId);
-        return Ok(receipts);
+        if (productDataId.HasValue && productDataId.Value > 0)
+        {
+            var productReceipts = await _receiptService.GetReceiptsByProductDataAsync(groupId, productDataId.Value);
+            return Ok(productReceipts);
+        }
+
+        if (sellerId.HasValue && sellerId.Value > 0)
+        {
+            var sellerReceipts = await _receiptService.GetReceiptsBySellerAsync(groupId, sellerId.Value);
+            return Ok(sellerReceipts);
+        }
+
+        var allReceipts = await _receiptService.GetReceiptsAsync(groupId);
+        return Ok(allReceipts);
     }
 
     [HttpGet("{receiptId}")]
