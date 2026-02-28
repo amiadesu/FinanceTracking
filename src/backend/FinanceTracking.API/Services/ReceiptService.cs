@@ -228,7 +228,33 @@ public class ReceiptService
         if (!isAuthor && !isAdminOrOwner)
             throw new ForbiddenException(ErrorMessages.UnauthorizedAccess);
 
+        var dataIdsToCheck = receipt.ProductEntries
+            .Select(pe => pe.ProductDataId)
+            .Distinct()
+            .ToList();
+
         _context.Receipts.Remove(receipt);
+        // Saving here for cascading delete of ProductEntries, 
+        // so that we can check for orphaned ProductData afterwards
+        await _context.SaveChangesAsync();
+
+        foreach (var dataId in dataIdsToCheck)
+        {
+            bool hasOtherEntries = await _context.ProductEntries
+                .AnyAsync(pe => pe.ProductDataId == dataId && pe.GroupId == groupId);
+
+            if (!hasOtherEntries)
+            {
+                var orphanedData = await _context.ProductData
+                    .FirstOrDefaultAsync(pd => pd.Id == dataId && pd.GroupId == groupId);
+
+                if (orphanedData != null)
+                {
+                    _context.ProductData.Remove(orphanedData);
+                }
+            }
+        }
+        
         await _context.SaveChangesAsync();
     }
 
