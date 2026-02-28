@@ -217,6 +217,7 @@ public class ReceiptService
     public async Task DeleteReceiptAsync(int groupId, int receiptId, Guid userId)
     {
         var receipt = await _context.Receipts
+            .Include(r => r.ProductEntries)
             .FirstOrDefaultAsync(r => r.GroupId == groupId && r.Id == receiptId);
 
         if (receipt == null)
