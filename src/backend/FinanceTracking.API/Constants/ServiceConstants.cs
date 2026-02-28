@@ -8,4 +8,5 @@ public static class ServiceConstants
 
     // categories
     public const string DefaultCategoryColor = "#000000";
+    public const int MaxCategoriesPerGroup = 50;
 }

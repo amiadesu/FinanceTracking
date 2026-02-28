@@ -32,6 +32,12 @@ public class CategoryService
         if (!InputValidator.IsValidHexColor(dto.ColorHex))
             throw new BadRequestException(ErrorMessages.InvalidColorFormat);
 
+        var currentCategoryCount = await _context.Categories
+            .CountAsync(c => c.GroupId == groupId && !c.IsSystem);
+
+        if (currentCategoryCount >= ServiceConstants.MaxCategoriesPerGroup)
+            throw new BadRequestException(ErrorMessages.TooManyCategoriesInGroup);
+
         var now = DateTime.UtcNow;
 
         var category = new Category

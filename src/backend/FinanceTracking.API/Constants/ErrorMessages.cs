@@ -29,6 +29,7 @@ public static class ErrorMessages
     public const string InvalidColorFormat = "Invalid color format. Please provide a valid hex color code.";
     public const string SystemCategoryCannotBeModified = "System categories cannot be modified.";
     public const string SystemCategoryCannotBeDeleted = "System categories cannot be deleted.";
+    public const string TooManyCategoriesInGroup = "A group cannot have more than 50 custom categories.";
 
     // Receipts
     public const string ReceiptNotFound = "Receipt not found.";
