@@ -201,7 +201,7 @@ public class ReceiptService
         await _context.SaveChangesAsync();
     }
 
-    private ReceiptDto Map(Receipt r)
+    private static ReceiptDto Map(Receipt r)
     {
         var products = r.ProductEntries?.Select(pe => new ReceiptProductDto
         {
