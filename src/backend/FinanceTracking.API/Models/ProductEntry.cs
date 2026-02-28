@@ -8,8 +8,8 @@ public class ProductEntry
     public int GroupId { get; set; }
     public int ReceiptId { get; set; }
     public int ProductDataId { get; set; }
-    public decimal? Price { get; set; }
-    public decimal? Quantity { get; set; }
+    public decimal Price { get; set; }
+    public decimal Quantity { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
 

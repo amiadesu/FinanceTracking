@@ -123,12 +123,9 @@ public class BudgetGoalService
 
         var currentAmount = await _context.Receipts
             .Where(r => r.GroupId == groupId
-                        && r.PaymentDate.HasValue
-                        && r.PaymentDate.Value >= goal.StartDate
-                        && r.PaymentDate.Value <= goal.EndDate
-                        && r.TotalAmount.HasValue)
-            // TotalAmount is not null because of the filter
-            .SumAsync(r => r.TotalAmount ?? 0m);
+                        && r.PaymentDate >= goal.StartDate
+                        && r.PaymentDate <= goal.EndDate)
+            .SumAsync(r => r.TotalAmount);
 
         return new BudgetGoalProgressDto
         {
