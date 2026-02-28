@@ -43,4 +43,7 @@ public static class ErrorMessages
     // Sellers
     public const string SellerIdRequired = "Seller ID is required.";
     public const string SellerNotOrphaned = "Seller cannot be deleted because it is associated with existing receipts.";
+
+    // Products
+    public const string ProductNotOrphaned = "Product cannot be deleted because it is associated with existing receipts.";
 }
