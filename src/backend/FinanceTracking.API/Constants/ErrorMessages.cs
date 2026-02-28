@@ -29,4 +29,12 @@ public static class ErrorMessages
     public const string InvalidColorFormat = "Invalid color format. Please provide a valid hex color code.";
     public const string SystemCategoryCannotBeModified = "System categories cannot be modified.";
     public const string SystemCategoryCannotBeDeleted = "System categories cannot be deleted.";
+
+    // Receipts
+    public const string ReceiptNotFound = "Receipt not found.";
+    public const string ReceiptProductNameRequired = "Product name is required.";
+    public const string ReceiptProductPriceRequired = "Product price is required.";
+    public const string ReceiptProductQuantityRequired = "Product quantity is required.";
+    public const string TooManyProductCategories = "A product cannot have more than 5 categories.";
+    public const string TooManyProductsOnReceipt = "A receipt cannot contain more than 50 products.";
 }

@@ -1,0 +1,325 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using FinanceTracking.API.Data;
+using FinanceTracking.API.DTOs;
+using FinanceTracking.API.Models;
+using FinanceTracking.API.Exceptions;
+using FinanceTracking.API.Constants;
+
+namespace FinanceTracking.API.Services;
+
+public class ReceiptService
+{
+    private readonly FinanceDbContext _context;
+    private readonly GroupService _groupService;
+
+    public ReceiptService(FinanceDbContext context, GroupService groupService)
+    {
+        _context = context;
+        _groupService = groupService;
+    }
+
+    public async Task<ReceiptDto> CreateReceiptAsync(int groupId, Guid? creatorId, CreateReceiptDto dto)
+    {
+        if (dto.Products != null && dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
+            throw new BadRequestException(ErrorMessages.TooManyProductsOnReceipt);
+
+        var now = DateTime.UtcNow;
+
+        var receipt = new Receipt
+        {
+            GroupId = groupId,
+            CreatedByUserId = creatorId,
+            SellerId = dto.SellerId,
+            TotalAmount = 0,  // will be computed below
+            PaymentDate = DateTime.SpecifyKind(dto.PaymentDate, DateTimeKind.Utc),
+            CreatedDate = now,
+            UpdatedDate = now,
+            ProductEntries = new List<ProductEntry>()
+        };
+
+        if (dto.Products != null)
+        {
+            foreach (var prod in dto.Products)
+            {
+                if (string.IsNullOrWhiteSpace(prod.Name))
+                    throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
+
+                var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+                if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
+                    throw new BadRequestException(ErrorMessages.TooManyProductCategories);
+
+                var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+
+                receipt.ProductEntries.Add(new ProductEntry
+                {
+                    GroupId = groupId,
+                    ProductDataId = productData.Id,
+                    Price = prod.Price,
+                    Quantity = prod.Quantity,
+                    CreatedDate = now,
+                    UpdatedDate = now
+                });
+            }
+
+            var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+            receipt.TotalAmount = computedTotal;
+        }
+
+        _context.Receipts.Add(receipt);
+        await _context.SaveChangesAsync();
+
+        return await MapReceiptAsync(receipt.Id, receipt.GroupId);
+    }
+
+    public async Task<List<ReceiptDto>> GetReceiptsAsync(int groupId)
+    {
+        return await _context.Receipts
+            .Where(r => r.GroupId == groupId)
+            .Include(r => r.ProductEntries)
+                .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .Select(r => Map(r))
+            .ToListAsync();
+    }
+
+    public async Task<ReceiptDto?> GetReceiptAsync(int groupId, int receiptId)
+    {
+        var r = await _context.Receipts
+            .Where(x => x.GroupId == groupId && x.Id == receiptId)
+            .Include(x => x.ProductEntries)
+                .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .FirstOrDefaultAsync();
+        if (r == null)
+            return null;
+
+        return Map(r);
+    }
+
+    public async Task<ReceiptDto> UpdateReceiptAsync(int groupId, int receiptId, Guid userId, UpdateReceiptDto dto)
+    {
+        var receipt = await _context.Receipts
+            .Include(r => r.ProductEntries)
+            .ThenInclude(pe => pe.ProductData)
+            .ThenInclude(pd => pd.ProductDataCategories)
+            .FirstOrDefaultAsync(r => r.GroupId == groupId && r.Id == receiptId);
+
+        if (receipt == null)
+            throw new NotFoundException(ErrorMessages.ReceiptNotFound);
+
+        // Only author, Admin or Owner is allowed to edit the receipt
+        var role = await _groupService.GetUserRoleInGroupAsync(groupId, userId);
+        var isAuthor = receipt.CreatedByUserId == userId;
+        var isAdminOrOwner = role.HasValue && role.Value <= GroupRole.Admin;
+        if (!isAuthor && !isAdminOrOwner)
+            throw new ForbiddenException(ErrorMessages.UnauthorizedAccess);
+
+        bool changed = false;
+        var now = DateTime.UtcNow;
+
+        if (dto.SellerId.HasValue && dto.SellerId != receipt.SellerId)
+        {
+            receipt.SellerId = dto.SellerId;
+            changed = true;
+        }
+        if (dto.PaymentDate.HasValue && dto.PaymentDate.Value != receipt.PaymentDate)
+        {
+            receipt.PaymentDate = DateTime.SpecifyKind(dto.PaymentDate.Value, DateTimeKind.Utc);
+            changed = true;
+        }
+
+        if (dto.Products != null)
+        {
+            if (dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
+                throw new BadRequestException(ErrorMessages.TooManyProductsOnReceipt);
+
+            // Recreating product entries from scratch
+            _context.ProductEntries.RemoveRange(receipt.ProductEntries);
+            receipt.ProductEntries.Clear();
+
+            foreach (var prod in dto.Products)
+            {
+                if (string.IsNullOrWhiteSpace(prod.Name))
+                    throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
+
+                if (!prod.Price.HasValue)
+                    throw new BadRequestException(ErrorMessages.ReceiptProductPriceRequired);
+                if (!prod.Quantity.HasValue)
+                    throw new BadRequestException(ErrorMessages.ReceiptProductQuantityRequired);
+
+                var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+                if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
+                    throw new BadRequestException(ErrorMessages.TooManyProductCategories);
+
+                var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+
+                receipt.ProductEntries.Add(new ProductEntry
+                {
+                    GroupId = groupId,
+                    ProductDataId = productData.Id,
+                    Price = prod.Price.Value,
+                    Quantity = prod.Quantity.Value,
+                    CreatedDate = now,
+                    UpdatedDate = now
+                });
+            }
+
+            var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+            receipt.TotalAmount = computedTotal;
+
+            changed = true;
+        }
+
+        if (changed)
+        {
+            receipt.UpdatedDate = now;
+            await _context.SaveChangesAsync();
+        }
+
+        return Map(receipt);
+    }
+
+    public async Task DeleteReceiptAsync(int groupId, int receiptId, Guid userId)
+    {
+        var receipt = await _context.Receipts
+            .FirstOrDefaultAsync(r => r.GroupId == groupId && r.Id == receiptId);
+
+        if (receipt == null)
+            throw new NotFoundException(ErrorMessages.ReceiptNotFound);
+
+        var role = await _groupService.GetUserRoleInGroupAsync(groupId, userId);
+        var isAuthor = receipt.CreatedByUserId == userId;
+        var isAdminOrOwner = role.HasValue && role.Value <= GroupRole.Admin;
+        if (!isAuthor && !isAdminOrOwner)
+            throw new ForbiddenException(ErrorMessages.UnauthorizedAccess);
+
+        _context.Receipts.Remove(receipt);
+        await _context.SaveChangesAsync();
+    }
+
+    private ReceiptDto Map(Receipt r)
+    {
+        var products = r.ProductEntries?.Select(pe => new ReceiptProductDto
+        {
+            Id = pe.Id,
+            Name = pe.ProductData?.Name,
+            Categories = pe.ProductData?.ProductDataCategories?
+                .Select(pdc => pdc.Category.Name)
+                .ToList() ?? new List<string>(),
+            Price = pe.Price,
+            Quantity = pe.Quantity
+        }).ToList() ?? new List<ReceiptProductDto>();
+
+        return new ReceiptDto
+        {
+            Id = r.Id,
+            GroupId = r.GroupId,
+            CreatedByUserId = r.CreatedByUserId,
+            SellerId = r.SellerId,
+            TotalAmount = r.TotalAmount,
+            PaymentDate = r.PaymentDate,
+            CreatedDate = r.CreatedDate,
+            UpdatedDate = r.UpdatedDate,
+            Products = products
+        };
+    }
+
+    private async Task<ReceiptDto> MapReceiptAsync(int receiptId, int groupId)
+    {
+        var r = await _context.Receipts
+            .Include(x => x.ProductEntries)
+                .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .FirstOrDefaultAsync(x => x.GroupId == groupId && x.Id == receiptId);
+
+        if (r == null)
+            throw new NotFoundException(ErrorMessages.ReceiptNotFound);
+
+        return Map(r);
+    }
+
+    private async Task<List<Category>> GetOrCreateCategoriesAsync(int groupId, List<string> names)
+    {
+        var processed = names
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Select(n => n.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (!processed.Any())
+            return new List<Category>();
+
+        var existing = await _context.Categories
+            .Where(c => c.GroupId == groupId && processed.Contains(c.Name))
+            .ToListAsync();
+
+        var existingNames = existing.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var toAdd = processed
+            .Where(n => !existingNames.Contains(n))
+            .Select(n => new Category
+            {
+                GroupId = groupId,
+                Name = n,
+                ColorHex = ServiceConstants.DefaultCategoryColor,
+                IsSystem = false,
+                CreatedDate = DateTime.UtcNow,
+                UpdatedDate = DateTime.UtcNow
+            })
+            .ToList();
+
+        if (toAdd.Any())
+        {
+            _context.Categories.AddRange(toAdd);
+            await _context.SaveChangesAsync();
+            existing.AddRange(toAdd);
+        }
+
+        return existing;
+    }
+
+    private async Task<ProductData> FindOrCreateProductDataAsync(int groupId, string name, List<int> categoryIds)
+    {
+        var candidates = await _context.ProductData
+            .Include(pd => pd.ProductDataCategories)
+            .Where(pd => pd.GroupId == groupId && pd.Name == name)
+            .ToListAsync();
+
+        categoryIds.Sort();
+
+        foreach (var pd in candidates)
+        {
+            var ids = pd.ProductDataCategories.Select(pdc => pdc.CategoryId).OrderBy(x => x).ToList();
+            if (ids.SequenceEqual(categoryIds))
+                return pd;
+        }
+
+        var now = DateTime.UtcNow;
+        var product = new ProductData
+        {
+            GroupId = groupId,
+            Name = name,
+            Description = null,
+            CreatedDate = now,
+            UpdatedDate = now,
+            ProductDataCategories = new List<ProductDataCategory>()
+        };
+
+        foreach (var catId in categoryIds.Distinct())
+        {
+            product.ProductDataCategories.Add(new ProductDataCategory
+            {
+                CategoryId = catId,
+                GroupId = groupId
+            });
+        }
+
+        _context.ProductData.Add(product);
+        await _context.SaveChangesAsync();
+
+        return product;
+    }
+}

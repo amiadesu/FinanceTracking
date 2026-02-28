@@ -30,6 +30,7 @@ builder.Services.AddScoped<GroupHistoryService>();
 builder.Services.AddScoped<GroupInvitationService>();
 builder.Services.AddScoped<BudgetGoalService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ReceiptService>();
 
 builder.Host.UseWolverine(opts =>
 {
