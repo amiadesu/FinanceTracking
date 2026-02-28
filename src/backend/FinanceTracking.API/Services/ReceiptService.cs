@@ -26,7 +26,10 @@ public class ReceiptService
 
     public async Task<ReceiptDto> CreateReceiptAsync(int groupId, Guid? creatorId, CreateReceiptDto dto)
     {
-        if (dto.Products != null && dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
+        if (dto.Products == null || dto.Products.Count() == 0)
+            throw new BadRequestException(ErrorMessages.ReceiptShouldHaveAtLeastOneProduct);
+
+        if (dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
             throw new BadRequestException(ErrorMessages.TooManyProductsOnReceipt);
 
         var now = DateTime.UtcNow;
@@ -56,33 +59,30 @@ public class ReceiptService
 
         receipt.SellerId = dto.SellerId;
 
-        if (dto.Products != null)
+        foreach (var prod in dto.Products)
         {
-            foreach (var prod in dto.Products)
+            if (string.IsNullOrWhiteSpace(prod.Name))
+                throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
+
+            var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+            if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
+                throw new BadRequestException(ErrorMessages.TooManyProductCategories);
+
+            var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+
+            receipt.ProductEntries.Add(new ProductEntry
             {
-                if (string.IsNullOrWhiteSpace(prod.Name))
-                    throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
-
-                var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
-                if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
-                    throw new BadRequestException(ErrorMessages.TooManyProductCategories);
-
-                var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
-
-                receipt.ProductEntries.Add(new ProductEntry
-                {
-                    GroupId = groupId,
-                    ProductDataId = productData.Id,
-                    Price = prod.Price,
-                    Quantity = prod.Quantity,
-                    CreatedDate = now,
-                    UpdatedDate = now
-                });
-            }
-
-            var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
-            receipt.TotalAmount = computedTotal;
+                GroupId = groupId,
+                ProductDataId = productData.Id,
+                Price = prod.Price,
+                Quantity = prod.Quantity,
+                CreatedDate = now,
+                UpdatedDate = now
+            });
         }
+
+        var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+        receipt.TotalAmount = computedTotal;
 
         _context.Receipts.Add(receipt);
         await _context.SaveChangesAsync();
@@ -119,6 +119,12 @@ public class ReceiptService
 
     public async Task<ReceiptDto> UpdateReceiptAsync(int groupId, int receiptId, Guid userId, UpdateReceiptDto dto)
     {
+        if (dto.Products == null || dto.Products.Count() == 0)
+            throw new BadRequestException(ErrorMessages.ReceiptShouldHaveAtLeastOneProduct);
+
+        if (dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
+            throw new BadRequestException(ErrorMessages.TooManyProductsOnReceipt);
+
         var receipt = await _context.Receipts
             .Include(r => r.ProductEntries)
             .ThenInclude(pe => pe.ProductData)
@@ -163,47 +169,41 @@ public class ReceiptService
             changed = true;
         }
 
-        if (dto.Products != null)
+        // Recreating product entries from scratch
+        _context.ProductEntries.RemoveRange(receipt.ProductEntries);
+        receipt.ProductEntries.Clear();
+
+        foreach (var prod in dto.Products)
         {
-            if (dto.Products.Count > ServiceConstants.MaxProductsPerReceipt)
-                throw new BadRequestException(ErrorMessages.TooManyProductsOnReceipt);
+            if (string.IsNullOrWhiteSpace(prod.Name))
+                throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
 
-            // Recreating product entries from scratch
-            _context.ProductEntries.RemoveRange(receipt.ProductEntries);
-            receipt.ProductEntries.Clear();
+            if (!prod.Price.HasValue)
+                throw new BadRequestException(ErrorMessages.ReceiptProductPriceRequired);
+            if (!prod.Quantity.HasValue)
+                throw new BadRequestException(ErrorMessages.ReceiptProductQuantityRequired);
 
-            foreach (var prod in dto.Products)
+            var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+            if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
+                throw new BadRequestException(ErrorMessages.TooManyProductCategories);
+
+            var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+
+            receipt.ProductEntries.Add(new ProductEntry
             {
-                if (string.IsNullOrWhiteSpace(prod.Name))
-                    throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
-
-                if (!prod.Price.HasValue)
-                    throw new BadRequestException(ErrorMessages.ReceiptProductPriceRequired);
-                if (!prod.Quantity.HasValue)
-                    throw new BadRequestException(ErrorMessages.ReceiptProductQuantityRequired);
-
-                var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
-                if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
-                    throw new BadRequestException(ErrorMessages.TooManyProductCategories);
-
-                var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
-
-                receipt.ProductEntries.Add(new ProductEntry
-                {
-                    GroupId = groupId,
-                    ProductDataId = productData.Id,
-                    Price = prod.Price.Value,
-                    Quantity = prod.Quantity.Value,
-                    CreatedDate = now,
-                    UpdatedDate = now
-                });
-            }
-
-            var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
-            receipt.TotalAmount = computedTotal;
-
-            changed = true;
+                GroupId = groupId,
+                ProductDataId = productData.Id,
+                Price = prod.Price.Value,
+                Quantity = prod.Quantity.Value,
+                CreatedDate = now,
+                UpdatedDate = now
+            });
         }
+
+        var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+        receipt.TotalAmount = computedTotal;
+
+        changed = true;
 
         if (changed)
         {
