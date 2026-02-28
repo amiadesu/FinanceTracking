@@ -45,19 +45,16 @@ public class ReceiptService
         if (dto.SellerId <= 0)
             throw new BadRequestException(ErrorMessages.SellerIdRequired);
 
-        int sellerId;
         var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
-        if (existingSeller != null)
+        if (existingSeller == null)
         {
-            sellerId = existingSeller.Id;
-        }
-        else
-        {
-            var createdSeller = await _sellerService.CreateSellerAsync(groupId, new CreateSellerDto { Name = null });
-            sellerId = createdSeller.Id;
+            await _sellerService.CreateSellerAsync(
+                groupId, 
+                new CreateSellerDto { Id = dto.SellerId, Name = null }
+            );
         }
 
-        receipt.SellerId = sellerId;
+        receipt.SellerId = dto.SellerId;
 
         if (dto.Products != null)
         {
@@ -148,19 +145,16 @@ public class ReceiptService
 
         if (dto.SellerId.HasValue && dto.SellerId != receipt.SellerId)
         {
-            int sellerId;
             var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId.Value);
-            if (existingSeller != null)
+            if (existingSeller == null)
             {
-                sellerId = existingSeller.Id;
-            }
-            else
-            {
-                var createdSeller = await _sellerService.CreateSellerAsync(groupId, new CreateSellerDto { Name = null });
-                sellerId = createdSeller.Id;
+                await _sellerService.CreateSellerAsync(
+                    groupId, 
+                    new CreateSellerDto { Id = dto.SellerId.Value, Name = null }
+                );
             }
 
-            receipt.SellerId = sellerId;
+            receipt.SellerId = dto.SellerId.Value;
             changed = true;
         }
         if (dto.PaymentDate.HasValue && dto.PaymentDate.Value != receipt.PaymentDate)

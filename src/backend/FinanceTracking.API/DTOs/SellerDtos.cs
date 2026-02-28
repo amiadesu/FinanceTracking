@@ -14,6 +14,7 @@ public class SellerDto
 
 public class CreateSellerDto
 {
+    public int Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
 }

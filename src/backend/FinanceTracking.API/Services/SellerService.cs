@@ -25,6 +25,7 @@ public class SellerService
         var now = DateTime.UtcNow;
         var seller = new Seller
         {
+            Id = dto.Id,
             GroupId = groupId,
             Name = string.IsNullOrWhiteSpace(dto.Name) ? null : dto.Name.Trim(),
             Description = dto.Description?.Trim(),
