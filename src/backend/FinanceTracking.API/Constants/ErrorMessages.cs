@@ -37,4 +37,7 @@ public static class ErrorMessages
     public const string ReceiptProductQuantityRequired = "Product quantity is required.";
     public const string TooManyProductCategories = "A product cannot have more than 5 categories.";
     public const string TooManyProductsOnReceipt = "A receipt cannot contain more than 50 products.";
+
+    // Sellers
+    public const string SellerIdRequired = "Seller ID is required.";
 }
