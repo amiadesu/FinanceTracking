@@ -24,6 +24,15 @@ console.log(data.value, error.value);
         <NuxtLink :to="`/groups/${groupId}/history`">
             Group history
         </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/categories`">
+            Categories
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/goals`">
+            Budget Goals
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/receipts`">
+            Receipts
+        </NuxtLink>
         {{ data }}
     </pre>
   </div>
