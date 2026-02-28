@@ -15,11 +15,13 @@ public class ReceiptService
 {
     private readonly FinanceDbContext _context;
     private readonly GroupService _groupService;
+    private readonly SellerService _sellerService;
 
-    public ReceiptService(FinanceDbContext context, GroupService groupService)
+    public ReceiptService(FinanceDbContext context, GroupService groupService, SellerService sellerService)
     {
         _context = context;
         _groupService = groupService;
+        _sellerService = sellerService;
     }
 
     public async Task<ReceiptDto> CreateReceiptAsync(int groupId, Guid? creatorId, CreateReceiptDto dto)
@@ -33,13 +35,29 @@ public class ReceiptService
         {
             GroupId = groupId,
             CreatedByUserId = creatorId,
-            SellerId = dto.SellerId,
             TotalAmount = 0,  // will be computed below
             PaymentDate = DateTime.SpecifyKind(dto.PaymentDate, DateTimeKind.Utc),
             CreatedDate = now,
             UpdatedDate = now,
             ProductEntries = new List<ProductEntry>()
         };
+
+        if (dto.SellerId <= 0)
+            throw new BadRequestException(ErrorMessages.SellerIdRequired);
+
+        int sellerId;
+        var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
+        if (existingSeller != null)
+        {
+            sellerId = existingSeller.Id;
+        }
+        else
+        {
+            var createdSeller = await _sellerService.CreateSellerAsync(groupId, new CreateSellerDto { Name = null });
+            sellerId = createdSeller.Id;
+        }
+
+        receipt.SellerId = sellerId;
 
         if (dto.Products != null)
         {
@@ -79,6 +97,7 @@ public class ReceiptService
     {
         return await _context.Receipts
             .Where(r => r.GroupId == groupId)
+            .Include(r => r.Seller)
             .Include(r => r.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
                     .ThenInclude(pdc => pdc.Category)
@@ -90,6 +109,7 @@ public class ReceiptService
     {
         var r = await _context.Receipts
             .Where(x => x.GroupId == groupId && x.Id == receiptId)
+            .Include(x => x.Seller)
             .Include(x => x.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
                     .ThenInclude(pdc => pdc.Category)
@@ -121,9 +141,26 @@ public class ReceiptService
         bool changed = false;
         var now = DateTime.UtcNow;
 
+        if (dto.SellerId.HasValue && dto.SellerId.Value <= 0)
+        {
+            throw new BadRequestException(ErrorMessages.SellerIdRequired);
+        }
+
         if (dto.SellerId.HasValue && dto.SellerId != receipt.SellerId)
         {
-            receipt.SellerId = dto.SellerId;
+            int sellerId;
+            var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId.Value);
+            if (existingSeller != null)
+            {
+                sellerId = existingSeller.Id;
+            }
+            else
+            {
+                var createdSeller = await _sellerService.CreateSellerAsync(groupId, new CreateSellerDto { Name = null });
+                sellerId = createdSeller.Id;
+            }
+
+            receipt.SellerId = sellerId;
             changed = true;
         }
         if (dto.PaymentDate.HasValue && dto.PaymentDate.Value != receipt.PaymentDate)
@@ -220,6 +257,7 @@ public class ReceiptService
             GroupId = r.GroupId,
             CreatedByUserId = r.CreatedByUserId,
             SellerId = r.SellerId,
+            SellerName = r.Seller?.Name,
             TotalAmount = r.TotalAmount,
             PaymentDate = r.PaymentDate,
             CreatedDate = r.CreatedDate,
@@ -231,6 +269,7 @@ public class ReceiptService
     private async Task<ReceiptDto> MapReceiptAsync(int receiptId, int groupId)
     {
         var r = await _context.Receipts
+            .Include(x => x.Seller)
             .Include(x => x.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
                     .ThenInclude(pdc => pdc.Category)
