@@ -56,8 +56,14 @@ export const receiptService = {
     });
   },
 
-  getReceipts(groupId: number) {
-    return useApiFetch<ReceiptDto[]>(`/api/groups/${groupId}/receipts`, { method: 'GET' });
+  getReceipts(groupId: number, params?: { sellerId?: number; productDataId?: number }) {
+    const query = new URLSearchParams();
+    if (params?.sellerId) query.append('sellerId', params.sellerId.toString());
+    if (params?.productDataId) query.append('productDataId', params.productDataId.toString());
+    
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    
+    return useApiFetch<ReceiptDto[]>(`/api/groups/${groupId}/receipts${queryString}`, { method: 'GET' });
   },
 
   getReceipt(groupId: number, receiptId: number) {
