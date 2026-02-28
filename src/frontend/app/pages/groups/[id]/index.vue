@@ -33,6 +33,12 @@ console.log(data.value, error.value);
         <NuxtLink :to="`/groups/${groupId}/receipts`">
             Receipts
         </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/sellers`">
+            Sellers
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/products`">
+            Products
+        </NuxtLink>
         {{ data }}
     </pre>
   </div>
