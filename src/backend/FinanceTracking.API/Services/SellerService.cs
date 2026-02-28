@@ -55,6 +55,45 @@ public class SellerService
             .ToListAsync();
     }
 
+    public async Task<SellerDto?> UpdateSellerAsync(int groupId, int sellerId, UpdateSellerDto dto)
+    {
+        var seller = await _context.Sellers
+            .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);
+
+        if (seller == null) return null;
+
+        if (dto.Name != null) 
+            seller.Name = string.IsNullOrWhiteSpace(dto.Name) ? null : dto.Name.Trim();
+        
+        if (dto.Description != null) 
+            seller.Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim();
+
+        seller.UpdatedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return Map(seller);
+    }
+
+    public async Task<bool> DeleteSellerAsync(int groupId, int sellerId)
+    {
+        var seller = await _context.Sellers
+            .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);
+
+        if (seller == null) return false;
+
+        // Check if the seller is orphaned (not used by any receipts)
+        var isUsed = await _context.Receipts
+            .AnyAsync(r => r.GroupId == groupId && r.SellerId == sellerId);
+
+        if (isUsed)
+            throw new InvalidOperationException(ErrorMessages.SellerNotOrphaned);
+
+        _context.Sellers.Remove(seller);
+        await _context.SaveChangesAsync();
+        
+        return true;
+    }
+
     private static SellerDto Map(Seller s) => new SellerDto
     {
         Id = s.Id,

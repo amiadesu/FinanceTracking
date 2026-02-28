@@ -39,4 +39,35 @@ public class SellersController : ControllerBase
             return NotFound();
         return Ok(seller);
     }
+
+    [HttpPatch("{sellerId}")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> UpdateSeller(int groupId, int sellerId, [FromBody] UpdateSellerDto dto)
+    {
+        var seller = await _sellerService.UpdateSellerAsync(groupId, sellerId, dto);
+        
+        if (seller == null)
+            return NotFound();
+
+        return Ok(seller);
+    }
+
+    [HttpDelete("{sellerId}")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> DeleteSeller(int groupId, int sellerId)
+    {
+        try
+        {
+            var deleted = await _sellerService.DeleteSellerAsync(groupId, sellerId);
+            
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
