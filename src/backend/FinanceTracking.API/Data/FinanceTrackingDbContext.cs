@@ -101,9 +101,10 @@ public class FinanceDbContext : DbContext
                         .HasForeignKey(r => r.CreatedByUserId).OnDelete(DeleteBehavior.SetNull);
                         
                   // Matches foreign key: FOREIGN KEY (seller_id, group_id) REFERENCES sellers(id, group_id)
+                  entity.Property(r => r.SellerId).IsRequired();
                   entity.HasOne(r => r.Seller).WithMany(s => s.Receipts)
                         .HasForeignKey(r => new { r.SellerId, r.GroupId })
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
             });
 
             // 8. ProductData (Composite PK)

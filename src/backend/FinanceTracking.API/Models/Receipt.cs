@@ -7,7 +7,7 @@ public class Receipt
     public int Id { get; set; }
     public int GroupId { get; set; }
     public Guid? CreatedByUserId { get; set; }
-    public int? SellerId { get; set; }
+    public int SellerId { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime PaymentDate { get; set; }
     public DateTime CreatedDate { get; set; }
