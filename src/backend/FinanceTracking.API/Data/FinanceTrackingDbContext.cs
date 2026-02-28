@@ -195,31 +195,46 @@ public class FinanceDbContext : DbContext
 
       public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
       {
-            var deletingEntries = ChangeTracker.Entries<ProductEntry>()
-                  .Where(e => e.State == EntityState.Deleted)
+            var entriesToCheck = ChangeTracker.Entries<ProductEntry>()
+                  .Where(e => e.State == EntityState.Deleted || 
+                              (e.State == EntityState.Modified && 
+                              e.OriginalValues.GetValue<int>("ProductDataId") != e.CurrentValues.GetValue<int>("ProductDataId")))
+                  .Select(e => new 
+                  { 
+                        ProductDataId = e.State == EntityState.Deleted ? e.Entity.ProductDataId : e.OriginalValues.GetValue<int>("ProductDataId"),
+                        GroupId = e.Entity.GroupId,
+                        EntryId = e.Entity.Id 
+                  })
+                  .ToList();
+
+            var incomingEntries = ChangeTracker.Entries<ProductEntry>()
+                  .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
                   .Select(e => e.Entity)
                   .ToList();
 
-            foreach (var entry in deletingEntries)
+            foreach (var target in entriesToCheck)
             {
+                  bool isKeptAliveLocally = incomingEntries.Any(pe => 
+                        pe.ProductDataId == target.ProductDataId && 
+                        pe.GroupId == target.GroupId);
+
+                  if (isKeptAliveLocally) continue;
+
                   bool hasOtherEntries = await ProductEntries
-                        .AnyAsync(
-                              pe => pe.ProductDataId == entry.ProductDataId 
-                                    && pe.GroupId == entry.GroupId 
-                                    && pe.Id != entry.Id, 
-                              cancellationToken
-                        );
+                        .AnyAsync(pe => pe.ProductDataId == target.ProductDataId 
+                                    && pe.GroupId == target.GroupId 
+                                    && pe.Id != target.EntryId, 
+                              cancellationToken);
 
                   if (!hasOtherEntries)
                   {
                         var orphanedData = await ProductData.FindAsync(
-                              new object[] { entry.ProductDataId, entry.GroupId }, 
-                              cancellationToken
-                        );
+                        new object[] { target.ProductDataId, target.GroupId }, 
+                        cancellationToken);
                         
                         if (orphanedData != null)
                         {
-                              ProductData.Remove(orphanedData);
+                        ProductData.Remove(orphanedData);
                         }
                   }
             }

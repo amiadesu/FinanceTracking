@@ -169,9 +169,14 @@ public class ReceiptService
             changed = true;
         }
 
-        // Recreating product entries from scratch
-        _context.ProductEntries.RemoveRange(receipt.ProductEntries);
-        receipt.ProductEntries.Clear();
+        var incomingIds = dto.Products.Where(p => p.Id.HasValue).Select(p => p.Id.Value).ToList();
+        var entriesToRemove = receipt.ProductEntries.Where(pe => !incomingIds.Contains(pe.Id)).ToList();
+
+        foreach (var entry in entriesToRemove)
+        {
+            _context.ProductEntries.Remove(entry);
+            changed = true;
+        }
 
         foreach (var prod in dto.Products)
         {
@@ -189,21 +194,44 @@ public class ReceiptService
 
             var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
 
-            receipt.ProductEntries.Add(new ProductEntry
+            var existingEntry = prod.Id.HasValue 
+                ? receipt.ProductEntries.FirstOrDefault(pe => pe.Id == prod.Id.Value) 
+                : null;
+
+            if (existingEntry != null)
             {
-                GroupId = groupId,
-                ProductDataId = productData.Id,
-                Price = prod.Price.Value,
-                Quantity = prod.Quantity.Value,
-                CreatedDate = now,
-                UpdatedDate = now
-            });
+                if (existingEntry.Price != prod.Price.Value || 
+                    existingEntry.Quantity != prod.Quantity.Value || 
+                    existingEntry.ProductDataId != productData.Id)
+                {
+                    existingEntry.Price = prod.Price.Value;
+                    existingEntry.Quantity = prod.Quantity.Value;
+                    existingEntry.ProductDataId = productData.Id;
+                    existingEntry.UpdatedDate = now;
+                    changed = true;
+                }
+            }
+            else
+            {
+                receipt.ProductEntries.Add(new ProductEntry
+                {
+                    GroupId = groupId,
+                    ProductDataId = productData.Id,
+                    Price = prod.Price.Value,
+                    Quantity = prod.Quantity.Value,
+                    CreatedDate = now,
+                    UpdatedDate = now
+                });
+                changed = true;
+            }
         }
 
         var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
-        receipt.TotalAmount = computedTotal;
-
-        changed = true;
+        if (receipt.TotalAmount != computedTotal)
+        {
+            receipt.TotalAmount = computedTotal;
+            changed = true;
+        }
 
         if (changed)
         {
