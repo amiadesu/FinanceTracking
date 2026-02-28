@@ -42,6 +42,7 @@ public class SellersController : ControllerBase
 
     [HttpPatch("{sellerId}")]
     [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> UpdateSeller(int groupId, int sellerId, [FromBody] UpdateSellerDto dto)
     {
         var seller = await _sellerService.UpdateSellerAsync(groupId, sellerId, dto);
@@ -54,6 +55,7 @@ public class SellersController : ControllerBase
 
     [HttpDelete("{sellerId}")]
     [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> DeleteSeller(int groupId, int sellerId)
     {
         try
