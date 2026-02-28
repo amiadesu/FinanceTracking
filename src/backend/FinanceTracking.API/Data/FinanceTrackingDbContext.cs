@@ -192,4 +192,38 @@ public class FinanceDbContext : DbContext
                   new Role { Id = GroupRole.Member, Name = GroupRole.Member.ToString() }
             );
       }
+
+      public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+      {
+            var deletingEntries = ChangeTracker.Entries<ProductEntry>()
+                  .Where(e => e.State == EntityState.Deleted)
+                  .Select(e => e.Entity)
+                  .ToList();
+
+            foreach (var entry in deletingEntries)
+            {
+                  bool hasOtherEntries = await ProductEntries
+                        .AnyAsync(
+                              pe => pe.ProductDataId == entry.ProductDataId 
+                                    && pe.GroupId == entry.GroupId 
+                                    && pe.Id != entry.Id, 
+                              cancellationToken
+                        );
+
+                  if (!hasOtherEntries)
+                  {
+                        var orphanedData = await ProductData.FindAsync(
+                              new object[] { entry.ProductDataId, entry.GroupId }, 
+                              cancellationToken
+                        );
+                        
+                        if (orphanedData != null)
+                        {
+                              ProductData.Remove(orphanedData);
+                        }
+                  }
+            }
+
+            return await base.SaveChangesAsync(cancellationToken);
+      }
 }
