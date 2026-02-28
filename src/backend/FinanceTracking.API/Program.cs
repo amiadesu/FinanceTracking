@@ -32,6 +32,7 @@ builder.Services.AddScoped<BudgetGoalService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ReceiptService>();
 builder.Services.AddScoped<SellerService>();
+builder.Services.AddScoped<ProductDataService>();
 
 builder.Host.UseWolverine(opts =>
 {
