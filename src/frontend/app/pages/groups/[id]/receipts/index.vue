@@ -6,6 +6,9 @@ import { categoryService } from '~/services/categoryService';
 import type { ReceiptDto, CreateReceiptDto } from '~/services/receiptService';
 import type { CategoryDto } from '~/services/categoryService';
 import CategoryPicker from '~/components/CategoryPicker.vue';
+import { sellerService } from '~/services/sellerService';
+import type { SellerDto } from '~/services/sellerService';
+import SellerPicker from '~/components/SellerPicker.vue';
 
 interface FormProduct {
   _uid: string;
@@ -21,6 +24,7 @@ const groupId = Number(route.params.id);
 
 const receipts = ref<ReceiptDto[]>([]);
 const categories = ref<CategoryDto[]>([]);
+const sellers = ref<SellerDto[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -48,12 +52,14 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [receiptsData, categoriesData] = await Promise.all([
+    const [receiptsData, categoriesData, sellersData] = await Promise.all([
       receiptService.getReceipts(groupId),
-      categoryService.getCategories(groupId)
+      categoryService.getCategories(groupId),
+      sellerService.getSellers(groupId)
     ]);
     receipts.value = receiptsData;
     categories.value = categoriesData;
+    sellers.value = sellersData;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {
@@ -183,9 +189,9 @@ onMounted(() => loadData());
           <input type="date" v-model="newReceipt.paymentDate" class="border p-1" />
         </label>
 
-        <label class="flex flex-col">
-          Seller ID
-          <input type="number" v-model.number="newReceipt.sellerId" class="border p-1" />
+        <label class="flex flex-col relative">
+          Seller
+          <SellerPicker :sellers="sellers" v-model="newReceipt.sellerId" />
         </label>
 
         <div class="border rounded p-4 bg-gray-50">

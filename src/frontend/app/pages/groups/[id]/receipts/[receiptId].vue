@@ -6,6 +6,9 @@ import { categoryService } from '~/services/categoryService';
 import type { ReceiptDto, UpdateReceiptDto } from '~/services/receiptService';
 import type { CategoryDto } from '~/services/categoryService';
 import CategoryPicker from '~/components/CategoryPicker.vue';
+import { sellerService } from '~/services/sellerService';
+import type { SellerDto } from '~/services/sellerService';
+import SellerPicker from '~/components/SellerPicker.vue';
 
 interface FormProduct {
   _uid: string; // Unique ID for Vue's v-for key tracking
@@ -23,6 +26,7 @@ const receiptId = Number(route.params.receiptId);
 
 const receipt = ref<ReceiptDto | null>(null);
 const categories = ref<CategoryDto[]>([]);
+const sellers = ref<SellerDto[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -43,12 +47,14 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [receiptData, categoriesData] = await Promise.all([
+    const [receiptData, categoriesData, sellersData] = await Promise.all([
       receiptService.getReceipt(groupId, receiptId),
-      categoryService.getCategories(groupId)
+      categoryService.getCategories(groupId),
+      sellerService.getSellers(groupId)
     ]);
     receipt.value = receiptData;
     categories.value = categoriesData;
+    sellers.value = sellersData;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {
@@ -244,9 +250,9 @@ onMounted(() => load());
           <input type="date" v-model="editDto.paymentDate" class="border p-1" />
         </label>
 
-        <label class="flex flex-col">
-          Seller ID
-          <input type="number" v-model.number="editDto.sellerId" class="border p-1" />
+        <label class="flex flex-col relative">
+          Seller
+          <SellerPicker :sellers="sellers" v-model="editDto.sellerId!" />
         </label>
 
         <div class="border rounded p-4 bg-gray-50">
