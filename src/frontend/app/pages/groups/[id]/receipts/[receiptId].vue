@@ -47,14 +47,15 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [receiptData, categoriesData, sellersData] = await Promise.all([
+    const [receiptData, categoriesResponse, sellersResponse] = await Promise.all([
       receiptService.getReceipt(groupId, receiptId),
       categoryService.getCategories(groupId),
       sellerService.getSellers(groupId)
     ]);
+    
     receipt.value = receiptData;
-    categories.value = categoriesData;
-    sellers.value = sellersData;
+    categories.value = categoriesResponse.categories;
+    sellers.value = sellersResponse.sellers;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {

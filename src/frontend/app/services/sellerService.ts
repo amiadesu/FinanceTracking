@@ -7,6 +7,12 @@ export interface SellerDto {
   updatedDate: string;
 }
 
+export interface SellerListResponseDto {
+  currentCount: number;
+  maxAllowed: number;
+  sellers: SellerDto[];
+}
+
 export interface UpdateSellerDto {
   name?: string | null;
   description?: string | null;
@@ -16,7 +22,7 @@ import { useApiFetch } from '@/utils/useApiFetch';
 
 export const sellerService = {
   getSellers(groupId: number) {
-    return useApiFetch<SellerDto[]>(`/api/groups/${groupId}/sellers`, { method: 'GET' });
+    return useApiFetch<SellerListResponseDto>(`/api/groups/${groupId}/sellers`, { method: 'GET' });
   },
 
   getSeller(groupId: number, sellerId: number) {

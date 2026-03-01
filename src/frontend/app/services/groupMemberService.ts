@@ -1,21 +1,26 @@
 export interface GroupMemberDto {
   userId: string;
   userName: string;
-  role: GroupRole;
+  role: number;
   active: boolean;
   joinedDate: string;
 }
 
+export interface GroupMemberListResponseDto {
+  currentCount: number;
+  maxAllowed: number;
+  groupMembers: GroupMemberDto[];
+}
+
 export interface UpdateGroupMemberRoleDto {
-  role?: GroupRole | null;
+  role?: number | null;
 }
 
 import { useApiFetch } from '@/utils/useApiFetch';
-import type { GroupRole } from '~/constants/roles';
 
 export const groupMemberService = {
   getMembers(groupId: number) {
-    return useApiFetch<GroupMemberDto[]>(`/api/groups/${groupId}/members`, { method: 'GET' });
+    return useApiFetch<GroupMemberListResponseDto>(`/api/groups/${groupId}/members`, { method: 'GET' });
   },
 
   getMember(groupId: number, userId: string) {
@@ -23,7 +28,7 @@ export const groupMemberService = {
   },
 
   getMyRole(groupId: number) {
-    return useApiFetch<{ role: GroupRole }>(`/api/groups/${groupId}/members/me/role`, { method: 'GET' });
+    return useApiFetch<{ role: number }>(`/api/groups/${groupId}/members/me/role`, { method: 'GET' });
   },
 
   updateRole(groupId: number, userId: string, dto: UpdateGroupMemberRoleDto) {

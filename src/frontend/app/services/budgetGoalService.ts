@@ -8,6 +8,12 @@ export interface BudgetGoalDto {
   updatedDate: string;
 }
 
+export interface BudgetGoalListResponseDto {
+  currentCount: number;
+  maxAllowed: number;
+  budgetGoals: BudgetGoalDto[];
+}
+
 export interface BudgetGoalProgressDto {
   goalId: number;
   groupId: number;
@@ -40,7 +46,7 @@ export const budgetGoalService = {
   },
 
   getGoals(groupId: number) {
-    return useApiFetch<BudgetGoalDto[]>(`/api/groups/${groupId}/budget-goals`, { method: 'GET' });
+    return useApiFetch<BudgetGoalListResponseDto>(`/api/groups/${groupId}/budget-goals`, { method: 'GET' });
   },
 
   getGoal(groupId: number, goalId: number) {

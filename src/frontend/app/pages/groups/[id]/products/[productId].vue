@@ -34,13 +34,13 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [productData, categoriesData] = await Promise.all([
+    const [productData, categoriesResponse] = await Promise.all([
       productService.getProduct(groupId, productId),
       categoryService.getCategories(groupId)
     ]);
     
     product.value = productData;
-    categories.value = categoriesData;
+    categories.value = categoriesResponse.categories;
     
     if (product.value) {
       editDto.name = product.value.name;
@@ -66,7 +66,8 @@ async function fetchReceipts() {
   
   loadingReceipts.value = true;
   try {
-    receipts.value = await receiptService.getReceipts(groupId, { productDataId: productId });
+    const receiptsDtos = await receiptService.getFilteredReceipts(groupId, { productDataId: productId });
+    receipts.value = receiptsDtos;
   } catch (err: any) {
     alert(err.message || 'Error loading associated receipts');
   } finally {

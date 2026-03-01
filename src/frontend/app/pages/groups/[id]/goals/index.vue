@@ -3,12 +3,16 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, CreateBudgetGoalDto } from '~/services/budgetGoalService';
+import { useLimitDisplay } from '~/composables/useLimitDisplay';
 
 const route = useRoute();
 const router = useRouter();
 const groupId = Number(route.params.id);
 
 const goals = ref<BudgetGoalDto[]>([]);
+const currentCount = ref(0);
+const maxAllowed = ref(0);
+
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -19,12 +23,19 @@ const newGoal: CreateBudgetGoalDto = {
   endDate: ''
 };
 
+const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
+
 async function loadGoals() {
   loading.value = true;
   error.value = null;
   try {
-    const res = await budgetGoalService.getGoals(groupId);
-    goals.value = res;
+    const [budgetGoalsResponse] = await Promise.all([
+      budgetGoalService.getGoals(groupId)
+    ]);
+    
+    currentCount.value = budgetGoalsResponse.currentCount;
+    maxAllowed.value = budgetGoalsResponse.maxAllowed;
+    goals.value = budgetGoalsResponse.budgetGoals;
   } catch (err: any) {
     error.value = err.message || 'Failed to load goals';
   } finally {
@@ -57,6 +68,12 @@ onMounted(() => {
 <template>
   <div class="p-4">
     <h1 class="text-xl font-bold">Budget Goals</h1>
+    <p class="text-sm text-gray-600 mt-1" v-if="!loading">
+      Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
+    </p>
+    <button @click="() => router.push(`/groups/${groupId}`)" class="text-blue-600 underline text-sm">
+      Back to Group
+    </button>
     <div v-if="loading">Loading…</div>
     <div v-if="error" class="text-red-600">{{ error }}</div>
 

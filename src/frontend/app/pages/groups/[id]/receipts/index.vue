@@ -9,6 +9,7 @@ import CategoryPicker from '~/components/CategoryPicker.vue';
 import { sellerService } from '~/services/sellerService';
 import type { SellerDto } from '~/services/sellerService';
 import SellerPicker from '~/components/SellerPicker.vue';
+import { useLimitDisplay } from '~/composables/useLimitDisplay';
 
 interface FormProduct {
   _uid: string;
@@ -25,8 +26,13 @@ const groupId = Number(route.params.id);
 const receipts = ref<ReceiptDto[]>([]);
 const categories = ref<CategoryDto[]>([]);
 const sellers = ref<SellerDto[]>([]);
+const currentCount = ref(0);
+const maxAllowed = ref(0);
+
 const loading = ref(false);
 const error = ref<string | null>(null);
+
+const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 
 function generateUid() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -52,14 +58,17 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [receiptsData, categoriesData, sellersData] = await Promise.all([
+    const [receiptsResponse, categoriesResponse, sellersResponse] = await Promise.all([
       receiptService.getReceipts(groupId),
       categoryService.getCategories(groupId),
       sellerService.getSellers(groupId)
     ]);
-    receipts.value = receiptsData;
-    categories.value = categoriesData;
-    sellers.value = sellersData;
+
+    currentCount.value = receiptsResponse.currentCount;
+    maxAllowed.value = receiptsResponse.maxAllowed;
+    receipts.value = receiptsResponse.receipts;
+    categories.value = categoriesResponse.categories;
+    sellers.value = sellersResponse.sellers;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {
@@ -151,6 +160,12 @@ onMounted(() => loadData());
 <template>
   <div class="p-4">
     <h1 class="text-xl font-bold">Receipts</h1>
+    <p class="text-sm text-gray-600 mt-1" v-if="!loading">
+      Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
+    </p>
+    <button @click="() => router.push(`/groups/${groupId}`)" class="text-blue-600 underline text-sm">
+      Back to Group
+    </button>
     <div v-if="loading">Loading…</div>
     <div v-if="error" class="text-red-600">{{ error }}</div>
 

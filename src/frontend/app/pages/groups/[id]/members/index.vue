@@ -1,34 +1,53 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
-import { groupMemberService } from '~/services/groupMemberService';
-import { GroupRole } from '~/constants/roles';
-import type { GroupMemberDto } from '~/services/groupMemberService';
+import { groupMemberService, type GroupMemberDto } from '~/services/groupMemberService';
+import { useConfigStore } from '~/stores/useConfigStore';
+import { useLimitDisplay } from '~/composables/useLimitDisplay';
 
 const route = useRoute();
 const router = useRouter();
 const groupId = Number(route.params.id);
 
+const configStore = useConfigStore();
+
 const members = ref<GroupMemberDto[]>([]);
-const myRole = ref<GroupRole | null>(null);
+const currentCount = ref(0);
+const maxAllowed = ref(0);
+
+const myRole = ref<number | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const canManage = computed(() => myRole.value === GroupRole.Owner || myRole.value === GroupRole.Admin);
+const ownerRoleId = computed(() => configStore.config?.groupRoles['Owner']);
+const adminRoleId = computed(() => configStore.config?.groupRoles['Admin']);
 
-function getRoleName(role: GroupRole) {
-  return GroupRole[role];
+const canManage = computed(() => myRole.value === ownerRoleId.value || myRole.value === adminRoleId.value);
+
+const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
+
+function getRoleName(roleValue: number) {
+  if (!configStore.config) return 'Unknown';
+  
+  const roleEntry = Object.entries(configStore.config.groupRoles).find(([_, val]) => val === roleValue);
+  return roleEntry ? roleEntry[0] : 'Unknown';
 }
 
 async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [membersData, roleData] = await Promise.all([
+    await configStore.fetchConfig();
+
+    const [membersResponse, roleData] = await Promise.all([
       groupMemberService.getMembers(groupId),
       groupMemberService.getMyRole(groupId)
     ]);
-    members.value = membersData;
+    
+    currentCount.value = membersResponse.currentCount;
+    maxAllowed.value = membersResponse.maxAllowed;
+    members.value = membersResponse.groupMembers;
+    
     myRole.value = roleData.role;
   } catch (err: any) {
     error.value = err.message || 'Failed to load group members';
@@ -48,6 +67,9 @@ onMounted(() => loadData());
   <div class="p-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold">Group Members</h1>
+      <p class="text-sm text-gray-600 mt-1" v-if="!loading">
+        Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
+      </p>
       <button @click="() => router.back()" class="text-blue-600 underline text-sm">
         Back
       </button>

@@ -2,8 +2,10 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import { groupMemberService } from '~/services/groupMemberService';
-import { GroupRole } from '~/constants/roles';
 import type { GroupMemberDto } from '~/services/groupMemberService';
+import { useConfigStore } from '~/stores/useConfigStore';
+
+const configStore = useConfigStore();
 
 const route = useRoute();
 const router = useRouter();
@@ -11,18 +13,27 @@ const groupId = Number(route.params.id);
 const userId = route.params.userId as string;
 
 const member = ref<GroupMemberDto | null>(null);
-const myRole = ref<GroupRole | null>(null);
-const selectedRole = ref<GroupRole>(GroupRole.Member);
+const myRole = ref<number | null>(null);
+const selectedRole = ref<number>(0);
 
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const isOwner = computed(() => myRole.value === GroupRole.Owner);
+const ownerRoleId = computed(() => configStore.config?.groupRoles['Owner']);
+const isOwner = computed(() => myRole.value === ownerRoleId.value);
+
+const assignableRoles = computed(() => {
+  const roles = { ...configStore.config?.groupRoles };
+  delete roles['Owner'];
+  return roles;
+});
 
 async function load() {
   loading.value = true;
   error.value = null;
   try {
+    await configStore.fetchConfig();
+
     const [memberData, roleData] = await Promise.all([
       groupMemberService.getMember(groupId, userId),
       groupMemberService.getMyRole(groupId)
@@ -38,7 +49,7 @@ async function load() {
 }
 
 async function updateRole() {
-  if (selectedRole.value === GroupRole.Owner) {
+  if (selectedRole.value === ownerRoleId.value) {
     alert('Please use the Transfer Ownership button to make this user an owner.');
     return;
   }
@@ -97,25 +108,26 @@ onMounted(() => load());
         
         <label class="flex flex-col">
           <span class="font-semibold text-gray-700 text-sm">Change Role</span>
-          <select v-model="selectedRole" class="border p-2 mt-1 rounded bg-white max-w-xs" :disabled="member.role === GroupRole.Owner">
-            <option :value="GroupRole.Admin">Admin</option>
-            <option :value="GroupRole.Member">Member</option>
+          <select v-model="selectedRole" class="border p-2 mt-1 rounded bg-white max-w-xs" :disabled="member.role === ownerRoleId">
+            <option v-for="(roleVal, roleName) in assignableRoles" :key="roleVal" :value="roleVal">
+              {{ roleName }}
+            </option>
           </select>
-          <span v-if="member.role === GroupRole.Owner" class="text-sm text-gray-500 mt-1">
+          <span v-if="member.role === ownerRoleId" class="text-sm text-gray-500 mt-1">
             Owner roles cannot be changed via dropdown.
           </span>
         </label>
 
         <div class="flex gap-2 pt-2 border-t mt-2">
-          <button v-if="member.role !== GroupRole.Owner" @click="updateRole" class="bg-blue-600 text-white px-4 py-2 rounded font-semibold text-sm">
+          <button v-if="member.role !== ownerRoleId" @click="updateRole" class="bg-blue-600 text-white px-4 py-2 rounded font-semibold text-sm">
             Save Role
           </button>
           
-          <button v-if="isOwner && member.role !== GroupRole.Owner" @click="transferOwnership" class="bg-yellow-500 text-white px-4 py-2 rounded font-semibold text-sm">
+          <button v-if="isOwner && member.role !== ownerRoleId" @click="transferOwnership" class="bg-yellow-500 text-white px-4 py-2 rounded font-semibold text-sm">
             Transfer Ownership
           </button>
 
-          <button v-if="member.role !== GroupRole.Owner" @click="remove" class="bg-red-600 text-white px-4 py-2 rounded font-semibold text-sm ml-auto">
+          <button v-if="member.role !== ownerRoleId" @click="remove" class="bg-red-600 text-white px-4 py-2 rounded font-semibold text-sm ml-auto">
             Remove from Group
           </button>
         </div>

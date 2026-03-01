@@ -8,6 +8,12 @@ export interface CategoryDto {
   updatedDate: string;
 }
 
+export interface CategoryListResponseDto {
+  currentCount: number;
+  maxAllowed: number;
+  categories: CategoryDto[];
+}
+
 export interface CreateCategoryDto {
   name: string;
   colorHex: string;
@@ -29,7 +35,7 @@ export const categoryService = {
   },
 
   getCategories(groupId: number) {
-    return useApiFetch<CategoryDto[]>(`/api/groups/${groupId}/categories`, { method: 'GET' });
+    return useApiFetch<CategoryListResponseDto>(`/api/groups/${groupId}/categories`, { method: 'GET' });
   },
 
   getCategory(groupId: number, categoryId: number) {

@@ -46,7 +46,7 @@ async function fetchReceipts() {
   
   loadingReceipts.value = true;
   try {
-    receipts.value = await receiptService.getReceipts(groupId, { sellerId });
+    receipts.value = await receiptService.getFilteredReceipts(groupId, { sellerId });
   } catch (err: any) {
     alert(err.message || 'Error loading associated receipts');
   } finally {
