@@ -61,12 +61,6 @@ public class GroupService
         return group;
     }
 
-    public async Task<bool> IsUserActiveMemberAsync(int groupId, Guid userId)
-    {
-        return await _dbContext.GroupMembers
-            .AnyAsync(m => m.GroupId == groupId && m.UserId == userId && m.Active);
-    }
-
     public async Task<List<GroupDto>> GetUserGroupsAsync(Guid userId)
     {
         return await _dbContext.Groups
@@ -80,14 +74,6 @@ public class GroupService
         var group = await _dbContext.Groups
             .FirstOrDefaultAsync(g => g.Id == groupId);
         return group == null ? null : Map(group);
-    }
-
-    public async Task<GroupRole?> GetUserRoleInGroupAsync(int groupId, Guid userId)
-    {
-        var member = await _dbContext.GroupMembers
-            .FirstOrDefaultAsync(m => m.GroupId == groupId && m.UserId == userId && m.Active);
-            
-        return member?.RoleId;
     }
 
     private static GroupDto Map(Group g) => new GroupDto

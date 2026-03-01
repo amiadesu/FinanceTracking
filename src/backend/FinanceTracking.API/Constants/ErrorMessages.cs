@@ -10,6 +10,9 @@ public static class ErrorMessages
     public const string InvalidGroupId = "Invalid group ID.";
     public const string GroupNotFound = "Group not found.";
 
+    // Group members
+    public const string UseTransferEndpoint = "Use the transfer ownership endpoint to change the owner.";
+
     // Invitations
     public const string InvitationNotFound = "Invitation not found.";
     public const string UserAlreadyActiveMember = "User is already an active member of this group.";

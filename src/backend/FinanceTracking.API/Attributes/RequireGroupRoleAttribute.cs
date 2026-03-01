@@ -27,10 +27,10 @@ public class RequireGroupRoleAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        var groupService = context.HttpContext.RequestServices.GetRequiredService<GroupService>();
+        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<GroupMemberService>();
         var userId = context.HttpContext.User.GetUserId();
         
-        var userRole = await groupService.GetUserRoleInGroupAsync(groupId, userId);
+        var userRole = await groupMemberService.GetUserRoleInGroupAsync(groupId, userId);
         
         // User is not a member
         if (userRole == null)

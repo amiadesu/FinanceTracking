@@ -184,17 +184,32 @@ public class GroupInvitationService
 
         invitation.Status = InvitationStatus.Accepted;
 
-        var newMember = new GroupMember
-        {
-            GroupId = invitation.GroupId,
-            UserId = currentUserId,
-            RoleId = GroupRole.Member,
-            Active = true,
-            JoinedDate = DateTime.UtcNow,
-            UpdatedDate = DateTime.UtcNow
-        };
+        var member = await _context.GroupMembers
+            .FirstOrDefaultAsync(m => m.GroupId == invitation.GroupId && m.UserId == currentUserId);
 
-        _context.GroupMembers.Add(newMember);
+        if (member != null)
+        {
+            if (member.Active)
+                throw new ConflictException(Constants.ErrorMessages.UserAlreadyActiveMember);
+            
+            member.Active = true;
+            member.UpdatedDate = DateTime.UtcNow;
+        }
+        else
+        {
+
+            var newMember = new GroupMember
+            {
+                GroupId = invitation.GroupId,
+                UserId = currentUserId,
+                RoleId = GroupRole.Member,
+                Active = true,
+                JoinedDate = DateTime.UtcNow,
+                UpdatedDate = DateTime.UtcNow
+            };
+
+            _context.GroupMembers.Add(newMember);
+        }
 
         _historyService.AddHistoryRecord(
             groupId: invitation.GroupId,

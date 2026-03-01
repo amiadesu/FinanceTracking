@@ -13,4 +13,5 @@ public static class HistoryNotes
     public const string MemberJoined = "Joined the group";
     public const string MemberRemoved = "Removed from the group";
     public const string RoleChanged = "Changed member role";
+    public const string OwnershipTransferred = "Group ownership transferred";
 }

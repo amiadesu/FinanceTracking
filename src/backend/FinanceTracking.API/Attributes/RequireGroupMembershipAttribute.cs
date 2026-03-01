@@ -19,10 +19,10 @@ public class RequireGroupMembershipAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        var groupService = context.HttpContext.RequestServices.GetRequiredService<GroupService>();
+        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<GroupMemberService>();
         var userId = context.HttpContext.User.GetUserId();
         
-        var isMember = await groupService.IsUserActiveMemberAsync(groupId, userId);
+        var isMember = await groupMemberService.IsUserActiveMemberAsync(groupId, userId);
         
         if (!isMember)
         {

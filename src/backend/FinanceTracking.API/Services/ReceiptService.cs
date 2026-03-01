@@ -14,13 +14,16 @@ namespace FinanceTracking.API.Services;
 public class ReceiptService
 {
     private readonly FinanceDbContext _context;
-    private readonly GroupService _groupService;
+    private readonly GroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
 
-    public ReceiptService(FinanceDbContext context, GroupService groupService, SellerService sellerService)
+    public ReceiptService(
+        FinanceDbContext context, 
+        GroupMemberService groupMemberService, 
+        SellerService sellerService)
     {
         _context = context;
-        _groupService = groupService;
+        _groupMemberService = groupMemberService;
         _sellerService = sellerService;
     }
 
@@ -160,7 +163,7 @@ public class ReceiptService
             throw new NotFoundException(ErrorMessages.ReceiptNotFound);
 
         // Only author, Admin or Owner is allowed to edit the receipt
-        var role = await _groupService.GetUserRoleInGroupAsync(groupId, userId);
+        var role = await _groupMemberService.GetUserRoleInGroupAsync(groupId, userId);
         var isAuthor = receipt.CreatedByUserId == userId;
         var isAdminOrOwner = role.HasValue && role.Value <= GroupRole.Admin;
         if (!isAuthor && !isAdminOrOwner)
@@ -276,7 +279,7 @@ public class ReceiptService
         if (receipt == null)
             throw new NotFoundException(ErrorMessages.ReceiptNotFound);
 
-        var role = await _groupService.GetUserRoleInGroupAsync(groupId, userId);
+        var role = await _groupMemberService.GetUserRoleInGroupAsync(groupId, userId);
         var isAuthor = receipt.CreatedByUserId == userId;
         var isAdminOrOwner = role.HasValue && role.Value <= GroupRole.Admin;
         if (!isAuthor && !isAdminOrOwner)
