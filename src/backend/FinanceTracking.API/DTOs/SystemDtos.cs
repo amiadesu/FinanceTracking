@@ -15,6 +15,10 @@ public class GroupConfigDto
 {
     public int MaxGroupsPerUser { get; set; }
     public int MaxMembersPerGroup { get; set; }
+    public int MaxCategoriesPerGroup { get; set; }
+    public int MaxReceiptsPerGroup { get; set; }
+    public int MaxSellersPerGroup { get; set; }
+    public int MaxBudgetGoalsPerGroup { get; set; }
 }
 
 public class ReceiptConfigDto
@@ -26,5 +30,4 @@ public class ReceiptConfigDto
 public class CategoryConfigDto
 {
     public string DefaultCategoryColor { get; set; } = string.Empty;
-    public int MaxCategoriesPerGroup { get; set; }
 }

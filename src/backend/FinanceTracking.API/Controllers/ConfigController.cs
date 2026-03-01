@@ -19,7 +19,11 @@ public class ConfigController : ControllerBase
             GroupLimits = new GroupConfigDto
             {
                 MaxGroupsPerUser = ServiceConstants.MaxGroupsPerUser,
-                MaxMembersPerGroup = ServiceConstants.MaxMembersPerGroup
+                MaxMembersPerGroup = ServiceConstants.MaxMembersPerGroup,
+                MaxCategoriesPerGroup = ServiceConstants.MaxCategoriesPerGroup,
+                MaxReceiptsPerGroup = ServiceConstants.MaxReceiptsPerGroup,
+                MaxSellersPerGroup = ServiceConstants.MaxSellersPerGroup,
+                MaxBudgetGoalsPerGroup = ServiceConstants.MaxBudgetGoalsPerGroup
             },
             ReceiptLimits = new ReceiptConfigDto
             {
@@ -29,7 +33,6 @@ public class ConfigController : ControllerBase
             CategoryRules = new CategoryConfigDto
             {
                 DefaultCategoryColor = ServiceConstants.DefaultCategoryColor,
-                MaxCategoriesPerGroup = ServiceConstants.MaxCategoriesPerGroup
             },
             
             GroupRoles = Enum.GetValues(typeof(GroupRole))
