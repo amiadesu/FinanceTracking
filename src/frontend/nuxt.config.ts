@@ -62,7 +62,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/icon',
     '@nuxtjs/color-mode',
-    'nuxt-oidc-auth'
+    'nuxt-oidc-auth',
+    '@pinia/nuxt'
   ],
   css: ['~/assets/css/main.css'],
   vite: {
