@@ -332,14 +332,14 @@ public class GroupService
         await _dbContext.SaveChangesAsync();
     }
 
-    public int CalculateMaxMembers(Group? group)
+    public static int CalculateMaxMembers(Group? group)
     {
         if (group == null) return 0;
         
         return group.IsPersonal ? 1 : Constants.ServiceConstants.MaxMembersPerGroup;
     }
 
-    private GroupDto Map(Group g) => new GroupDto
+    private static GroupDto Map(Group g) => new GroupDto
     {
         Id = g.Id,
         Name = g.Name,

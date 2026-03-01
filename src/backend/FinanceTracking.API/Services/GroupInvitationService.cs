@@ -110,7 +110,7 @@ public class GroupInvitationService
                 Id = i.Id,
                 GroupId = i.GroupId,
                 GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(i.Group),
+                IsGroupFull = i.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(i.Group),
                 InvitedByUserId = i.InvitedByUserId,
                 InvitedByUserName = i.InvitedByUser.UserName,
                 TargetUserId = i.TargetUserId,
@@ -138,7 +138,7 @@ public class GroupInvitationService
             .ToListAsync();
 
         var availableCount = pendingInvitations.Count(i => 
-            i.ActiveMemberCount < _groupService.CalculateMaxMembers(i.Group));
+            i.ActiveMemberCount < GroupService.CalculateMaxMembers(i.Group));
 
         return availableCount;
     }
@@ -156,7 +156,7 @@ public class GroupInvitationService
                 Id = i.Id,
                 GroupId = i.GroupId,
                 GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(i.Group),
+                IsGroupFull = i.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(i.Group),
                 InvitedByUserId = i.InvitedByUserId,
                 InvitedByUserName = i.InvitedByUser.UserName,
                 TargetUserId = i.TargetUserId,
@@ -184,7 +184,7 @@ public class GroupInvitationService
             Id = invite.Id,
             GroupId = invite.GroupId,
             GroupName = invite.Group.Name,
-            IsGroupFull = invite.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(invite.Group),
+            IsGroupFull = invite.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(invite.Group),
             InvitedByUserId = invite.InvitedByUserId,
             InvitedByUserName = invite.InvitedByUser.UserName,
             TargetUserId = invite.TargetUserId,
