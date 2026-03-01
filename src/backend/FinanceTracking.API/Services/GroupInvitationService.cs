@@ -36,7 +36,7 @@ public class GroupInvitationService
         var activeMemberCount = await _context.GroupMembers
             .CountAsync(gm => gm.GroupId == groupId && gm.Active);
 
-        if (activeMemberCount >= Constants.ServiceConstants.MaxMembersPerGroup)
+        if (activeMemberCount >= await _groupService.GetGroupMaxMembersAsync(groupId))
             throw new ConflictException(Constants.ErrorMessages.GroupMaxMembersReached);
 
         var isAlreadyMember = await _context.GroupMembers
@@ -110,7 +110,7 @@ public class GroupInvitationService
                 Id = i.Id,
                 GroupId = i.GroupId,
                 GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= Constants.ServiceConstants.MaxMembersPerGroup,
+                IsGroupFull = i.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(i.Group),
                 InvitedByUserId = i.InvitedByUserId,
                 InvitedByUserName = i.InvitedByUser.UserName,
                 TargetUserId = i.TargetUserId,
@@ -129,7 +129,7 @@ public class GroupInvitationService
             .Where(i => 
                 i.TargetUserId == currentUserId && 
                 i.Status == InvitationStatus.Pending &&
-                i.Group.Members.Count(m => m.Active) < Constants.ServiceConstants.MaxMembersPerGroup
+                i.Group.Members.Count(m => m.Active) < _groupService.CalculateMaxMembers(i.Group)
             )
             .CountAsync();
     }
@@ -147,7 +147,7 @@ public class GroupInvitationService
                 Id = i.Id,
                 GroupId = i.GroupId,
                 GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= Constants.ServiceConstants.MaxMembersPerGroup,
+                IsGroupFull = i.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(i.Group),
                 InvitedByUserId = i.InvitedByUserId,
                 InvitedByUserName = i.InvitedByUser.UserName,
                 TargetUserId = i.TargetUserId,
@@ -175,7 +175,7 @@ public class GroupInvitationService
             Id = invite.Id,
             GroupId = invite.GroupId,
             GroupName = invite.Group.Name,
-            IsGroupFull = invite.Group.Members.Count(m => m.Active) >= Constants.ServiceConstants.MaxMembersPerGroup,
+            IsGroupFull = invite.Group.Members.Count(m => m.Active) >= _groupService.CalculateMaxMembers(invite.Group),
             InvitedByUserId = invite.InvitedByUserId,
             InvitedByUserName = invite.InvitedByUser.UserName,
             TargetUserId = invite.TargetUserId,
@@ -199,7 +199,7 @@ public class GroupInvitationService
         var activeMemberCount = await _context.GroupMembers
             .CountAsync(gm => gm.GroupId == invitation.GroupId && gm.Active);
 
-        if (activeMemberCount >= Constants.ServiceConstants.MaxMembersPerGroup)
+        if (activeMemberCount >= await _groupService.GetGroupMaxMembersAsync(invitation.GroupId))
             throw new ConflictException(Constants.ErrorMessages.GroupMaxMembersReached);
 
         invitation.Status = InvitationStatus.Accepted;

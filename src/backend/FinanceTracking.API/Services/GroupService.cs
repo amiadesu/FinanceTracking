@@ -82,7 +82,7 @@ public class GroupService
     {
         var memberCount = await _dbContext.GroupMembers
             .CountAsync(m => m.GroupId == groupId && m.Active);
-        return memberCount >= Constants.ServiceConstants.MaxMembersPerGroup;
+        return memberCount >= await GetGroupMaxMembersAsync(groupId);
     }
 
     public async Task<bool> IsGroupPersonalAsync(int groupId)
@@ -96,7 +96,7 @@ public class GroupService
     {
         var group = await _dbContext.Groups
             .FirstOrDefaultAsync(g => g.Id == groupId);
-        return group?.IsPersonal == true ? 1 : Constants.ServiceConstants.MaxMembersPerGroup;
+        return CalculateMaxMembers(group);
     }
 
     public async Task<int> GetGroupMaxBudgetGoalsAsync(int groupId)
@@ -119,11 +119,18 @@ public class GroupService
         return Constants.ServiceConstants.MaxSellersPerGroup;
     }
 
-    private static GroupDto Map(Group g) => new GroupDto
+    public int CalculateMaxMembers(Group? group)
+    {
+        if (group == null) return 0;
+        
+        return group.IsPersonal ? 1 : Constants.ServiceConstants.MaxMembersPerGroup;
+    }
+
+    private GroupDto Map(Group g) => new GroupDto
     {
         Id = g.Id,
         Name = g.Name,
-        IsFull = g.Members.Count(m => m.Active) >= Constants.ServiceConstants.MaxMembersPerGroup,
+        IsFull = g.Members.Count(m => m.Active) >= CalculateMaxMembers(g),
         IsPersonal = g.IsPersonal,
         OwnerId = g.OwnerId,
         CreatedDate = g.CreatedDate
