@@ -108,7 +108,7 @@ public class ReceiptService
             .ToListAsync();
         return new ReceiptListResponseDto
         {
-            CurrentCount = receipts.Count(),
+            CurrentCount = receipts.Count,
             MaxAllowed = await _groupService.GetGroupMaxReceiptsAsync(groupId),
             Receipts = receipts
         };

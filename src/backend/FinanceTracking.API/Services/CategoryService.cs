@@ -69,7 +69,7 @@ public class CategoryService
             .ToListAsync();
         return new CategoryListResponseDto
         {
-            CurrentCount = categories.Count(),
+            CurrentCount = categories.Count,
             MaxAllowed = await _groupService.GetGroupMaxCategoriesAsync(groupId),
             Categories = categories
         };
