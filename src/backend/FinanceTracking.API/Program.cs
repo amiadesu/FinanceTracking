@@ -33,6 +33,7 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<ReceiptService>();
 builder.Services.AddScoped<SellerService>();
 builder.Services.AddScoped<ProductDataService>();
+builder.Services.AddScoped<GroupMemberService>();
 
 builder.Host.UseWolverine(opts =>
 {
