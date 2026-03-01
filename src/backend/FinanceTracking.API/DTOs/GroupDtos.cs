@@ -13,6 +13,13 @@ public class GroupDto
     public DateTime CreatedDate { get; set; }
 }
 
+public class GroupListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    public List<GroupDto> Groups { get; set; } = new List<GroupDto>();
+}
+
 public class CreateGroupDto
 {
     public string Name { get; set; } = string.Empty;

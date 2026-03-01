@@ -132,13 +132,19 @@ public class GroupService
         return group;
     }
 
-    public async Task<List<GroupDto>> GetUserGroupsAsync(Guid userId)
+    public async Task<GroupListResponseDto> GetUserGroupsAsync(Guid userId)
     {
-        return await _dbContext.Groups
+        var groups = await _dbContext.Groups
             .Include(g => g.Members)
             .Where(g => g.Members.Any(m => m.UserId == userId && m.Active))
             .Select(g => Map(g))
             .ToListAsync();
+        return new GroupListResponseDto
+        {
+            CurrentCount = groups.Count,
+            MaxAllowed = await GetMaxGroupsPerUserAsync(userId),
+            Groups = groups
+        };
     }
 
     public async Task<GroupDto?> GetGroupByIdAsync(int groupId)
@@ -168,6 +174,11 @@ public class GroupService
         var group = await _dbContext.Groups
             .FirstOrDefaultAsync(g => g.Id == groupId);
         return CalculateMaxMembers(group);
+    }
+
+    public async Task<int> GetMaxGroupsPerUserAsync(Guid userId)
+    {
+        return Constants.ServiceConstants.MaxGroupsPerUser;
     }
 
     public async Task<int> GetGroupMaxBudgetGoalsAsync(int groupId)
