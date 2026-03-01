@@ -7,6 +7,7 @@ public static class ErrorMessages
     public const string InvalidUserId = "Invalid user ID.";
     public const string UnauthorizedAccess = "You do not have permission to perform this action.";
     public const string CannotPerformActionOnYourself = "You cannot perform this action on yourself.";
+    public const string CannotPerformActionOnPersonalGroups = "This action cannot be performed on personal groups.";
 
     // Groups
     public const string InvalidGroupId = "Invalid group ID.";
