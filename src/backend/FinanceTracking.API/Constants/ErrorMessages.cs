@@ -12,6 +12,8 @@ public static class ErrorMessages
     // Groups
     public const string InvalidGroupId = "Invalid group ID.";
     public const string GroupNotFound = "Group not found.";
+    public const string UserAlreadyHasPersonalGroup = "User already has a personal group.";
+    public const string UserReachedMaxGroups = "User has reached the maximum number of groups.";
 
     // Group members
     public const string GroupMaxMembersReached = "Group has reached the maximum number of members.";

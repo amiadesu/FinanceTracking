@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace FinanceTracking.API.Constants;
 
 public static class HistoryNotes
@@ -10,8 +12,14 @@ public static class HistoryNotes
 
     // Group / Member Notes
     public const string GroupCreated = "Created group";
+    public const string GroupRenamed = "Renamed group";
     public const string MemberJoined = "Joined the group";
     public const string MemberRemoved = "Removed from the group";
+    public const string MemberLeft = "Left the group";
     public const string RoleChanged = "Changed member role";
     public const string OwnershipTransferred = "Group ownership transferred";
+    public const string GroupMembersReset = "Group members reset";
+    public const string GroupCategoriesReset = "Group categories reset";
+    public const string GroupBudgetGoalsReset = "Group budget goals reset";
+    public const string GroupReceiptsProductsAndSellersReset = "Group receipts, products and sellers reset";
 }

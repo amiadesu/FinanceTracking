@@ -12,3 +12,21 @@ public class GroupDto
     public Guid? OwnerId { get; set; }
     public DateTime CreatedDate { get; set; }
 }
+
+public class CreateGroupDto
+{
+    public string Name { get; set; } = string.Empty;
+}
+
+public class UpdateGroupDto
+{
+    public string Name { get; set; } = string.Empty;
+}
+
+public class ResetGroupDto
+{
+    public bool ResetMembers { get; set; }
+    public bool ResetBudgetGoals { get; set; }
+    public bool ResetCategories { get; set; }
+    public bool ResetReceiptsProductsAndSellers { get; set; }
+}

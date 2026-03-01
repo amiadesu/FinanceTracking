@@ -139,6 +139,30 @@ public class GroupMemberService
         return true;
     }
 
+    public async Task<bool> LeaveGroupAsync(int groupId, Guid userId)
+    {
+        var member = await _dbContext.GroupMembers
+            .FirstOrDefaultAsync(m => m.GroupId == groupId && m.UserId == userId && m.Active);
+        if (member == null) return false;
+
+        _historyService.AddHistoryRecord(
+            groupId: groupId,
+            targetUserId: userId,
+            actionUserId: userId,
+            note: Constants.HistoryNotes.MemberLeft,
+            roleBefore: member.RoleId,
+            roleAfter: GroupRole.Member, // Reset role to default for historical accuracy
+            activeBefore: member.Active,
+            activeAfter: false);
+
+        member.Active = false;
+        member.RoleId = GroupRole.Member;
+        member.UpdatedDate = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
     private static GroupMemberDto Map(GroupMember m) => new GroupMemberDto
     {
         UserId = m.UserId,
