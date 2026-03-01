@@ -6,7 +6,7 @@ public static class ServiceConstants
 
     // Groups
     public const int MaxGroupsPerUser = 10;
-    public const int MaxMembersPerGroup = 1;
+    public const int MaxMembersPerGroup = 100;
     public const int MaxCategoriesPerGroup = 50;
     public const int MaxReceiptsPerGroup = InfiniteLimit;
     public const int MaxSellersPerGroup = InfiniteLimit;
