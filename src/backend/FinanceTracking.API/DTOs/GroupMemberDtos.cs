@@ -11,3 +11,8 @@ public class GroupMemberDto
     public bool Active { get; set; }
     public DateTime JoinedDate { get; set; }
 }
+
+public class UpdateGroupMemberRoleDto
+{
+    public GroupRole? Role { get; set; }
+}
