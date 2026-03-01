@@ -4,6 +4,8 @@ namespace FinanceTracking.API.DTOs;
 
 public class SystemConfigDto
 {
+    public int InfiniteLimit => Constants.ServiceConstants.InfiniteLimit;
+    
     public GroupConfigDto GroupLimits { get; set; } = new();
     public ReceiptConfigDto ReceiptLimits { get; set; } = new();
     public CategoryConfigDto CategoryRules { get; set; } = new();
