@@ -12,6 +12,14 @@ public class SellerDto
     public DateTime UpdatedDate { get; set; }
 }
 
+public class SellerListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    
+    public List<SellerDto> Sellers { get; set; } = new();
+}
+
 public class CreateSellerDto
 {
     public int Id { get; set; }

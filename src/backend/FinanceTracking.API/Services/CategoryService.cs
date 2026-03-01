@@ -15,10 +15,14 @@ namespace FinanceTracking.API.Services;
 public class CategoryService
 {
     private readonly FinanceDbContext _context;
+    private readonly GroupService _groupService;
 
-    public CategoryService(FinanceDbContext context)
+    public CategoryService(
+        FinanceDbContext context,
+        GroupService groupService)
     {
         _context = context;
+        _groupService = groupService;
     }
 
     public async Task<CategoryDto> CreateCategoryAsync(int groupId, CreateCategoryDto dto)
@@ -56,13 +60,19 @@ public class CategoryService
         return Map(category);
     }
 
-    public async Task<List<CategoryDto>> GetCategoriesAsync(int groupId)
+    public async Task<CategoryListResponseDto> GetCategoriesAsync(int groupId)
     {
-        return await _context.Categories
+        var categories = await _context.Categories
             .Where(c => c.GroupId == groupId)
             .OrderBy(c => c.Name)
             .Select(c => Map(c))
             .ToListAsync();
+        return new CategoryListResponseDto
+        {
+            CurrentCount = categories.Count(),
+            MaxAllowed = await _groupService.GetGroupMaxCategoriesAsync(groupId),
+            Categories = categories
+        };
     }
 
     public async Task<CategoryDto?> GetCategoryAsync(int groupId, int categoryId)

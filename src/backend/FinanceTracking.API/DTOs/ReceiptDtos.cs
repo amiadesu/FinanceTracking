@@ -18,6 +18,14 @@ public class ReceiptDto
     public List<ReceiptProductDto> Products { get; set; }
 }
 
+public class ReceiptListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    
+    public List<ReceiptDto> Receipts { get; set; } = new();
+}
+
 public class ReceiptProductDto
 {
     public int Id { get; set; }

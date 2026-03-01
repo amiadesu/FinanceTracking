@@ -12,23 +12,32 @@ namespace FinanceTracking.API.Services;
 public class GroupMemberService
 {
     private readonly FinanceDbContext _dbContext;
+    private readonly GroupService _groupService;
     private readonly GroupHistoryService _historyService;
 
     public GroupMemberService(
         FinanceDbContext dbContext,
+        GroupService groupService,
         GroupHistoryService historyService)
     {
         _dbContext = dbContext;
+        _groupService = groupService;
         _historyService = historyService;
     }
 
-    public async Task<List<GroupMemberDto>> GetGroupMembersAsync(int groupId)
+    public async Task<GroupMemberListResponseDto> GetGroupMembersAsync(int groupId)
     {
-        return await _dbContext.GroupMembers
+        var members = await _dbContext.GroupMembers
             .Include(m => m.User)
             .Where(m => m.GroupId == groupId && m.Active)
             .Select(m => Map(m))
             .ToListAsync();
+        return new GroupMemberListResponseDto
+        {
+            CurrentCount = members.Count,
+            MaxAllowed = await _groupService.GetGroupMaxMembersAsync(groupId),
+            GroupMembers = members
+        };
     }
 
     public async Task<GroupMemberDto?> GetGroupMemberAsync(int groupId, Guid userId)

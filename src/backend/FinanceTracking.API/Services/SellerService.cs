@@ -14,10 +14,14 @@ namespace FinanceTracking.API.Services;
 public class SellerService
 {
     private readonly FinanceDbContext _context;
+    private readonly GroupService _groupService;
 
-    public SellerService(FinanceDbContext context)
+    public SellerService(
+        FinanceDbContext context,
+        GroupService groupService)
     {
         _context = context;
+        _groupService = groupService;
     }
 
     public async Task<SellerDto> CreateSellerAsync(int groupId, CreateSellerDto dto)
@@ -39,20 +43,26 @@ public class SellerService
         return Map(seller);
     }
 
+    public async Task<SellerListResponseDto> GetSellersAsync(int groupId)
+    {
+        var sellers = await _context.Sellers
+            .Where(s => s.GroupId == groupId)
+            .OrderBy(s => s.Name)
+            .Select(s => Map(s))
+            .ToListAsync();
+        return new SellerListResponseDto
+        {
+            CurrentCount = sellers.Count,
+            MaxAllowed = await _groupService.GetGroupMaxSellersAsync(groupId),
+            Sellers = sellers
+        };
+    }
+
     public async Task<SellerDto?> GetSellerAsync(int groupId, int sellerId)
     {
         var seller = await _context.Sellers
             .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);
         return seller == null ? null : Map(seller);
-    }
-
-    public async Task<List<SellerDto>> GetSellersAsync(int groupId)
-    {
-        return await _context.Sellers
-            .Where(s => s.GroupId == groupId)
-            .OrderBy(s => s.Name)
-            .Select(s => Map(s))
-            .ToListAsync();
     }
 
     public async Task<SellerDto?> UpdateSellerAsync(int groupId, int sellerId, UpdateSellerDto dto)

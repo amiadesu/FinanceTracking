@@ -13,6 +13,14 @@ public class CategoryDto
     public DateTime UpdatedDate { get; set; }
 }
 
+public class CategoryListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    
+    public List<CategoryDto> Categories { get; set; } = new();
+}
+
 public class CreateCategoryDto
 {
     public string Name { get; set; }

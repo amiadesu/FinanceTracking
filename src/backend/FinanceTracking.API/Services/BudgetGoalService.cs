@@ -14,10 +14,14 @@ namespace FinanceTracking.API.Services;
 public class BudgetGoalService
 {
     private readonly FinanceDbContext _context;
+    private readonly GroupService _groupService;
 
-    public BudgetGoalService(FinanceDbContext context)
+    public BudgetGoalService(
+        FinanceDbContext context,
+        GroupService groupService)
     {
         _context = context;
+        _groupService = groupService;
     }
 
     public async Task<BudgetGoalDto> CreateBudgetGoalAsync(int groupId, CreateBudgetGoalDto dto)
@@ -42,12 +46,18 @@ public class BudgetGoalService
         return Map(goal);
     }
 
-    public async Task<List<BudgetGoalDto>> GetBudgetGoalsAsync(int groupId)
+    public async Task<BudgetGoalListResponseDto> GetBudgetGoalsAsync(int groupId)
     {
-        return await _context.BudgetGoals
+        var goals = await _context.BudgetGoals
             .Where(g => g.GroupId == groupId)
             .Select(g => Map(g))
             .ToListAsync();
+        return new BudgetGoalListResponseDto
+        {
+            CurrentCount = goals.Count,
+            MaxAllowed = await _groupService.GetGroupMaxBudgetGoalsAsync(groupId),
+            BudgetGoals = goals
+        };
     }
 
     public async Task<BudgetGoalDto?> GetBudgetGoalAsync(int groupId, int goalId)

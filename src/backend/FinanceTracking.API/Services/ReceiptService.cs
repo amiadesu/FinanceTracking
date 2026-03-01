@@ -14,15 +14,18 @@ namespace FinanceTracking.API.Services;
 public class ReceiptService
 {
     private readonly FinanceDbContext _context;
+    private readonly GroupService _groupService;
     private readonly GroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
 
     public ReceiptService(
-        FinanceDbContext context, 
+        FinanceDbContext context,
+        GroupService groupService,
         GroupMemberService groupMemberService, 
         SellerService sellerService)
     {
         _context = context;
+        _groupService = groupService;
         _groupMemberService = groupMemberService;
         _sellerService = sellerService;
     }
@@ -93,9 +96,9 @@ public class ReceiptService
         return await MapReceiptAsync(receipt.Id, receipt.GroupId);
     }
 
-    public async Task<List<ReceiptDto>> GetReceiptsAsync(int groupId)
+    public async Task<ReceiptListResponseDto> GetReceiptsAsync(int groupId)
     {
-        return await _context.Receipts
+        var receipts = await _context.Receipts
             .Where(r => r.GroupId == groupId)
             .Include(r => r.Seller)
             .Include(r => r.ProductEntries)
@@ -103,6 +106,12 @@ public class ReceiptService
                     .ThenInclude(pdc => pdc.Category)
             .Select(r => Map(r))
             .ToListAsync();
+        return new ReceiptListResponseDto
+        {
+            CurrentCount = receipts.Count(),
+            MaxAllowed = await _groupService.GetGroupMaxReceiptsAsync(groupId),
+            Receipts = receipts
+        };
     }
 
     public async Task<List<ReceiptDto>> GetReceiptsBySellerAsync(int groupId, int sellerId)

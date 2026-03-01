@@ -78,6 +78,47 @@ public class GroupService
         return group == null ? null : Map(group);
     }
 
+    public async Task<bool> IsGroupFullAsync(int groupId)
+    {
+        var memberCount = await _dbContext.GroupMembers
+            .CountAsync(m => m.GroupId == groupId && m.Active);
+        return memberCount >= Constants.ServiceConstants.MaxMembersPerGroup;
+    }
+
+    public async Task<bool> IsGroupPersonalAsync(int groupId)
+    {
+        var group = await _dbContext.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId);
+        return group?.IsPersonal ?? false;
+    }
+
+    public async Task<int> GetGroupMaxMembersAsync(int groupId)
+    {
+        var group = await _dbContext.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId);
+        return group?.IsPersonal == true ? 1 : Constants.ServiceConstants.MaxMembersPerGroup;
+    }
+
+    public async Task<int> GetGroupMaxBudgetGoalsAsync(int groupId)
+    {
+        return Constants.ServiceConstants.MaxBudgetGoalsPerGroup;
+    }
+
+    public async Task<int> GetGroupMaxCategoriesAsync(int groupId)
+    {
+        return Constants.ServiceConstants.MaxCategoriesPerGroup;
+    }
+
+    public async Task<int> GetGroupMaxReceiptsAsync(int groupId)
+    {
+        return Constants.ServiceConstants.MaxReceiptsPerGroup;
+    }
+
+    public async Task<int> GetGroupMaxSellersAsync(int groupId)
+    {
+        return Constants.ServiceConstants.MaxSellersPerGroup;
+    }
+
     private static GroupDto Map(Group g) => new GroupDto
     {
         Id = g.Id,

@@ -12,6 +12,14 @@ public class GroupMemberDto
     public DateTime JoinedDate { get; set; }
 }
 
+public class GroupMemberListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    
+    public List<GroupMemberDto> GroupMembers { get; set; } = new();
+}
+
 public class UpdateGroupMemberRoleDto
 {
     public GroupRole? Role { get; set; }

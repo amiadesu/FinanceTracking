@@ -13,6 +13,14 @@ public class BudgetGoalDto
     public DateTime UpdatedDate { get; set; }
 }
 
+public class BudgetGoalListResponseDto
+{
+    public int CurrentCount { get; set; }
+    public int MaxAllowed { get; set; }
+    
+    public List<BudgetGoalDto> BudgetGoals { get; set; } = new();
+}
+
 public class BudgetGoalProgressDto
 {
     public int GoalId { get; set; }
