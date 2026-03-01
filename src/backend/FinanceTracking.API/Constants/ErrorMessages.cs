@@ -4,7 +4,9 @@ public static class ErrorMessages
 {
     // General
     public const string UserNotFound = "User not found.";
+    public const string InvalidUserId = "Invalid user ID.";
     public const string UnauthorizedAccess = "You do not have permission to perform this action.";
+    public const string CannotPerformActionOnYourself = "You cannot perform this action on yourself.";
 
     // Groups
     public const string InvalidGroupId = "Invalid group ID.";
