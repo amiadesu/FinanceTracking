@@ -48,12 +48,4 @@ public class GroupsController : ControllerBase
 
         return Ok(group);
     }
-
-    [HttpGet("{groupId}/members")]
-    [RequireGroupMembership]
-    public async Task<IActionResult> GetGroupMembers(int groupId)
-    {
-        var members = await _groupService.GetGroupMembersAsync(groupId);
-        return Ok(members);
-    }
 }

@@ -26,11 +26,11 @@ public class GroupMembersController : ControllerBase
         _groupService = groupService;
     }
 
-    [HttpGet("{groupId}/members")]
+    [HttpGet]
     [RequireGroupMembership]
     public async Task<IActionResult> GetGroupMembers(int groupId)
     {
-        var members = await _groupService.GetGroupMembersAsync(groupId);
+        var members = await _memberService.GetGroupMembersAsync(groupId);
         return Ok(members);
     }
 }

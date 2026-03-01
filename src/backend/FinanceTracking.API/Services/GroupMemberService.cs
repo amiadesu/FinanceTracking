@@ -17,4 +17,21 @@ public class GroupMemberService
     {
         _dbContext = dbContext;
     }
+
+    public async Task<List<GroupMemberDto>> GetGroupMembersAsync(int groupId)
+    {
+        return await _dbContext.GroupMembers
+            .Where(m => m.GroupId == groupId)
+            .Select(m => Map(m))
+            .ToListAsync();
+    }
+
+    private static GroupMemberDto Map(GroupMember m) => new GroupMemberDto
+    {
+        UserId = m.UserId,
+        UserName = m.User.UserName,
+        Role = m.RoleId,
+        Active = m.Active,
+        JoinedDate = m.JoinedDate
+    };
 }

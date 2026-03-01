@@ -71,29 +71,15 @@ public class GroupService
     {
         return await _dbContext.Groups
             .Where(g => g.Members.Any(m => m.UserId == userId && m.Active))
-            .Select(g => new GroupDto(g.Id, g.Name, g.IsPersonal, g.OwnerId, g.CreatedDate))
+            .Select(g => Map(g))
             .ToListAsync();
     }
 
     public async Task<GroupDto?> GetGroupByIdAsync(int groupId)
     {
-        return await _dbContext.Groups
-            .Where(g => g.Id == groupId)
-            .Select(g => new GroupDto(g.Id, g.Name, g.IsPersonal, g.OwnerId, g.CreatedDate))
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<List<GroupMemberDto>> GetGroupMembersAsync(int groupId)
-    {
-        return await _dbContext.GroupMembers
-            .Where(m => m.GroupId == groupId)
-            .Select(m => new GroupMemberDto(
-                m.UserId, 
-                m.User.UserName, 
-                m.RoleId, 
-                m.Active, 
-                m.JoinedDate))
-            .ToListAsync();
+        var group = await _dbContext.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId);
+        return group == null ? null : Map(group);
     }
 
     public async Task<GroupRole?> GetUserRoleInGroupAsync(int groupId, Guid userId)
@@ -103,4 +89,13 @@ public class GroupService
             
         return member?.RoleId;
     }
+
+    private static GroupDto Map(Group g) => new GroupDto
+    {
+        Id = g.Id,
+        Name = g.Name,
+        IsPersonal = g.IsPersonal,
+        OwnerId = g.OwnerId,
+        CreatedDate = g.CreatedDate
+    };
 }

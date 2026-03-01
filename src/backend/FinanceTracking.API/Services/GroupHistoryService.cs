@@ -52,16 +52,20 @@ public class GroupHistoryService
         return await _dbContext.GroupMemberHistories
             .Where(h => h.GroupId == groupId)
             .OrderByDescending(h => h.ChangedAt)
-            .Select(h => new GroupHistoryDto(
-                h.Id, 
-                h.Note, 
-                h.RoleIdBefore, 
-                h.RoleIdAfter, 
-                h.ActiveBefore, 
-                h.ActiveAfter, 
-                h.ChangedAt, 
-                h.User != null ? h.User.UserName : "Unknown", 
-                h.ChangedByUser != null ? h.ChangedByUser.UserName : "System"))
+            .Select(h => Map(h))
             .ToListAsync();
     }
+
+    private static GroupHistoryDto Map(GroupMemberHistory h) => new GroupHistoryDto
+    {
+        Id = h.Id,
+        Note = h.Note,
+        RoleIdBefore = h.RoleIdBefore,
+        RoleIdAfter = h.RoleIdAfter,
+        ActiveBefore = h.ActiveBefore,
+        ActiveAfter = h.ActiveAfter,
+        ChangedAt = h.ChangedAt,
+        TargetUserName = h.User != null ? h.User.UserName : "Unknown",
+        ChangedByUserName = h.ChangedByUser != null ? h.ChangedByUser.UserName : "System"
+    };
 }
