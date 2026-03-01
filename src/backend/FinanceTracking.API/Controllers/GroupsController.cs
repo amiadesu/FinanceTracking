@@ -56,13 +56,4 @@ public class GroupsController : ControllerBase
         var members = await _groupService.GetGroupMembersAsync(groupId);
         return Ok(members);
     }
-
-    [HttpGet("{groupId}/history")]
-    [RequireGroupMembership]
-    [RequireGroupRole(GroupRole.Admin)]
-    public async Task<IActionResult> GetGroupHistory(int groupId)
-    {
-        var history = await _historyService.GetGroupHistoryAsync(groupId);
-        return Ok(history);
-    }
 }
