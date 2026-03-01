@@ -308,9 +308,10 @@ public class GroupService
                 .Where(s => s.GroupId == groupId)
                 .ToListAsync();
 
+            // Remove in order to avoid FK constraint issues
             _dbContext.ProductData.RemoveRange(products);
+            _dbContext.Receipts.RemoveRange(receipts); 
             _dbContext.Sellers.RemoveRange(sellers);
-            _dbContext.Receipts.RemoveRange(receipts);
 
             _historyService.AddHistoryRecord(
                 groupId: groupId,
@@ -319,6 +320,8 @@ public class GroupService
                 note: Constants.HistoryNotes.GroupReceiptsProductsAndSellersReset
             );
         }
+
+        await _dbContext.SaveChangesAsync();
 
         return Map(group);
     }
