@@ -35,6 +35,7 @@ public class GroupInvitationsController : ControllerBase
     }
 
     [HttpPost]
+    [NotPersonalGroup]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> CreateInvitation(int groupId, [FromBody] CreateInvitationDto dto)
