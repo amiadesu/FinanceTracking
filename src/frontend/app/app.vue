@@ -11,5 +11,6 @@
 </template>
 
 <script setup lang="ts">
-
+const configStore = useConfigStore();
+configStore.fetchConfig();
 </script>
