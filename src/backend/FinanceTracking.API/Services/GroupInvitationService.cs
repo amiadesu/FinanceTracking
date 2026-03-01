@@ -124,14 +124,23 @@ public class GroupInvitationService
 
     public async Task<int> GetAvailablePendingInvitationCountAsync(Guid currentUserId)
     {
-        return await _context.GroupInvitations
+        var pendingInvitations = await _context.GroupInvitations
             .Include(i => i.Group)
             .Where(i => 
                 i.TargetUserId == currentUserId && 
-                i.Status == InvitationStatus.Pending &&
-                i.Group.Members.Count(m => m.Active) < _groupService.CalculateMaxMembers(i.Group)
+                i.Status == InvitationStatus.Pending
             )
-            .CountAsync();
+            .Select(i => new 
+            {
+                Group = i.Group,
+                ActiveMemberCount = i.Group.Members.Count(m => m.Active)
+            })
+            .ToListAsync();
+
+        var availableCount = pendingInvitations.Count(i => 
+            i.ActiveMemberCount < _groupService.CalculateMaxMembers(i.Group));
+
+        return availableCount;
     }
 
     public async Task<IEnumerable<InvitationResponseDto>> GetGroupInvitationsAsync(int groupId)
