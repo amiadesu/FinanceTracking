@@ -64,6 +64,7 @@ public class GroupService
     public async Task<List<GroupDto>> GetUserGroupsAsync(Guid userId)
     {
         return await _dbContext.Groups
+            .Include(g => g.Members)
             .Where(g => g.Members.Any(m => m.UserId == userId && m.Active))
             .Select(g => Map(g))
             .ToListAsync();
@@ -72,6 +73,7 @@ public class GroupService
     public async Task<GroupDto?> GetGroupByIdAsync(int groupId)
     {
         var group = await _dbContext.Groups
+            .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == groupId);
         return group == null ? null : Map(group);
     }
@@ -80,6 +82,7 @@ public class GroupService
     {
         Id = g.Id,
         Name = g.Name,
+        IsFull = g.Members.Count(m => m.Active) >= Constants.ServiceConstants.MaxMembersPerGroup,
         IsPersonal = g.IsPersonal,
         OwnerId = g.OwnerId,
         CreatedDate = g.CreatedDate

@@ -183,7 +183,7 @@ async function loadPendingCount() {
         return
     }
     try {
-        const res = await invitationService.getPendingCount()
+        const res = await invitationService.getAvailablePendingCount()
         pendingCount.value = res.count
     } catch {
         pendingCount.value = 0

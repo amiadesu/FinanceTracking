@@ -23,16 +23,23 @@
           <p v-if="invitation.note" class="italic mt-2">"{{ invitation.note }}"</p>
         </div>
         
+        <div v-if="invitation.isGroupFull" class="mt-3 text-sm text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
+          This group has reached its maximum member capacity. You cannot accept this invite until a spot opens up.
+        </div>
+        
         <div class="mt-4 flex gap-2">
           <button 
             @click="handleAccept(invitation.id)" 
-            class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+            :disabled="invitation.isGroupFull"
+            class="px-3 py-1 rounded text-white transition-colors font-medium"
+            :class="invitation.isGroupFull ? 'bg-green-400 opacity-60 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'"
           >
             Accept
           </button>
+          
           <button 
             @click="handleReject(invitation.id)" 
-            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 font-medium transition-colors"
           >
             Reject
           </button>

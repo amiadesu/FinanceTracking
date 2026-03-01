@@ -2,6 +2,7 @@ export interface InvitationResponseDto {
   id: string;
   groupId: number;
   groupName: string;
+  isGroupFull: boolean;
   invitedByUserId: string;
   invitedByUserName: string;
   targetUserId: string;
@@ -40,7 +41,7 @@ export const invitationService = {
     return useApiFetch(`/api/groups/${groupId}/invitations/${invitationId}`, { method: 'DELETE' })
   },
 
-  getPendingCount() {
-    return useApiFetch<{ count: number }>(`/api/invitations/pending/count`, { method: 'GET' })
+  getAvailablePendingCount() {
+    return useApiFetch<{ count: number }>(`/api/invitations/pending/available/count`, { method: 'GET' })
   }
 }

@@ -13,6 +13,7 @@ public class InvitationResponseDto
     public Guid Id { get; set; }
     public int GroupId { get; set; }
     public string GroupName { get; set; }
+    public bool IsGroupFull { get; set; }
     public Guid InvitedByUserId { get; set; }
     public string InvitedByUserName { get; set; }
     public Guid TargetUserId { get; set; }

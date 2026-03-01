@@ -36,16 +36,25 @@
               {{ new Date(invitation.createdDate).toLocaleDateString() }}
             </td>
             <td class="py-3 px-4">
-              <span 
-                class="px-2 py-1 text-xs rounded-full font-medium"
-                :class="{
-                  'bg-yellow-100 text-yellow-800': invitation.status === 'Pending',
-                  'bg-green-100 text-green-800': invitation.status === 'Accepted',
-                  'bg-red-100 text-red-800': invitation.status === 'Rejected' || invitation.status === 'Cancelled'
-                }"
-              >
-                {{ invitation.status }}
-              </span>
+              <div class="flex flex-col items-start gap-1">
+                <span 
+                  class="px-2 py-1 text-xs rounded-full font-medium"
+                  :class="{
+                    'bg-yellow-100 text-yellow-800': invitation.status === 'Pending',
+                    'bg-green-100 text-green-800': invitation.status === 'Accepted',
+                    'bg-red-100 text-red-800': invitation.status === 'Rejected' || invitation.status === 'Cancelled'
+                  }"
+                >
+                  {{ invitation.status }}
+                </span>
+                <span 
+                  v-if="invitation.status === 'Pending' && invitation.isGroupFull" 
+                  class="text-2xs bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-200 font-semibold"
+                  title="This user cannot accept the invite until a slot opens up."
+                >
+                  Group Full
+                </span>
+              </div>
             </td>
             <td class="py-3 px-4 text-right">
               <button 

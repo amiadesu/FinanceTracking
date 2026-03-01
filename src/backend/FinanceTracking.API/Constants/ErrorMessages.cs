@@ -11,6 +11,7 @@ public static class ErrorMessages
     public const string GroupNotFound = "Group not found.";
 
     // Group members
+    public const string GroupMaxMembersReached = "Group has reached the maximum number of members.";
     public const string UseTransferEndpoint = "Use the transfer ownership endpoint to change the owner.";
 
     // Invitations
