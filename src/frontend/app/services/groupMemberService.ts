@@ -33,14 +33,14 @@ export const groupMemberService = {
 
   updateRole(groupId: number, userId: string, dto: UpdateGroupMemberRoleDto) {
     return useApiFetch<GroupMemberDto>(`/api/groups/${groupId}/members/${userId}/role`, {
-      method: 'POST',
+      method: 'PATCH',
       body: dto,
     });
   },
 
   transferOwnership(groupId: number, userId: string) {
     return useApiFetch(`/api/groups/${groupId}/members/${userId}/transfer-ownership`, {
-      method: 'POST',
+      method: 'PATCH',
     });
   },
 

@@ -57,7 +57,7 @@ public class GroupMembersController : ControllerBase
         return Ok(new { Role = role });
     }
 
-    [HttpPost("{userId}/role")]
+    [HttpPatch("{userId}/role")]
     [RequireGroupMembership]
     [NotThemselves]
     [RequireGroupRole(GroupRole.Owner)]
@@ -78,7 +78,7 @@ public class GroupMembersController : ControllerBase
         return Ok(member);
     }
 
-    [HttpPost("{userId}/transfer-ownership")]
+    [HttpPatch("{userId}/transfer-ownership")]
     [RequireGroupMembership]
     [NotThemselves]
     [RequireGroupRole(GroupRole.Owner)]
