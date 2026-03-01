@@ -50,6 +50,8 @@ public class GroupHistoryService
     public async Task<List<GroupHistoryDto>> GetGroupHistoryAsync(int groupId)
     {
         return await _dbContext.GroupMemberHistories
+            .Include(h => h.User)
+            .Include(h => h.ChangedByUser)
             .Where(h => h.GroupId == groupId)
             .OrderByDescending(h => h.ChangedAt)
             .Select(h => Map(h))
