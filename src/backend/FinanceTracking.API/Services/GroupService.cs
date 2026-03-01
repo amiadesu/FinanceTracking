@@ -75,7 +75,7 @@ public class GroupService
         return group;
     }
 
-    public async Task<Group> CreateGroupAsync(Guid creatorId, string name, bool isPersonal)
+    public async Task<GroupDto> CreateGroupAsync(Guid creatorId, string name, bool isPersonal)
     {
         var existingPersonalGroup = await _dbContext.Groups
             .FirstOrDefaultAsync(g => g.OwnerId == creatorId && g.IsPersonal);
@@ -99,7 +99,8 @@ public class GroupService
             Name = name,
             IsPersonal = isPersonal,
             CreatedDate = now,
-            UpdatedDate = now
+            UpdatedDate = now,
+            Members = new List<GroupMember>()
         };
 
         var groupMember = new GroupMember
@@ -111,6 +112,8 @@ public class GroupService
             JoinedDate = now,
             UpdatedDate = now
         };
+
+        group.Members.Add(groupMember);
 
         var historyEntry = new GroupMemberHistory
         {
@@ -129,7 +132,7 @@ public class GroupService
 
         await _dbContext.SaveChangesAsync();
 
-        return group;
+        return Map(group);
     }
 
     public async Task<GroupListResponseDto> GetUserGroupsAsync(Guid userId)
