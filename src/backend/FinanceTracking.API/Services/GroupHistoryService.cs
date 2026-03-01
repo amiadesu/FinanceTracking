@@ -29,7 +29,9 @@ public class GroupHistoryService
         GroupRole? roleBefore = null, 
         GroupRole? roleAfter = null, 
         bool? activeBefore = null, 
-        bool? activeAfter = null)
+        bool? activeAfter = null,
+        string? nameBefore = null,
+        string? nameAfter = null)
     {
         var historyEntry = new GroupMemberHistory
         {
@@ -41,6 +43,8 @@ public class GroupHistoryService
             RoleIdAfter = roleAfter,
             ActiveBefore = activeBefore,
             ActiveAfter = activeAfter,
+            NameBefore = nameBefore,
+            NameAfter = nameAfter,
             ChangedAt = DateTime.UtcNow
         };
 
@@ -66,6 +70,8 @@ public class GroupHistoryService
         RoleIdAfter = h.RoleIdAfter,
         ActiveBefore = h.ActiveBefore,
         ActiveAfter = h.ActiveAfter,
+        NameBefore = h.NameBefore,
+        NameAfter = h.NameAfter,
         ChangedAt = h.ChangedAt,
         TargetUserName = h.User != null ? h.User.UserName : "Unknown",
         ChangedByUserName = h.ChangedByUser != null ? h.ChangedByUser.UserName : "System"

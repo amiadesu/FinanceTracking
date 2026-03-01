@@ -11,6 +11,8 @@ public class GroupHistoryDto
     public GroupRole? RoleIdAfter { get; set; }
     public bool? ActiveBefore { get; set; }
     public bool? ActiveAfter { get; set; }
+    public string? NameBefore { get; set; }
+    public string? NameAfter { get; set; }
     public DateTime ChangedAt { get; set; }
     public string TargetUserName { get; set; } = string.Empty;
     public string ChangedByUserName { get; set; } = string.Empty;
