@@ -59,6 +59,7 @@ public class GroupMembersController : ControllerBase
 
     [HttpPost("{userId}/role")]
     [RequireGroupMembership]
+    [NotThemselves]
     [RequireGroupRole(GroupRole.Owner)]
     public async Task<IActionResult> UpdateGroupMemberRole(int groupId, Guid userId, [FromBody] UpdateGroupMemberRoleDto dto)
     {
@@ -79,6 +80,7 @@ public class GroupMembersController : ControllerBase
 
     [HttpPost("{userId}/transfer-ownership")]
     [RequireGroupMembership]
+    [NotThemselves]
     [RequireGroupRole(GroupRole.Owner)]
     public async Task<IActionResult> TransferOwnership(int groupId, Guid userId)
     {
@@ -92,6 +94,7 @@ public class GroupMembersController : ControllerBase
 
     [HttpDelete("{userId}")]
     [RequireGroupMembership]
+    [NotThemselves]
     [RequireGroupRole(GroupRole.Admin)]
     public async Task<IActionResult> RemoveGroupMember(int groupId, Guid userId)
     {
