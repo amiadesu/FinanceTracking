@@ -40,7 +40,7 @@ public class ReceiptsController : ControllerBase
 
     [HttpGet]
     [RequireGroupMembership]
-    public async Task<IActionResult> GetReceipts(int groupId, [FromQuery] int? sellerId, [FromQuery] int? productDataId)
+    public async Task<IActionResult> GetReceipts(int groupId, [FromQuery] string? sellerId, [FromQuery] int? productDataId)
     {
         if (productDataId.HasValue && productDataId.Value > 0)
         {
@@ -48,9 +48,9 @@ public class ReceiptsController : ControllerBase
             return Ok(productReceipts);
         }
 
-        if (sellerId.HasValue && sellerId.Value > 0)
+        if (!string.IsNullOrWhiteSpace(sellerId))
         {
-            var sellerReceipts = await _receiptService.GetReceiptsBySellerAsync(groupId, sellerId.Value);
+            var sellerReceipts = await _receiptService.GetReceiptsBySellerAsync(groupId, sellerId);
             return Ok(sellerReceipts);
         }
 
@@ -67,6 +67,29 @@ public class ReceiptsController : ControllerBase
             return NotFound();
 
         return Ok(receipt);
+    }
+
+    [HttpPost("upload-xml")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> UploadReceiptXml(int groupId, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = Constants.ErrorMessages.NoFilesUploaded });
+
+        try
+        {
+            var result = await _receiptService.ParseXMLReceiptAsync(groupId, file);
+
+            return Ok(result);
+        }
+        catch (System.Xml.XmlException)
+        {
+            return BadRequest(new { message = Constants.ErrorMessages.InvalidFileFormat });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPatch("{receiptId}")]

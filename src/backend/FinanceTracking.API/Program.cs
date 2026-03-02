@@ -10,6 +10,8 @@ using FinanceTracking.API.Models;
 using FinanceTracking.Contracts.Events;
 using FinanceTracking.API.Services;
 
+System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

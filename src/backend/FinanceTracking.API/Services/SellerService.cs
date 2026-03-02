@@ -58,14 +58,14 @@ public class SellerService
         };
     }
 
-    public async Task<SellerDto?> GetSellerAsync(int groupId, int sellerId)
+    public async Task<SellerDto?> GetSellerAsync(int groupId, string sellerId)
     {
         var seller = await _context.Sellers
             .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);
         return seller == null ? null : Map(seller);
     }
 
-    public async Task<SellerDto?> UpdateSellerAsync(int groupId, int sellerId, UpdateSellerDto dto)
+    public async Task<SellerDto?> UpdateSellerAsync(int groupId, string sellerId, UpdateSellerDto dto)
     {
         var seller = await _context.Sellers
             .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);
@@ -84,7 +84,7 @@ public class SellerService
         return Map(seller);
     }
 
-    public async Task<bool> DeleteSellerAsync(int groupId, int sellerId)
+    public async Task<bool> DeleteSellerAsync(int groupId, string sellerId)
     {
         var seller = await _context.Sellers
             .FirstOrDefaultAsync(s => s.GroupId == groupId && s.Id == sellerId);

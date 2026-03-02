@@ -8,6 +8,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Models;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Constants;
+using FinanceTracking.API.Parsers;
 
 namespace FinanceTracking.API.Services;
 
@@ -51,7 +52,7 @@ public class ReceiptService
             ProductEntries = new List<ProductEntry>()
         };
 
-        if (dto.SellerId <= 0)
+        if (string.IsNullOrWhiteSpace(dto.SellerId))
             throw new BadRequestException(ErrorMessages.SellerIdRequired);
 
         var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
@@ -114,7 +115,7 @@ public class ReceiptService
         };
     }
 
-    public async Task<List<ReceiptDto>> GetReceiptsBySellerAsync(int groupId, int sellerId)
+    public async Task<List<ReceiptDto>> GetReceiptsBySellerAsync(int groupId, string sellerId)
     {
         return await _context.Receipts
             .Where(r => r.GroupId == groupId && r.SellerId == sellerId)
@@ -154,6 +155,14 @@ public class ReceiptService
         return Map(r);
     }
 
+    public async Task<CreateReceiptDto?> ParseXMLReceiptAsync(int groupId, IFormFile file)
+    {
+        var parser = new ReceiptXmlParser();
+        var parsed = await parser.ParseAsync(file.OpenReadStream());
+
+        return parsed;
+    }
+
     public async Task<ReceiptDto> UpdateReceiptAsync(int groupId, int receiptId, Guid userId, UpdateReceiptDto dto)
     {
         if (dto.Products == null || dto.Products.Count() == 0)
@@ -181,23 +190,23 @@ public class ReceiptService
         bool changed = false;
         var now = DateTime.UtcNow;
 
-        if (dto.SellerId.HasValue && dto.SellerId.Value <= 0)
+        if (string.IsNullOrWhiteSpace(dto.SellerId))
         {
             throw new BadRequestException(ErrorMessages.SellerIdRequired);
         }
 
-        if (dto.SellerId.HasValue && dto.SellerId != receipt.SellerId)
+        if (!string.IsNullOrWhiteSpace(dto.SellerId) && dto.SellerId != receipt.SellerId)
         {
-            var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId.Value);
+            var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
             if (existingSeller == null)
             {
                 await _sellerService.CreateSellerAsync(
                     groupId, 
-                    new CreateSellerDto { Id = dto.SellerId.Value, Name = null }
+                    new CreateSellerDto { Id = dto.SellerId, Name = null }
                 );
             }
 
-            receipt.SellerId = dto.SellerId.Value;
+            receipt.SellerId = dto.SellerId;
             changed = true;
         }
         if (dto.PaymentDate.HasValue && dto.PaymentDate.Value != receipt.PaymentDate)

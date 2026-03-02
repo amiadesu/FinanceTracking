@@ -32,7 +32,7 @@ public class SellersController : ControllerBase
 
     [HttpGet("{sellerId}")]
     [RequireGroupMembership]
-    public async Task<IActionResult> GetSeller(int groupId, int sellerId)
+    public async Task<IActionResult> GetSeller(int groupId, string sellerId)
     {
         var seller = await _sellerService.GetSellerAsync(groupId, sellerId);
         if (seller == null)
@@ -43,7 +43,7 @@ public class SellersController : ControllerBase
     [HttpPatch("{sellerId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
-    public async Task<IActionResult> UpdateSeller(int groupId, int sellerId, [FromBody] UpdateSellerDto dto)
+    public async Task<IActionResult> UpdateSeller(int groupId, string sellerId, [FromBody] UpdateSellerDto dto)
     {
         var seller = await _sellerService.UpdateSellerAsync(groupId, sellerId, dto);
         
@@ -56,7 +56,7 @@ public class SellersController : ControllerBase
     [HttpDelete("{sellerId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
-    public async Task<IActionResult> DeleteSeller(int groupId, int sellerId)
+    public async Task<IActionResult> DeleteSeller(int groupId, string sellerId)
     {
         try
         {
