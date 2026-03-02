@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceTracking.API.Migrations
 {
     [DbContext(typeof(FinanceDbContext))]
-    [Migration("20260227063707_AddBudgelGoal")]
-    partial class AddBudgelGoal
+    [Migration("20260302075335_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -295,6 +295,14 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("changed_by_user_id");
 
+                    b.Property<string>("NameAfter")
+                        .HasColumnType("text")
+                        .HasColumnName("name_after");
+
+                    b.Property<string>("NameBefore")
+                        .HasColumnType("text")
+                        .HasColumnName("name_before");
+
                     b.Property<string>("Note")
                         .IsRequired()
                         .HasColumnType("text")
@@ -345,7 +353,6 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
 
@@ -413,7 +420,7 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("numeric")
                         .HasColumnName("price");
 
@@ -421,7 +428,7 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("product_data_id");
 
-                    b.Property<decimal?>("Quantity")
+                    b.Property<decimal>("Quantity")
                         .HasColumnType("numeric")
                         .HasColumnName("quantity");
 
@@ -469,25 +476,16 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_date");
 
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("original_file_name");
-
-                    b.Property<DateTime?>("PaymentDate")
+                    b.Property<DateTime>("PaymentDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("payment_date");
 
-                    b.Property<int?>("SellerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("seller_id");
-
-                    b.Property<string>("SourceType")
+                    b.Property<string>("SellerId")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("source_type");
+                        .HasColumnName("seller_id");
 
-                    b.Property<decimal?>("TotalAmount")
+                    b.Property<decimal>("TotalAmount")
                         .HasColumnType("numeric")
                         .HasColumnName("total_amount");
 
@@ -546,12 +544,10 @@ namespace FinanceTracking.API.Migrations
 
             modelBuilder.Entity("FinanceTracking.API.Models.Seller", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("text")
                         .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GroupId")
                         .HasColumnType("integer")
@@ -562,12 +558,10 @@ namespace FinanceTracking.API.Migrations
                         .HasColumnName("created_date");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
 
@@ -796,7 +790,8 @@ namespace FinanceTracking.API.Migrations
                     b.HasOne("FinanceTracking.API.Models.Seller", "Seller")
                         .WithMany("Receipts")
                         .HasForeignKey("SellerId", "GroupId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("fk_receipts_sellers_seller_id_group_id");
 
                     b.Navigation("CreatedByUser");

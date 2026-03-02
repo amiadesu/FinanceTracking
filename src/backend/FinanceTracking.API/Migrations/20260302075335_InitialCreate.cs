@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace FinanceTracking.API.Migrations
 {
     /// <inheritdoc />
@@ -16,8 +18,7 @@ namespace FinanceTracking.API.Migrations
                 name: "roles",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    id = table.Column<int>(type: "integer", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -64,6 +65,30 @@ namespace FinanceTracking.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "budget_goals",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    target_amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_budget_goals", x => new { x.id, x.group_id });
+                    table.ForeignKey(
+                        name: "fk_budget_goals_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "categories",
                 columns: table => new
                 {
@@ -88,6 +113,41 @@ namespace FinanceTracking.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "group_invitations",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    group_id = table.Column<int>(type: "integer", nullable: false),
+                    invited_by_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    target_user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    note = table.Column<string>(type: "text", nullable: false),
+                    status = table.Column<int>(type: "integer", nullable: false),
+                    created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_group_invitations", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_group_invitations_groups_group_id",
+                        column: x => x.group_id,
+                        principalTable: "groups",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_group_invitations_users_invited_by_user_id",
+                        column: x => x.invited_by_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_group_invitations_users_target_user_id",
+                        column: x => x.target_user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "group_member_histories",
                 columns: table => new
                 {
@@ -100,6 +160,8 @@ namespace FinanceTracking.API.Migrations
                     role_id_after = table.Column<int>(type: "integer", nullable: true),
                     active_before = table.Column<bool>(type: "boolean", nullable: true),
                     active_after = table.Column<bool>(type: "boolean", nullable: true),
+                    name_before = table.Column<string>(type: "text", nullable: true),
+                    name_after = table.Column<string>(type: "text", nullable: true),
                     note = table.Column<string>(type: "text", nullable: false),
                     changed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -168,7 +230,7 @@ namespace FinanceTracking.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     group_id = table.Column<int>(type: "integer", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -187,11 +249,10 @@ namespace FinanceTracking.API.Migrations
                 name: "sellers",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    id = table.Column<string>(type: "text", nullable: false),
                     group_id = table.Column<int>(type: "integer", nullable: false),
-                    name = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: true),
+                    description = table.Column<string>(type: "text", nullable: true),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -245,11 +306,9 @@ namespace FinanceTracking.API.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     group_id = table.Column<int>(type: "integer", nullable: false),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    seller_id = table.Column<int>(type: "integer", nullable: true),
-                    total_amount = table.Column<decimal>(type: "numeric", nullable: true),
-                    payment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    source_type = table.Column<string>(type: "text", nullable: false),
-                    original_file_name = table.Column<string>(type: "text", nullable: false),
+                    seller_id = table.Column<string>(type: "text", nullable: false),
+                    total_amount = table.Column<decimal>(type: "numeric", nullable: false),
+                    payment_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -267,7 +326,7 @@ namespace FinanceTracking.API.Migrations
                         columns: x => new { x.seller_id, x.group_id },
                         principalTable: "sellers",
                         principalColumns: new[] { "id", "group_id" },
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "fk_receipts_users_created_by_user_id",
                         column: x => x.created_by_user_id,
@@ -285,8 +344,8 @@ namespace FinanceTracking.API.Migrations
                     group_id = table.Column<int>(type: "integer", nullable: false),
                     receipt_id = table.Column<int>(type: "integer", nullable: false),
                     product_data_id = table.Column<int>(type: "integer", nullable: false),
-                    price = table.Column<decimal>(type: "numeric", nullable: true),
-                    quantity = table.Column<decimal>(type: "numeric", nullable: true),
+                    price = table.Column<decimal>(type: "numeric", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric", nullable: false),
                     created_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -313,10 +372,40 @@ namespace FinanceTracking.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "roles",
+                columns: new[] { "id", "name" },
+                values: new object[,]
+                {
+                    { 1, "Owner" },
+                    { 2, "Admin" },
+                    { 3, "Member" }
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_budget_goals_group_id",
+                table: "budget_goals",
+                column: "group_id");
+
             migrationBuilder.CreateIndex(
                 name: "ix_categories_group_id",
                 table: "categories",
                 column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_group_invitations_group_id",
+                table: "group_invitations",
+                column: "group_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_group_invitations_invited_by_user_id",
+                table: "group_invitations",
+                column: "invited_by_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_group_invitations_target_user_id",
+                table: "group_invitations",
+                column: "target_user_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_group_member_histories_changed_by_user_id",
@@ -407,6 +496,12 @@ namespace FinanceTracking.API.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "budget_goals");
+
+            migrationBuilder.DropTable(
+                name: "group_invitations");
+
             migrationBuilder.DropTable(
                 name: "group_member_histories");
 
