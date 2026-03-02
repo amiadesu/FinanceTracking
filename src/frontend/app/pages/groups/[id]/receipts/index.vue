@@ -32,6 +32,9 @@ const maxAllowed = ref(0);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+const xmlFileInput = ref<HTMLInputElement | null>(null);
+const isUploading = ref(false);
+
 const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 
 function generateUid() {
@@ -40,11 +43,11 @@ function generateUid() {
 
 const newReceipt = reactive<{
   paymentDate: string;
-  sellerId: number;
+  sellerId: string;
   products: FormProduct[];
 }>({
   paymentDate: new Date().toISOString().split('T')[0]!,
-  sellerId: 0,
+  sellerId: "",
   products: [{
     _uid: generateUid(),
     name: '',
@@ -135,7 +138,7 @@ async function createReceipt() {
     await receiptService.createReceipt(groupId, receiptToSend);
     
     newReceipt.paymentDate = new Date().toISOString().split('T')[0]!;
-    newReceipt.sellerId = 0;
+    newReceipt.sellerId = "";
     newReceipt.products = [{
       _uid: generateUid(),
       name: '',
@@ -152,6 +155,62 @@ async function createReceipt() {
 
 function goToReceipt(id: number) {
   router.push(`/groups/${groupId}/receipts/${id}`);
+}
+
+async function handleXmlUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  isUploading.value = true;
+  try {
+    const parsedData = await receiptService.uploadReceiptXml(groupId, file);
+
+    if (!parsedData || typeof parsedData !== 'object') {
+      throw new Error('Unexpected response format from server');
+    }
+
+    if (parsedData.paymentDate) {
+      newReceipt.paymentDate = parsedData.paymentDate.split('T')[0]!;
+    }
+    
+    if (parsedData.sellerId) {
+      newReceipt.sellerId = parsedData.sellerId;
+    }
+
+    if (parsedData.products && Array.isArray(parsedData.products)) {
+      newReceipt.products = parsedData.products.map((p: any) => {
+        const categoryIds = new Set<number>();
+        if (p.categories) {
+          p.categories.forEach((catName: string) => {
+            const found = categories.value.find(c => 
+              c.name.toLowerCase() === catName.toLowerCase()
+            );
+            if (found) categoryIds.add(found.id);
+          });
+        }
+
+        return {
+          _uid: generateUid(),
+          name: p.name || '',
+          price: p.price || 0,
+          quantity: p.quantity || 1,
+          categoryIds
+        };
+      });
+    }
+
+    alert('XML parsed successfully! Please review the details below.');
+  } catch (err: any) {
+    alert(err.message || 'Failed to parse XML');
+  } finally {
+    isUploading.value = false;
+    if (xmlFileInput.value) xmlFileInput.value.value = '';
+  }
+}
+
+function triggerXmlSelect() {
+  xmlFileInput.value?.click();
 }
 
 onMounted(() => loadData());
@@ -198,6 +257,28 @@ onMounted(() => loadData());
 
     <div class="mt-6 border-t pt-4">
       <h2 class="font-semibold">Create new receipt</h2>
+      <div class="mt-6 border-t pt-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold">Import Receipt</h2>
+          <div>
+            <input 
+              type="file" 
+              ref="xmlFileInput" 
+              class="hidden" 
+              accept=".xml" 
+              @change="handleXmlUpload" 
+            />
+            <button 
+              @click="triggerXmlSelect" 
+              :disabled="isUploading"
+              class="text-sm bg-green-600 text-white px-3 py-1 rounded disabled:bg-gray-400"
+            >
+              {{ isUploading ? 'Uploading...' : 'Upload XML Receipt' }}
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500">Automatically populate receipt data from a supported XML file.</p>
+      </div>
       <div class="flex flex-col gap-4 max-w-2xl">
         <label class="flex flex-col">
           Payment Date

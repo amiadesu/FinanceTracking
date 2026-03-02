@@ -36,7 +36,7 @@ async function loadData() {
   }
 }
 
-function goToSeller(id: number) {
+function goToSeller(id: string) {
   router.push(`/groups/${groupId}/sellers/${id}`);
 }
 

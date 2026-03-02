@@ -4,16 +4,16 @@ import type { SellerDto } from '~/services/sellerService';
 
 const props = defineProps<{
   sellers: SellerDto[];
-  modelValue: number | null;
+  modelValue: string | null;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', sellerId: number | null): void;
+  (e: 'update:modelValue', sellerId: string | null): void;
 }>();
 
 const isOpen = ref(false);
 const filterText = ref('');
-const customId = ref<number | ''>('');
+const customId = ref<string>('');
 const pickerRef = ref<HTMLElement | null>(null);
 
 const filteredSellers = computed(() => {
@@ -21,7 +21,7 @@ const filteredSellers = computed(() => {
   const lowerFilter = filterText.value.toLowerCase();
   return props.sellers.filter(s =>
     (s.name && s.name.toLowerCase().includes(lowerFilter)) ||
-    s.id.toString().includes(lowerFilter)
+    s.id.toLowerCase().includes(lowerFilter)
   );
 });
 
@@ -34,15 +34,15 @@ const selectedSellerDisplay = computed(() => {
   return `ID: ${props.modelValue} (New)`;
 });
 
-function selectSeller(sellerId: number) {
+function selectSeller(sellerId: string) {
   emit('update:modelValue', sellerId);
   isOpen.value = false;
   filterText.value = '';
 }
 
 function applyCustomId() {
-  if (typeof customId.value === 'number' && customId.value > 0) {
-    emit('update:modelValue', customId.value);
+  if (customId.value.trim()) {
+    emit('update:modelValue', customId.value.trim());
     isOpen.value = false;
     customId.value = '';
   }
@@ -105,8 +105,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
         <label class="block text-xs font-semibold text-gray-600 mb-1">Or enter a new ID manually:</label>
         <div class="flex gap-2">
           <input
-            type="number"
-            v-model.number="customId"
+            type="text" 
+            v-model="customId"
             placeholder="New ID..."
             class="border p-1 text-sm flex-1"
             @keyup.enter="applyCustomId"
@@ -115,7 +115,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
             type="button" 
             @click="applyCustomId"
             class="bg-blue-600 text-white px-2 py-1 text-sm rounded"
-            :disabled="!customId"
+            :disabled="!customId.trim()"
           >
             Apply
           </button>

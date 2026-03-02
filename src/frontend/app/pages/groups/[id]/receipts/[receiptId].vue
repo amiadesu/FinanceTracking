@@ -33,7 +33,7 @@ const error = ref<string | null>(null);
 const editMode = ref(false);
 const editDto = reactive<{
   paymentDate?: string;
-  sellerId?: number;
+  sellerId?: string;
   products: FormProduct[];
 }>({
   products: [],

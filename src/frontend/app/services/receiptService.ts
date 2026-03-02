@@ -10,7 +10,7 @@ export interface ReceiptDto {
   id: number;
   groupId: number;
   createdByUserId?: string;
-  sellerId: number;
+  sellerId: string;
   sellerName?: string;
   totalAmount: number;
   paymentDate: string;
@@ -33,7 +33,7 @@ export interface CreateReceiptProductDto {
 }
 
 export interface CreateReceiptDto {
-  sellerId: number;
+  sellerId: string;
   paymentDate: string;
   products: CreateReceiptProductDto[];
 }
@@ -47,7 +47,7 @@ export interface UpdateReceiptProductDto {
 }
 
 export interface UpdateReceiptDto {
-  sellerId?: number;
+  sellerId?: string;
   paymentDate?: string;
   products?: UpdateReceiptProductDto[];
 }
@@ -62,7 +62,7 @@ export const receiptService = {
     });
   },
 
-  getFilteredReceipts(groupId: number, params: { sellerId?: number; productDataId?: number }) {
+  getFilteredReceipts(groupId: number, params: { sellerId?: string; productDataId?: number }) {
     const query = new URLSearchParams();
     if (params.sellerId) query.append('sellerId', params.sellerId.toString());
     if (params.productDataId) query.append('productDataId', params.productDataId.toString());
@@ -79,6 +79,16 @@ export const receiptService = {
   getReceipt(groupId: number, receiptId: number) {
     return useApiFetch<ReceiptDto>(`/api/groups/${groupId}/receipts/${receiptId}`, {
       method: 'GET',
+    });
+  },
+
+  async uploadReceiptXml(groupId: number, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return useApiFetch<CreateReceiptDto>(`/api/groups/${groupId}/receipts/upload-xml`, {
+      method: 'POST',
+      body: formData,
     });
   },
 

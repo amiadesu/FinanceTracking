@@ -1,5 +1,5 @@
 export interface SellerDto {
-  id: number;
+  id: string;
   groupId: number | null;
   name: string;
   description?: string;
@@ -25,18 +25,18 @@ export const sellerService = {
     return useApiFetch<SellerListResponseDto>(`/api/groups/${groupId}/sellers`, { method: 'GET' });
   },
 
-  getSeller(groupId: number, sellerId: number) {
+  getSeller(groupId: number, sellerId: string) {
     return useApiFetch<SellerDto>(`/api/groups/${groupId}/sellers/${sellerId}`, { method: 'GET' });
   },
 
-  updateSeller(groupId: number, sellerId: number, dto: UpdateSellerDto) {
+  updateSeller(groupId: number, sellerId: string, dto: UpdateSellerDto) {
     return useApiFetch<SellerDto>(`/api/groups/${groupId}/sellers/${sellerId}`, {
       method: 'PATCH',
       body: dto,
     });
   },
 
-  deleteSeller(groupId: number, sellerId: number) {
+  deleteSeller(groupId: number, sellerId: string) {
     return useApiFetch(`/api/groups/${groupId}/sellers/${sellerId}`, {
       method: 'DELETE',
     });

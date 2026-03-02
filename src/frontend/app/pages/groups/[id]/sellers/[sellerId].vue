@@ -9,7 +9,7 @@ import type { ReceiptDto } from '~/services/receiptService';
 const route = useRoute();
 const router = useRouter();
 const groupId = Number(route.params.id);
-const sellerId = Number(route.params.sellerId);
+const sellerId = String(route.params.sellerId);
 
 const seller = ref<SellerDto | null>(null);
 const receipts = ref<ReceiptDto[]>([]);
