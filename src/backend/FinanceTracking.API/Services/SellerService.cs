@@ -8,6 +8,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Models;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Constants;
+using FinanceTracking.API.Validators;
 
 namespace FinanceTracking.API.Services;
 
@@ -26,6 +27,9 @@ public class SellerService
 
     public async Task<SellerDto> CreateSellerAsync(int groupId, CreateSellerDto dto)
     {
+        if (!InputValidator.IsNumericString(dto.Id))
+            throw new InvalidOperationException(ErrorMessages.InvalidSellerId);
+        
         var now = DateTime.UtcNow;
         var seller = new Seller
         {

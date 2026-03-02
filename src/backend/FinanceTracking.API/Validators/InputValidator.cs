@@ -20,4 +20,9 @@ public static class InputValidator
 
         return color.All(c => "0123456789ABCDEFabcdef".Contains(c));
     }
+
+    public static bool IsNumericString(string str)
+    {
+        return !string.IsNullOrWhiteSpace(str) && str.All(char.IsDigit);
+    }
 }

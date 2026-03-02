@@ -9,6 +9,7 @@ using FinanceTracking.API.Models;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Constants;
 using FinanceTracking.API.Parsers;
+using FinanceTracking.API.Validators;
 
 namespace FinanceTracking.API.Services;
 
@@ -54,6 +55,9 @@ public class ReceiptService
 
         if (string.IsNullOrWhiteSpace(dto.SellerId))
             throw new BadRequestException(ErrorMessages.SellerIdRequired);
+
+        if (!InputValidator.IsNumericString(dto.SellerId))
+            throw new BadRequestException(ErrorMessages.InvalidSellerId);
 
         var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
         if (existingSeller == null)
@@ -191,11 +195,12 @@ public class ReceiptService
         var now = DateTime.UtcNow;
 
         if (string.IsNullOrWhiteSpace(dto.SellerId))
-        {
             throw new BadRequestException(ErrorMessages.SellerIdRequired);
-        }
 
-        if (!string.IsNullOrWhiteSpace(dto.SellerId) && dto.SellerId != receipt.SellerId)
+        if (!InputValidator.IsNumericString(dto.SellerId))
+            throw new BadRequestException(ErrorMessages.InvalidSellerId);
+
+        if (dto.SellerId != receipt.SellerId)
         {
             var existingSeller = await _sellerService.GetSellerAsync(groupId, dto.SellerId);
             if (existingSeller == null)
