@@ -7,6 +7,7 @@ using FinanceTracking.API.Extensions;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -38,6 +39,7 @@ public class GroupInvitationsController : ControllerBase
     [NotPersonalGroup]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<CreateInvitationDto>))]
     public async Task<IActionResult> CreateInvitation(int groupId, [FromBody] CreateInvitationDto dto)
     {
         var userId = User.GetUserId();

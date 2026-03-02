@@ -7,6 +7,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -43,6 +44,7 @@ public class SellersController : ControllerBase
     [HttpPatch("{sellerId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateSellerDto>))]
     public async Task<IActionResult> UpdateSeller(int groupId, string sellerId, [FromBody] UpdateSellerDto dto)
     {
         var seller = await _sellerService.UpdateSellerAsync(groupId, sellerId, dto);

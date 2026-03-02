@@ -7,6 +7,8 @@ using FinanceTracking.API.Extensions;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Attributes;
+using FinanceTracking.API.Filters;
+using FinanceTracking.API.Validators;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -24,6 +26,7 @@ public class ReceiptsController : ControllerBase
 
     [HttpPost]
     [RequireGroupMembership]
+    [ServiceFilter(typeof(ValidationFilter<CreateReceiptDto>))]
     public async Task<IActionResult> CreateReceipt(int groupId, [FromBody] CreateReceiptDto dto)
     {
         try
@@ -48,7 +51,7 @@ public class ReceiptsController : ControllerBase
             return Ok(productReceipts);
         }
 
-        if (!string.IsNullOrWhiteSpace(sellerId))
+        if (!string.IsNullOrWhiteSpace(sellerId) && InputValidator.IsNumericString(sellerId))
         {
             var sellerReceipts = await _receiptService.GetReceiptsBySellerAsync(groupId, sellerId);
             return Ok(sellerReceipts);
@@ -94,6 +97,7 @@ public class ReceiptsController : ControllerBase
 
     [HttpPatch("{receiptId}")]
     [RequireGroupMembership]
+    [ServiceFilter(typeof(ValidationFilter<UpdateReceiptDto>))]
     public async Task<IActionResult> UpdateReceipt(int groupId, int receiptId, [FromBody] UpdateReceiptDto dto)
     {
         try

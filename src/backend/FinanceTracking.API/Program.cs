@@ -12,6 +12,7 @@ using FinanceTracking.API.Models;
 using FinanceTracking.Contracts.Events;
 using FinanceTracking.API.Services;
 using System.Reflection;
+using FinanceTracking.API.Filters;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -41,6 +42,7 @@ builder.Services.AddScoped<ProductDataService>();
 builder.Services.AddScoped<GroupMemberService>();
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+builder.Services.AddTransient(typeof(ValidationFilter<>));
 
 builder.Host.UseWolverine(opts =>
 {

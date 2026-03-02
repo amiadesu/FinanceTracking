@@ -7,6 +7,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -25,6 +26,7 @@ public class CategoriesController : ControllerBase
     [HttpPost]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<CreateCategoryDto>))]
     public async Task<IActionResult> CreateCategory(int groupId, [FromBody] CreateCategoryDto dto)
     {
         try
@@ -65,6 +67,7 @@ public class CategoriesController : ControllerBase
     [HttpPatch("{categoryId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateCategoryDto>))]
     public async Task<IActionResult> UpdateCategory(int groupId, int categoryId, [FromBody] UpdateCategoryDto dto)
     {
         try

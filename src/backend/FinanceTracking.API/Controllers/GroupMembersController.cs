@@ -7,6 +7,7 @@ using FinanceTracking.API.Extensions;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -61,6 +62,7 @@ public class GroupMembersController : ControllerBase
     [RequireGroupMembership]
     [NotThemselves]
     [RequireGroupRole(GroupRole.Owner)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateGroupMemberRoleDto>))]
     public async Task<IActionResult> UpdateGroupMemberRole(int groupId, Guid userId, [FromBody] UpdateGroupMemberRoleDto dto)
     {
         if (dto.Role.HasValue && dto.Role.Value == GroupRole.Owner)

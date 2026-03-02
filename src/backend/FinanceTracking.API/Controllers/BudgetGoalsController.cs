@@ -8,6 +8,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -28,6 +29,7 @@ public class BudgetGoalsController : ControllerBase
     [HttpPost]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<CreateBudgetGoalDto>))]
     public async Task<IActionResult> CreateGoal(int groupId, [FromBody] CreateBudgetGoalDto dto)
     {
         try
@@ -78,6 +80,7 @@ public class BudgetGoalsController : ControllerBase
     [HttpPatch("{goalId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateBudgetGoalDto>))]
     public async Task<IActionResult> UpdateGoal(int groupId, int goalId, [FromBody] UpdateBudgetGoalDto dto)
     {
         try

@@ -6,6 +6,7 @@ using FinanceTracking.API.Services;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -43,6 +44,7 @@ public class ProductsController : ControllerBase
     [HttpPatch("{productId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateProductDataDto>))]
     public async Task<IActionResult> UpdateProduct(int groupId, int productId, [FromBody] UpdateProductDataDto dto)
     {
         try
