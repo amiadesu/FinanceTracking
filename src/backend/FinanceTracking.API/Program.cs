@@ -5,10 +5,13 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Wolverine;
 using Wolverine.RabbitMQ;
+using FluentValidation;
+using FinanceTracking.API.Validators;
 using FinanceTracking.API.Data;
 using FinanceTracking.API.Models;
 using FinanceTracking.Contracts.Events;
 using FinanceTracking.API.Services;
+using System.Reflection;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -36,6 +39,8 @@ builder.Services.AddScoped<ReceiptService>();
 builder.Services.AddScoped<SellerService>();
 builder.Services.AddScoped<ProductDataService>();
 builder.Services.AddScoped<GroupMemberService>();
+
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
 builder.Host.UseWolverine(opts =>
 {
