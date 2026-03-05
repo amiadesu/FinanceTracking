@@ -51,15 +51,31 @@ public class GroupHistoryService
         _dbContext.GroupMemberHistories.Add(historyEntry);
     }
 
-    public async Task<List<GroupHistoryDto>> GetGroupHistoryAsync(int groupId)
+    public async Task<GroupHistoryListResponseDto> GetGroupHistoryAsync(int groupId, int pageNumber, int pageSize)
     {
-        return await _dbContext.GroupMemberHistories
+        var baseQuery = _dbContext.GroupMemberHistories
+            .Where(h => h.GroupId == groupId);
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var items = await baseQuery
             .Include(h => h.User)
             .Include(h => h.ChangedByUser)
-            .Where(h => h.GroupId == groupId)
             .OrderByDescending(h => h.ChangedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Select(h => Map(h))
             .ToListAsync();
+
+        return new GroupHistoryListResponseDto
+        {
+            CountOnPage = items.Count,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+            GroupHistoryEntries = items
+        };
     }
 
     private static GroupHistoryDto Map(GroupMemberHistory h) => new GroupHistoryDto
