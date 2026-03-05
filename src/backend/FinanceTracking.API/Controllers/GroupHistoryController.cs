@@ -29,9 +29,24 @@ public class GroupHistoryController : ControllerBase
     [HttpGet]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Admin)]
-    public async Task<IActionResult> GetGroupHistory(int groupId)
+    public async Task<IActionResult> GetGroupHistory(
+        int groupId, 
+        [FromQuery] int pageNumber = 1, 
+        [FromQuery] int pageSize = 20)
     {
-        var history = await _historyService.GetGroupHistoryAsync(groupId);
-        return Ok(history);
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1)
+        {
+            pageSize = Constants.ServiceConstants.DefaultGroupHistoryEntriesPerPage;
+        }
+        if (pageSize > Constants.ServiceConstants.MaxGroupHistoryEntriesPerPage)
+        {
+            pageSize = Constants.ServiceConstants.MaxGroupHistoryEntriesPerPage;
+        }
+        
+
+        var response = await _historyService.GetGroupHistoryAsync(groupId, pageNumber, pageSize);
+
+        return Ok(response);
     }
 }

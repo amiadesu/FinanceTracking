@@ -12,6 +12,10 @@ public static class ServiceConstants
     public const int MaxSellersPerGroup = InfiniteLimit;
     public const int MaxBudgetGoalsPerGroup = InfiniteLimit;
 
+    // Group histories
+    public const int MaxGroupHistoryEntriesPerPage = 50;
+    public const int DefaultGroupHistoryEntriesPerPage = 20;
+
     // Receipts
     public const int MaxProductsPerReceipt = 50;
     public const int MaxCategoriesPerProduct = 5;
