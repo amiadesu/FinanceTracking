@@ -8,6 +8,7 @@ using FinanceTracking.API.Extensions;
 using FinanceTracking.API.Attributes;
 using FinanceTracking.API.Models;
 using FinanceTracking.API.DTOs;
+using FinanceTracking.API.Filters;
 
 namespace FinanceTracking.API.Controllers;
 
@@ -31,6 +32,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpPost]
+    [ServiceFilter(typeof(ValidationFilter<CreateGroupDto>))]
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupDto dto)
     {
         var userId = User.GetUserId();
@@ -72,6 +74,7 @@ public class GroupsController : ControllerBase
     [HttpPatch("{groupId}")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Owner)]
+    [ServiceFilter(typeof(ValidationFilter<UpdateGroupDto>))]
     public async Task<IActionResult> UpdateGroup(int groupId, [FromBody] UpdateGroupDto dto)
     {
         var userId = User.GetUserId();
@@ -86,6 +89,7 @@ public class GroupsController : ControllerBase
     [HttpPatch("{groupId}/reset")]
     [RequireGroupMembership]
     [RequireGroupRole(GroupRole.Owner)]
+    [ServiceFilter(typeof(ValidationFilter<ResetGroupDto>))]
     public async Task<IActionResult> ResetGroup(int groupId, [FromBody] ResetGroupDto dto)
     {
         var userId = User.GetUserId();
