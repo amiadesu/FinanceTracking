@@ -14,7 +14,8 @@ const userId = route.params.userId as string;
 
 const member = ref<GroupMemberDto | null>(null);
 const myRole = ref<number | null>(null);
-const selectedRole = ref<number>(0);
+
+const selectedRole = ref<{ label: string, value: number } | null>(null);
 
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -25,7 +26,10 @@ const isOwner = computed(() => myRole.value === ownerRoleId.value);
 const assignableRoles = computed(() => {
   const roles = { ...configStore.config?.groupRoles };
   delete roles['Owner'];
-  return roles;
+  return Object.entries(roles).map(([label, value]) => ({ 
+    label, 
+    value 
+  }));
 });
 
 async function load() {
@@ -38,9 +42,18 @@ async function load() {
       groupMemberService.getMember(groupId, userId),
       groupMemberService.getMyRole(groupId)
     ]);
+    
     member.value = memberData;
     myRole.value = roleData.role;
-    selectedRole.value = memberData.role;
+
+    let matchedRole = assignableRoles.value.find(r => r.value === memberData.role);
+    
+    if (!matchedRole && memberData.role === ownerRoleId.value) {
+      matchedRole = { label: 'Owner', value: memberData.role };
+    }
+    
+    selectedRole.value = matchedRole || { label: 'Unknown', value: memberData.role };
+
   } catch (err: any) {
     error.value = err.message || 'Failed to load member details';
   } finally {
@@ -49,13 +62,15 @@ async function load() {
 }
 
 async function updateRole() {
-  if (selectedRole.value === ownerRoleId.value) {
+  if (!selectedRole.value) return;
+
+  if (selectedRole.value.value === ownerRoleId.value) {
     alert('Please use the Transfer Ownership button to make this user an owner.');
     return;
   }
   
   try {
-    const updated = await groupMemberService.updateRole(groupId, userId, { role: selectedRole.value });
+    const updated = await groupMemberService.updateRole(groupId, userId, { role: selectedRole.value.value });
     member.value = updated;
     alert('Role updated successfully.');
   } catch (err: any) {
@@ -87,51 +102,84 @@ onMounted(() => load());
 </script>
 
 <template>
-  <div class="p-4 max-w-3xl">
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="text-xl font-bold">Manage Member</h1>
-      <button @click="() => router.back()" class="text-blue-600 underline text-sm">
-        ← Back to Members
-      </button>
+  <div class="max-w-3xl mx-auto p-4 mt-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manage Member</h1>
+      <UButton @click="() => router.back()" color="secondary" variant="outline" icon="i-heroicons-arrow-left">
+        Back to Members
+      </UButton>
     </div>
 
-    <div v-if="loading">Loading…</div>
-    <div v-if="error" class="text-red-600">{{ error }}</div>
+    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+      Loading member data...
+    </div>
+    
+    <UAlert 
+      v-else-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-4" 
+    />
 
-    <div v-if="member && !loading" class="space-y-6">
-      
-      <div class="border rounded p-4 bg-gray-50 flex flex-col gap-4">
+    <UCard v-else-if="member" class="shadow-sm">
+      <div class="flex flex-col gap-6">
         <div>
-          <span class="font-semibold text-gray-700 text-sm block">User</span>
-          <p class="text-lg">{{ member.userName }} <span v-if="!member.active" class="text-red-500 text-sm">(Inactive)</span></p>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">User</span>
+          <div class="flex items-center gap-3 mt-1">
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ member.userName }}</p>
+            <UBadge v-if="!member.active" color="error" variant="soft" size="sm">Inactive</UBadge>
+          </div>
         </div>
         
-        <label class="flex flex-col">
-          <span class="font-semibold text-gray-700 text-sm">Change Role</span>
-          <select v-model="selectedRole" class="border p-2 mt-1 rounded bg-white max-w-xs" :disabled="member.role === ownerRoleId">
-            <option v-for="(roleVal, roleName) in assignableRoles" :key="roleVal" :value="roleVal">
-              {{ roleName }}
-            </option>
-          </select>
-          <span v-if="member.role === ownerRoleId" class="text-sm text-gray-500 mt-1">
-            Owner roles cannot be changed via dropdown.
-          </span>
-        </label>
-
-        <div class="flex gap-2 pt-2 border-t mt-2">
-          <button v-if="member.role !== ownerRoleId" @click="updateRole" class="bg-blue-600 text-white px-4 py-2 rounded font-semibold text-sm">
-            Save Role
-          </button>
-          
-          <button v-if="isOwner && member.role !== ownerRoleId" @click="transferOwnership" class="bg-yellow-500 text-white px-4 py-2 rounded font-semibold text-sm">
-            Transfer Ownership
-          </button>
-
-          <button v-if="member.role !== ownerRoleId" @click="remove" class="bg-red-600 text-white px-4 py-2 rounded font-semibold text-sm ml-auto">
-            Remove from Group
-          </button>
-        </div>
+        <UFormField label="Change Role" class="max-w-xs">
+          <USelectMenu 
+            v-model="selectedRole!" 
+            :items="assignableRoles" 
+            :disabled="member.role === ownerRoleId"
+            class="w-full"
+          />
+          <template #help>
+            <span v-if="member.role === ownerRoleId" class="text-xs text-gray-500 mt-1">
+              Owner roles cannot be changed via dropdown.
+            </span>
+          </template>
+        </UFormField>
       </div>
-    </div>
+
+      <template #footer>
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div class="flex gap-3">
+            <UButton 
+              v-if="member.role !== ownerRoleId" 
+              @click="updateRole" 
+              color="primary"
+            >
+              Save Role
+            </UButton>
+            
+            <UButton 
+              v-if="isOwner && member.role !== ownerRoleId" 
+              @click="transferOwnership" 
+              color="warning" 
+              variant="subtle"
+            >
+              Transfer Ownership
+            </UButton>
+          </div>
+
+          <UButton 
+            v-if="member.role !== ownerRoleId" 
+            @click="remove" 
+            color="error" 
+            variant="outline"
+          >
+            Remove from Group
+          </UButton>
+        </div>
+      </template>
+    </UCard>
   </div>
 </template>
