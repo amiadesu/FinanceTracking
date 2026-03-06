@@ -99,9 +99,9 @@ const submitInvite = async (event: FormSubmitEvent<Schema>) => {
           <UButton type="submit" color="primary" :loading="isSubmitting">
             {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
           </UButton>
-          
-          <UButton :to="`/groups/${groupId}`" color="secondary" variant="outline">
-            Back to Group
+
+          <UButton :to="`/groups/${groupId}/invitations`" color="secondary" variant="outline">
+            Back to Invitations
           </UButton>
         </div>
       </UForm>
