@@ -98,6 +98,7 @@ const handleCancel = async (invitationId: string) => {
               color="error" 
               variant="outline" 
               size="sm"
+              icon="i-heroicons-x-mark"
             >
               Cancel
             </UButton>
