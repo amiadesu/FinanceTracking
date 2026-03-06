@@ -144,7 +144,13 @@ onMounted(() => loadData());
 
         <template #actions-cell="{ row }">
           <div class="text-right">
-            <UButton @click="goToMember(row.original.userId)" color="primary" variant="outline" size="sm">
+            <UButton 
+              @click="goToMember(row.original.userId)" 
+              color="primary" 
+              variant="outline" 
+              size="sm"
+              icon="i-heroicons-cog"
+            >
               Manage
             </UButton>
           </div>
