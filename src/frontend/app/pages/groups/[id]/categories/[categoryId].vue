@@ -13,10 +13,6 @@ const category = ref<CategoryDto | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-// hidden color input ref
-const editColorInput = ref<HTMLInputElement | null>(null);
-
-// edit form
 const editDto = reactive<UpdateCategoryDto>({
   name: undefined,
   colorHex: undefined,
@@ -37,10 +33,9 @@ async function load() {
       res.colorHex = normalizeColor(res.colorHex);
     }
     category.value = res;
-    // initialize edit form with current color so picker shows the right value
     if (category.value) editDto.colorHex = category.value.colorHex;
   } catch (err: any) {
-    error.value = err.message || 'failed';
+    error.value = err.message || 'Failed to load category';
   } finally {
     loading.value = false;
   }
@@ -54,19 +49,19 @@ async function save() {
     const updated = await categoryService.updateCategory(groupId, categoryId, payload);
     category.value = updated;
     await load();
-    alert('updated');
+    alert('Category updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'fail');
+    alert(err.message || 'Error updating category');
   }
 }
 
 async function remove() {
-  if (!confirm('Delete this category?')) return;
+  if (!confirm(`Are you sure you want to delete "${category.value?.name}"?`)) return;
   try {
     await categoryService.deleteCategory(groupId, categoryId);
     router.push(`/groups/${groupId}/categories`);
   } catch (err: any) {
-    alert(err.message || 'fail');
+    alert(err.message || 'Error deleting category');
   }
 }
 
@@ -79,69 +74,89 @@ function onEditColorInput(e: Event) {
 </script>
 
 <template>
-  <div class="p-4">
-    <h1 class="text-xl font-bold">Category #{{ categoryId }}</h1>
-    <div v-if="loading">Loading…</div>
-    <div v-if="error" class="text-red-600">{{ error }}</div>
-    <div v-if="category">
-      <p><strong>Name:</strong> {{ category.name }}</p>
-      <p>
-        <strong>Color:</strong>
-        <div class="flex items-center gap-2">
-          <div :style="{ backgroundColor: category.colorHex }" class="w-8 h-8 border"></div>
-          <span>{{ category.colorHex }}</span>
-        </div>
-      </p>
-      <p><strong>System:</strong> {{ category.isSystem ? 'Yes' : 'No' }}</p>
-      <p><strong>Created:</strong> {{ category.createdDate }}</p>
-      <p><strong>Updated:</strong> {{ category.updatedDate }}</p>
-
-      <div v-if="!category.isSystem" class="mt-4 border-t pt-2">
-        <h2 class="font-semibold">Edit</h2>
-        <div class="flex flex-col gap-2 max-w-md">
-          <label class="flex flex-col">
-            New name
-            <input type="text" v-model="editDto.name" class="border p-1" />
-          </label>
-          <label class="flex flex-col">
-            New color
-                <div class="flex items-center gap-2">
-                  <input
-                    ref="editColorInput"
-                    type="color"
-                    :value="editDto.colorHex ?? '#000000'"
-                    @input="(e) => onEditColorInput(e)"
-                    class="color-picker"
-                  />
-                  <span v-if="editDto.colorHex" class="text-sm text-gray-600">{{ editDto.colorHex }}</span>
-                </div>
-          </label>
-          <button @click="save" class="bg-green-600 text-white px-3 py-1 rounded">Save</button>
-          <button @click="remove" class="bg-red-600 text-white px-3 py-1 rounded">Delete</button>
-        </div>
-      </div>
-
-      <div v-if="category.isSystem" class="mt-4 p-2 bg-yellow-100 border border-yellow-300 text-yellow-800">
-        System categories cannot be edited or deleted.
-      </div>
+  <div class="max-w-3xl mx-auto p-4 mt-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manage Category</h1>
+      <UButton 
+        :to="`/groups/${groupId}/categories`" 
+        color="secondary" 
+        variant="outline" 
+        icon="i-heroicons-arrow-left"
+      >
+        Back to Categories
+      </UButton>
     </div>
+
+    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+      Loading category data...
+    </div>
+    
+    <UAlert 
+      v-else-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-4" 
+    />
+
+    <UCard v-else-if="category" class="shadow-sm">
+      <div class="flex flex-col gap-6">
+        <div>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category Name</span>
+          <div class="flex items-center gap-3 mt-1">
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ category.name }}</p>
+            <UBadge v-if="category.isSystem" color="warning" variant="soft" size="sm">System Component</UBadge>
+          </div>
+        </div>
+
+        <div v-if="!category.isSystem" class="flex flex-col gap-4 max-w-sm">
+          <UFormField label="Edit Name">
+            <UInput v-model="editDto.name" :placeholder="category.name" class="w-full" />
+          </UFormField>
+
+          <UFormField label="Edit Color">
+            <div class="flex items-center gap-3 mt-1">
+              <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
+                <input
+                  type="color"
+                  :value="editDto.colorHex ?? '#000000'"
+                  @input="onEditColorInput"
+                  class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
+                />
+                <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: editDto.colorHex }"></div>
+              </div>
+              <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
+                {{ editDto.colorHex }}
+              </span>
+            </div>
+          </UFormField>
+        </div>
+        
+        <UAlert 
+          v-else
+          color="warning" 
+          variant="soft" 
+          icon="i-heroicons-shield-exclamation"
+          title="Protected Category"
+          description="System categories cannot be edited or deleted."
+        />
+      </div>
+
+      <template #footer v-if="!category.isSystem">
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div class="flex gap-3">
+            <UButton @click="save" color="primary">
+              Save Changes
+            </UButton>
+          </div>
+
+          <UButton @click="remove" color="error" variant="outline">
+            Delete Category
+          </UButton>
+        </div>
+      </template>
+    </UCard>
   </div>
 </template>
-
-<style scoped>
-.color-picker {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  box-shadow: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-}
-.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-.color-picker::-webkit-color-swatch { border: none; border-radius: 8px; }
-
-</style>

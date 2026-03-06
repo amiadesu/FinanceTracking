@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
-import { useRoute, useRouter } from '#imports';
+import { ref, onMounted, reactive, computed, h } from 'vue';
+import { useRoute } from '#imports';
 import { categoryService } from '~/services/categoryService';
 import type { CategoryDto, CreateCategoryDto } from '~/services/categoryService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 
 const route = useRoute();
-const router = useRouter();
 const groupId = Number(route.params.id);
 
 const categories = ref<CategoryDto[]>([]);
@@ -16,10 +15,6 @@ const maxAllowed = ref(0);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-// hidden color input ref
-const newColorInput = ref<HTMLInputElement | null>(null);
-
-// form state
 const newCategory = reactive<CreateCategoryDto>({
   name: '',
   colorHex: '#000000'
@@ -42,13 +37,14 @@ async function loadCategories() {
   loading.value = true;
   error.value = null;
   try {
-    const [categoriesResponse] = await Promise.all([
-      categoryService.getCategories(groupId)
-    ]);
+    const categoriesResponse = await categoryService.getCategories(groupId);
     
     currentCount.value = categoriesResponse.currentCount;
     maxAllowed.value = categoriesResponse.maxAllowed;
-    categories.value = categoriesResponse.categories.map(c => ({ ...c, colorHex: normalizeColor(c.colorHex) }));
+    categories.value = categoriesResponse.categories.map(c => ({ 
+      ...c, 
+      colorHex: normalizeColor(c.colorHex) 
+    }));
   } catch (err: any) {
     error.value = err.message || 'Failed to load categories';
   } finally {
@@ -57,108 +53,145 @@ async function loadCategories() {
 }
 
 async function createCategory() {
+  if (!newCategory.name.trim()) return;
   try {
     const payload = { ...newCategory, colorHex: normalizeColor(newCategory.colorHex) };
     await categoryService.createCategory(groupId, payload);
-    // reset form
     newCategory.name = '';
     newCategory.colorHex = '#000000';
     await loadCategories();
   } catch (err: any) {
-    alert(err.message || 'error creating');
+    alert(err.message || 'Error creating category');
   }
-}
-
-function goTo(id: number) {
-  router.push(`/groups/${groupId}/categories/${id}`);
 }
 
 onMounted(() => {
   loadCategories();
 });
+
+const columns = computed(() => [
+  { accessorKey: 'id', header: 'ID' },
+  { accessorKey: 'name', header: 'Name' },
+  { 
+    accessorKey: 'colorHex', 
+    header: 'Color',
+    cell: ({ row }: any) => {
+      const hex = row.getValue('colorHex');
+      return h('div', { class: 'flex items-center gap-2' }, [
+        h('div', { 
+          class: 'w-4 h-4 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm',
+          style: { backgroundColor: hex }
+        }),
+        h('span', { class: 'text-sm font-mono text-gray-600 dark:text-gray-400' }, hex)
+      ]);
+    }
+  },
+  { 
+    accessorKey: 'isSystem', 
+    header: 'Type',
+    cell: ({ row }: any) => {
+      const isSystem = row.getValue('isSystem');
+      return h('span', {
+        class: isSystem 
+          ? 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-600 ring-amber-500/10 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20'
+          : 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-primary-50 text-primary-600 ring-primary-500/10 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/20'
+      }, isSystem ? 'System' : 'Custom');
+    }
+  },
+  { id: 'actions', header: '' }
+]);
 </script>
 
 <template>
-  <div class="p-4">
-    <h1 class="text-xl font-bold">Categories</h1>
-    <p class="text-sm text-gray-600 mt-1" v-if="!loading">
-      Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
-    </p>
-    <button @click="() => router.push(`/groups/${groupId}`)" class="text-blue-600 underline text-sm">
-      Back to Group
-    </button>
-    <div v-if="loading">Loading…</div>
-    <div v-if="error" class="text-red-600">{{ error }}</div>
+  <div class="max-w-6xl mx-auto p-4 mt-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
+        <UBadge v-if="!loading" color="neutral" variant="subtle" class="font-mono">
+          Capacity: {{ limitDisplay }}
+        </UBadge>
+      </div>
+      <UButton 
+        :to="`/groups/${groupId}`"
+        color="secondary" 
+        variant="outline" 
+        icon="i-heroicons-arrow-left"
+      >
+        Back to Group
+      </UButton>
+    </div>
 
-    <table v-if="!loading" class="w-full mt-4 table-auto border-collapse">
-      <thead>
-        <tr>
-          <th class="border px-2 py-1">ID</th>
-          <th class="border px-2 py-1">Name</th>
-          <th class="border px-2 py-1">Color</th>
-          <th class="border px-2 py-1">System</th>
-          <th class="border px-2 py-1">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="c in categories" :key="c.id">
-          <td class="border px-2 py-1">{{ c.id }}</td>
-          <td class="border px-2 py-1">{{ c.name }}</td>
-          <td class="border px-2 py-1">
-            <div class="flex items-center gap-2">
-              <div :style="{ backgroundColor: c.colorHex }" class="w-6 h-6 border"></div>
-              <span>{{ c.colorHex }}</span>
-            </div>
-          </td>
-          <td class="border px-2 py-1">{{ c.isSystem ? 'Yes' : 'No' }}</td>
-          <td class="border px-2 py-1">
-            <button @click="goTo(c.id)" class="text-blue-600 underline">View</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <UAlert 
+      v-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-6" 
+    />
 
-    <div class="mt-6 border-t pt-4">
-      <h2 class="font-semibold">Create new category</h2>
-      <div class="flex flex-col gap-2 max-w-md">
-        <label class="flex flex-col">
-          Name
-          <input type="text" v-model="newCategory.name" class="border p-1" />
-        </label>
-        <label class="flex flex-col">
-          Color
-          <div class="flex items-center gap-2">
-            <input
-              ref="newColorInput"
-              type="color"
-              :value="newCategory.colorHex ?? '#000000'"
-              @input="onNewColorInput"
-              class="color-picker"
-            />
-            <span class="text-sm text-gray-600">{{ newCategory.colorHex }}</span>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <UCard class="shadow-sm">
+          <template #header>
+            <h2 class="font-semibold text-gray-900 dark:text-white">Existing Categories</h2>
+          </template>
+          
+          <UTable :data="categories" :columns="columns" :loading="loading">
+            <template #actions-cell="{ row }">
+              <UButton 
+                :to="`/groups/${groupId}/categories/${row.original?.id || row.id}`"
+                color="primary" 
+                variant="outline" 
+                icon="i-heroicons-cog"
+                size="sm"
+              >
+                Manage
+              </UButton>
+            </template>
+          </UTable>
+        </UCard>
+      </div>
+
+      <div class="lg:col-span-1">
+        <UCard class="shadow-sm sticky top-24">
+          <template #header>
+            <h2 class="font-semibold text-gray-900 dark:text-white">Create Category</h2>
+          </template>
+
+          <div class="flex flex-col gap-4">
+            <UFormField label="Name" required>
+              <UInput v-model="newCategory.name" placeholder="e.g. Groceries" class="w-full" />
+            </UFormField>
+
+            <UFormField label="Color">
+              <div class="flex items-center gap-3 mt-1">
+                <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
+                  <input
+                    type="color"
+                    :value="newCategory.colorHex ?? '#000000'"
+                    @input="onNewColorInput"
+                    class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
+                  />
+                  <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: newCategory.colorHex }"></div>
+                </div>
+                <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
+                  {{ newCategory.colorHex }}
+                </span>
+              </div>
+            </UFormField>
+
+            <UButton 
+              @click="createCategory" 
+              color="primary" 
+              class="w-full justify-center mt-2"
+              :disabled="!newCategory.name.trim()"
+            >
+              Create Category
+            </UButton>
           </div>
-        </label>
-
-        <button @click="createCategory" class="bg-blue-600 text-white px-3 py-1 rounded">Create</button>
+        </UCard>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.color-picker {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: none;
-  border-radius: 8px;
-  box-shadow: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-}
-.color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-.color-picker::-webkit-color-swatch { border: none; border-radius: 8px; }
-
-</style>
