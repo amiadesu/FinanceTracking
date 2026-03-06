@@ -1,80 +1,8 @@
-<template>
-  <div class="p-6 max-w-4xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Group #{{ groupId }} Invitations</h1>
-      <NuxtLink 
-        :to="`/groups/${groupId}/invite`" 
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        + Send New Invite
-      </NuxtLink>
-    </div>
-
-    <div v-if="pending" class="text-gray-500">Loading invitations...</div>
-    <div v-else-if="error" class="text-red-500">{{ error.message }}</div>
-    
-    <div v-else-if="invitations?.length === 0" class="text-gray-500">
-      No invitations have been sent for this group yet.
-    </div>
-
-    <div v-else class="overflow-x-auto">
-      <table class="min-w-full bg-white border border-gray-200 shadow-sm rounded">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="py-3 px-4 text-left font-semibold text-gray-600 border-b">Invited User</th>
-            <th class="py-3 px-4 text-left font-semibold text-gray-600 border-b">Invited By</th>
-            <th class="py-3 px-4 text-left font-semibold text-gray-600 border-b">Date</th>
-            <th class="py-3 px-4 text-left font-semibold text-gray-600 border-b">Status</th>
-            <th class="py-3 px-4 text-right font-semibold text-gray-600 border-b">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="invitation in invitations" :key="invitation.id" class="border-b hover:bg-gray-50">
-            <td class="py-3 px-4">{{ invitation.targetUserName }}</td>
-            <td class="py-3 px-4">{{ invitation.invitedByUserName }}</td>
-            <td class="py-3 px-4 text-sm text-gray-500">
-              {{ new Date(invitation.createdDate).toLocaleDateString() }}
-            </td>
-            <td class="py-3 px-4">
-              <div class="flex flex-col items-start gap-1">
-                <span 
-                  class="px-2 py-1 text-xs rounded-full font-medium"
-                  :class="{
-                    'bg-yellow-100 text-yellow-800': invitation.status === 'Pending',
-                    'bg-green-100 text-green-800': invitation.status === 'Accepted',
-                    'bg-red-100 text-red-800': invitation.status === 'Rejected' || invitation.status === 'Cancelled'
-                  }"
-                >
-                  {{ invitation.status }}
-                </span>
-                <span 
-                  v-if="invitation.status === 'Pending' && invitation.isGroupFull" 
-                  class="text-2xs bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-200 font-semibold"
-                  title="This user cannot accept the invite until a slot opens up."
-                >
-                  Group Full
-                </span>
-              </div>
-            </td>
-            <td class="py-3 px-4 text-right">
-              <button 
-                v-if="invitation.status === 'Pending'"
-                @click="handleCancel(invitation.id)" 
-                class="text-red-500 hover:text-red-700 font-medium text-sm"
-              >
-                Cancel
-              </button>
-              <span v-else class="text-gray-400 text-sm">-</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
+import { useAsyncData } from '#imports'
 import { invitationService } from '~/services/invitationService'
+import type { TableColumn } from '@nuxt/ui'
 
 const route = useRoute()
 const groupId = Number(route.params.id)
@@ -83,9 +11,38 @@ const { data: invitations, pending, error, refresh } = useAsyncData(`group-invit
   invitationService.getGroupInvitations(groupId)
 )
 
+const columns: TableColumn<any>[] = [
+  { 
+    accessorKey: 'targetUserName', 
+    header: 'Invited User',
+    cell: ({ row }) => row.getValue('targetUserName') || '-'
+  },
+  { 
+    accessorKey: 'invitedByUserName', 
+    header: 'Invited By',
+    cell: ({ row }) => row.getValue('invitedByUserName') || '-'
+  },
+  { 
+    accessorKey: 'createdDate', 
+    header: 'Date',
+    cell: ({ row }) => {
+      const dateVal = row.getValue('createdDate') as string;
+      if (!dateVal) return '-';
+      return new Date(dateVal).toLocaleDateString();
+    }
+  },
+  { 
+    accessorKey: 'status', 
+    header: 'Status' 
+  },
+  { 
+    id: 'actions', 
+    header: '' 
+  } 
+];
+
 const handleCancel = async (invitationId: string) => {
   if (!confirm('Are you sure you want to cancel this invitation?')) return
-
   try {
     await invitationService.cancelInvitation(groupId, invitationId)
     refresh() 
@@ -94,3 +51,59 @@ const handleCancel = async (invitationId: string) => {
   }
 }
 </script>
+
+<template>
+  <div class="max-w-5xl mx-auto p-4 mt-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group Invitations</h1>
+        <UBadge color="neutral" variant="subtle" size="md">#{{ groupId }}</UBadge>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <UButton :to="`/groups/${groupId}/invite`" color="primary" icon="i-heroicons-plus">
+          Send New Invite
+        </UButton>
+        <UButton :to="`/groups/${groupId}`" color="secondary" variant="outline" icon="i-heroicons-arrow-left">
+          Back to Group
+        </UButton>
+      </div>
+    </div>
+
+    <UAlert 
+      v-if="error" 
+      color="error" 
+      variant="soft" 
+      :title="error.message || 'Failed to load invitations'" 
+      class="mb-4" 
+    />
+
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden">
+      <UTable :data="invitations" :columns="columns" :loading="pending" class="w-full">
+        <template #status-cell="{ row }">
+          <UBadge 
+            :color="row.original.status === 'Pending' ? 'warning' : row.original.status === 'Accepted' ? 'success' : 'error'"
+            variant="soft"
+            size="sm"
+          >
+            {{ row.original.status }}
+          </UBadge>
+        </template>
+
+        <template #actions-cell="{ row }">
+          <div class="text-right">
+            <UButton 
+              v-if="row.original.status === 'Pending'"
+              @click="handleCancel(row.original.id)" 
+              color="error" 
+              variant="outline" 
+              size="sm"
+            >
+              Cancel
+            </UButton>
+          </div>
+        </template>
+      </UTable>
+    </UCard>
+  </div>
+</template>
