@@ -1,19 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRoute } from 'vue-router'
-import { invitationService } from '~/services/invitationService'
-import * as v from 'valibot'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import { ref, reactive } from 'vue';
+import { useRoute } from 'vue-router';
+import { invitationService } from '~/services/invitationService';
+import * as v from 'valibot';
+import { inviteSchema } from '~/schemas/schemas';
+import type { FormSubmitEvent } from '@nuxt/ui';
 
 const route = useRoute()
 const groupId = Number(route.params.id)
 
-const schema = v.object({
-  targetUserIdentifier: v.pipe(v.string(), v.minLength(1, 'Email or Username is required')),
-  note: v.optional(v.pipe(v.string(), v.maxLength(500, 'Note must be less than 500 characters')))
-})
-
-type Schema = v.InferOutput<typeof schema>
+type Schema = v.InferOutput<typeof inviteSchema>
 
 const state = reactive({
   targetUserIdentifier: '',
@@ -23,6 +19,10 @@ const state = reactive({
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+
+const isFormValid = computed(() => {
+  return v.safeParse(inviteSchema, state).success;
+});
 
 const submitInvite = async (event: FormSubmitEvent<Schema>) => {
   isSubmitting.value = true
@@ -76,9 +76,8 @@ const submitInvite = async (event: FormSubmitEvent<Schema>) => {
         class="mb-6" 
       />
 
-      <UForm :schema="schema" :state="state" class="space-y-6" @submit="submitInvite">
-        
-        <UFormField label="Email or Username" name="targetUserIdentifier" class="w-full text-left">
+      <UForm :schema="inviteSchema" :state="state" class="space-y-6" @submit="submitInvite">
+        <UFormField label="Email or Username" name="targetUserIdentifier" class="w-full text-left" required>
           <UInput 
             v-model="state.targetUserIdentifier" 
             placeholder="e.g., john_doe or john@example.com" 
@@ -95,10 +94,14 @@ const submitInvite = async (event: FormSubmitEvent<Schema>) => {
           />
         </UFormField>
 
-        <div class="flex items-center gap-3">
-          <UButton type="submit" color="primary" :loading="isSubmitting">
-            {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
-          </UButton>
+        <USeparator />
+
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div class="flex gap-3">
+            <UButton type="submit" color="primary" :loading="isSubmitting" :disabled="isSubmitting || !isFormValid">
+              {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
+            </UButton>
+          </div>
 
           <UButton :to="`/groups/${groupId}/invitations`" color="secondary" variant="outline">
             Back to Invitations
