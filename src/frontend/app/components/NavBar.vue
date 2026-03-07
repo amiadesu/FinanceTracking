@@ -89,12 +89,13 @@ const accountItems = computed(() => {
 
                 <UButton 
                     v-if="loggedIn" 
-                    to="/token-info" 
+                    to="/groups" 
                     variant="ghost" 
                     color="neutral"
+                    icon="i-heroicons-user-group"
                     class="hidden sm:flex"
                 >
-                    View token info
+                    Groups
                 </UButton>
             </div>
 
