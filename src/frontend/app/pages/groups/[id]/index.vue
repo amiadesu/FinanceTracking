@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from '#imports';
 import { groupService } from '@/services/groupService';
 import { type GroupDto } from '@/services/groupService';
 
@@ -66,30 +68,44 @@ onMounted(() => loadData());
     />
     
     <div v-else-if="group">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b dark:border-gray-800 pb-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-                {{ group.name }}
-                <UBadge v-if="group.isPersonal" color="info" variant="soft" size="sm" class="font-normal">
+      <div class="flex justify-end mb-4">
+        <UButton 
+          to="/groups" 
+          color="secondary" 
+          variant="outline" 
+          icon="i-heroicons-arrow-left"
+          size="sm"
+        >
+          Back to Groups
+        </UButton>
+      </div>
+
+      <div class="flex flex-col items-center justify-center mb-8 border-b dark:border-gray-800 pb-8 gap-5 text-center">
+        <div class="flex-1 min-w-0 w-full flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 w-full">
+                <span class="whitespace-normal wrap-break-words sm:break-all max-w-full px-4">
+                  {{ group.name }}
+                </span>
+                <UBadge v-if="group.isPersonal" color="info" variant="soft" size="sm" class="font-normal shrink-0">
                   Personal
                 </UBadge>
             </h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
               Created on {{ new Date(group.createdDate).toLocaleDateString() }}
             </p>
         </div>
         
-        <div class="flex gap-2 mt-4 md:mt-0">
-            <UButton :to="`/groups/${groupId}/edit`" color="primary" variant="soft" size="sm">
+        <div class="flex flex-wrap justify-center gap-3 shrink-0 mt-2">
+            <UButton :to="`/groups/${groupId}/edit`" color="primary" variant="soft" size="sm" icon="i-heroicons-pencil">
               Edit
             </UButton>
-            <UButton :to="`/groups/${groupId}/reset`" color="warning" variant="soft" size="sm">
+            <UButton :to="`/groups/${groupId}/reset`" color="warning" variant="soft" size="sm" icon="i-heroicons-arrow-path">
               Reset
             </UButton>
-            <UButton v-if="!group.isPersonal" @click="handleLeaveGroup" color="neutral" variant="soft" size="sm">
+            <UButton v-if="!group.isPersonal" @click="handleLeaveGroup" color="neutral" variant="soft" size="sm" icon="i-heroicons-arrow-right-on-rectangle">
               Leave
             </UButton>
-            <UButton v-if="!group.isPersonal" @click="handleDeleteGroup" color="error" variant="soft" size="sm">
+            <UButton v-if="!group.isPersonal" @click="handleDeleteGroup" color="error" variant="soft" size="sm" icon="i-heroicons-trash">
               Delete
             </UButton>
         </div>
