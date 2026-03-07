@@ -85,7 +85,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Budget Goals</h1>
@@ -112,9 +112,9 @@ const columns = computed(() => [
       class="mb-6" 
     />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start lg:items-stretch">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start lg:items-stretch w-full max-w-full">
       
-      <div class="lg:col-span-2">
+      <div class="lg:col-span-2 w-full">
         <UCard 
           class="shadow-sm flex flex-col lg:h-100"
           :ui="{ body: 'p-0 sm:p-0 flex-1 overflow-hidden flex flex-col' }"
@@ -150,10 +150,12 @@ const columns = computed(() => [
         </UCard>
       </div>
 
-      <div class="lg:col-span-1">
+      <div class="lg:col-span-1 w-full lg:max-w-sm">
         <UCard 
-          class="shadow-sm flex flex-col lg:h-100"
-          :ui="{ body: 'flex-1 flex flex-col' }"
+          class="shadow-sm flex flex-col lg:h-100" 
+          :ui="{ 
+            body: 'flex-1 flex flex-col min-h-0'
+          }"
         >
           <template #header>
             <h2 class="font-semibold text-gray-900 dark:text-white">Create Goal</h2>
@@ -162,10 +164,10 @@ const columns = computed(() => [
           <UForm 
             :schema="budgetGoalSchema" 
             :state="newGoal" 
-            class="flex flex-col flex-1" 
+            class="flex flex-col flex-1 min-h-0" 
             @submit="createGoal"
           >
-            <div class="flex flex-col gap-6 flex-1">
+            <div class="flex flex-col gap-6 flex-1 overflow-y-auto pr-2 pb-2">
               <UFormField label="Target Amount" name="targetAmount" required>
                 <UInput type="number" v-model.number="newGoal.targetAmount" class="w-full" placeholder="e.g. 5000" />
               </UFormField>

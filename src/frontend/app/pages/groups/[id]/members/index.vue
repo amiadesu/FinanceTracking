@@ -98,7 +98,7 @@ onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-3">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group Members</h1>
@@ -124,7 +124,7 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
       <UTable :data="members" :columns="columns" :loading="loading" class="w-full">
         <template #actions-cell="{ row }">
           <div class="text-right">

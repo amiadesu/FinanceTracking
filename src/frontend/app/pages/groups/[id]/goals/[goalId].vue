@@ -86,7 +86,7 @@ onMounted(load);
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manage Goal #{{ goalId }}</h1>
       <UButton 
@@ -113,7 +113,7 @@ onMounted(load);
       class="mb-4" 
     />
 
-    <UCard v-else-if="goal && progress" class="shadow-sm min-h-125 flex flex-col" :ui="{ body: 'flex-1 flex flex-col p-6 sm:p-10' }">
+    <UCard v-else-if="goal && progress" class="shadow-sm w-full max-w-full flex flex-col" :ui="{ body: 'flex-1 flex flex-col p-6 sm:p-10' }">
       <div class="flex flex-col gap-10 flex-1">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-8">
           <div>

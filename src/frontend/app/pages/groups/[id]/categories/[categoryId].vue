@@ -95,7 +95,7 @@ function onEditColorInput(e: Event) {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manage Category</h1>
       <UButton 
@@ -122,12 +122,12 @@ function onEditColorInput(e: Event) {
       class="mb-4" 
     />
 
-    <UCard v-else-if="category" class="shadow-sm">
+    <UCard v-else-if="category" class="shadow-sm w-full max-w-3xl mx-auto mt-8">
       <div class="flex flex-col gap-6">
-        <div>
+        <div class="text-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category Name</span>
-          <div class="flex items-center gap-3 mt-1">
-            <p class="text-xl text-center font-semibold text-gray-900 dark:text-white">{{ category.name }}</p>
+          <div class="flex items-center justify-center gap-3 mt-2">
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ category.name }}</p>
             <UBadge v-if="category.isSystem" color="warning" variant="soft" size="sm">System Component</UBadge>
           </div>
         </div>
@@ -139,14 +139,14 @@ function onEditColorInput(e: Event) {
           class="space-y-6" 
           @submit="save"
         >
-          <div class="flex flex-col gap-4 max-w-sm">
+          <div class="flex flex-col gap-4">
             <UFormField label="Edit Name" name="name" required>
               <UInput v-model="editDto.name" :placeholder="category.name" class="w-full" />
             </UFormField>
 
             <UFormField label="Edit Color" name="colorHex" required>
-              <div class="flex items-center gap-3 mt-1">
-                <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
+              <div class="flex items-center gap-3 mt-1 w-full">
+                <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow shrink-0">
                   <input
                     type="color"
                     :value="editDto.colorHex ?? '#000000'"
@@ -164,22 +164,22 @@ function onEditColorInput(e: Event) {
 
           <USeparator />
 
-          <div class="flex flex-wrap items-center gap-3 justify-between">
-            <div class="flex gap-3">
-              <UButton 
-                type="submit" 
-                color="primary" 
-                :loading="isSubmitting" 
-                :disabled="isSubmitting || !isFormValid"
-              >
-                {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
-              </UButton>
-            </div>
+          <div class="flex flex-col sm:flex-row items-center gap-3 justify-center sm:justify-between w-full">
+            <UButton 
+              type="submit" 
+              color="primary" 
+              class="w-full sm:w-auto justify-center"
+              :loading="isSubmitting" 
+              :disabled="isSubmitting || !isFormValid"
+            >
+              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+            </UButton>
 
             <UButton 
               @click="remove" 
               color="error" 
               variant="outline" 
+              class="w-full sm:w-auto justify-center"
               :disabled="isSubmitting"
             >
               Delete Category

@@ -121,7 +121,7 @@ onMounted(load);
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Manage Member</h1>
       <UButton 
@@ -148,12 +148,12 @@ onMounted(load);
       class="mb-4" 
     />
 
-    <UCard v-else-if="member" class="shadow-sm">
+    <UCard v-else-if="member" class="shadow-sm w-full max-w-3xl mx-auto mt-8">
       <div class="flex flex-col gap-6">
-        <div>
+        <div class="text-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400">User</span>
-          <div class="flex items-center gap-3 mt-1">
-            <p class="text-xl text-center font-semibold text-gray-900 dark:text-white">{{ member.userName }}</p>
+          <div class="flex items-center justify-center gap-3 mt-2">
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ member.userName }}</p>
             <UBadge v-if="!member.active" color="error" variant="soft" size="sm">Inactive</UBadge>
           </div>
         </div>
@@ -163,13 +163,13 @@ onMounted(load);
           class="space-y-6" 
           @submit="save"
         >
-          <div class="flex flex-col gap-4 max-w-sm">
+          <div class="flex flex-col gap-4">
             <UFormField label="Change Role" name="role">
               <USelectMenu 
                 v-model="editDto.role" 
                 :items="assignableRoles" 
                 :disabled="member.role === ownerRoleId || isSubmitting"
-                class="w-full"
+                class="flex items-center gap-3 mt-1 w-full"
               />
               <template #help>
                 <span v-if="member.role === ownerRoleId" class="text-xs text-gray-500 mt-1">
