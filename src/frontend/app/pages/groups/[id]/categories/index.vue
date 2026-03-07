@@ -3,10 +3,12 @@ import { ref, onMounted, reactive, computed, h } from 'vue';
 import { useRoute } from '#imports';
 import * as v from 'valibot';
 import { categorySchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
 import { categoryService } from '~/services/categoryService';
 import type { CategoryDto, CreateCategoryDto } from '~/services/categoryService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof categorySchema>;
 
@@ -39,9 +41,7 @@ function onNewColorInput(e: Event) {
   newCategory.colorHex = normalizeColor(v);
 }
 
-const isFormValid = computed(() => {
-  return v.safeParse(categorySchema, newCategory).success;
-});
+const { isFormValid, unmappedErrors, touch } = useFormValidation(categorySchema, newCategory);
 
 async function loadCategories() {
   loading.value = true;
@@ -197,27 +197,31 @@ const columns = computed(() => [
             class="flex flex-col flex-1 min-h-0" 
             @submit="createCategory"
           >
-            <div class="flex flex-col gap-6 flex-1 overflow-y-auto pr-2 pb-2">
-              <UFormField label="Name" name="name" required>
-                <UInput v-model="newCategory.name" placeholder="e.g. Groceries" class="w-full" />
-              </UFormField>
+            <div class="flex flex-col flex-1 overflow-y-auto pr-2 pb-2">
+              <div class="flex flex-col gap-6 flex-1">
+                <UFormField label="Name" name="name" required>
+                  <UInput v-model="newCategory.name" placeholder="e.g. Groceries" class="w-full" />
+                </UFormField>
 
-              <UFormField label="Color" name="colorHex" required>
-                <div class="flex items-center gap-3 mt-1 w-full">
-                  <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
-                    <input
-                      type="color"
-                      :value="newCategory.colorHex ?? '#000000'"
-                      @input="onNewColorInput"
-                      class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
-                    />
-                    <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: newCategory.colorHex }"></div>
+                <UFormField label="Color" name="colorHex" required>
+                  <div class="flex items-center gap-3 mt-1 w-full">
+                    <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
+                      <input
+                        type="color"
+                        :value="newCategory.colorHex ?? '#000000'"
+                        @input="onNewColorInput"
+                        class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
+                      />
+                      <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: newCategory.colorHex }"></div>
+                    </div>
+                    <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
+                      {{ newCategory.colorHex }}
+                    </span>
                   </div>
-                  <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
-                    {{ newCategory.colorHex }}
-                  </span>
-                </div>
-              </UFormField>
+                </UFormField>
+              </div>
+
+              <FormGlobalErrors :errors="unmappedErrors" />
             </div>
 
             <div class="mt-auto pt-6">

@@ -3,9 +3,11 @@ import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
 import { categorySchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
 import { categoryService } from '~/services/categoryService';
 import type { CategoryDto, UpdateCategoryDto } from '~/services/categoryService';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof categorySchema>;
 
@@ -30,9 +32,7 @@ function normalizeColor(hex?: string) {
   return s.startsWith('#') ? s : `#${s}`;
 }
 
-const isFormValid = computed(() => {
-  return v.safeParse(categorySchema, editDto).success;
-});
+const { isFormValid, unmappedErrors, touch } = useFormValidation(categorySchema, editDto);
 
 async function load() {
   loading.value = true;
@@ -160,6 +160,8 @@ function onEditColorInput(e: Event) {
                 </span>
               </div>
             </UFormField>
+
+            <FormGlobalErrors :errors="unmappedErrors" />
           </div>
 
           <USeparator />

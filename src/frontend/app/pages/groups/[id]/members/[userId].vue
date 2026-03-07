@@ -3,10 +3,12 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
 import { memberRoleSchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
 import { groupMemberService } from '~/services/groupMemberService';
 import type { GroupMemberDto } from '~/services/groupMemberService';
 import { useConfigStore } from '~/stores/useConfigStore';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof memberRoleSchema>;
 
@@ -39,9 +41,7 @@ const assignableRoles = computed(() => {
   }));
 });
 
-const isFormValid = computed(() => {
-  return !!editDto.role;
-});
+const { isFormValid, unmappedErrors, touch } = useFormValidation(memberRoleSchema, editDto);
 
 async function load() {
   loading.value = true;
@@ -177,6 +177,8 @@ onMounted(load);
                 </span>
               </template>
             </UFormField>
+
+            <FormGlobalErrors :errors="unmappedErrors" />
           </div>
 
           <USeparator />

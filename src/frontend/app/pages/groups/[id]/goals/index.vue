@@ -3,11 +3,13 @@ import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute } from '#imports';
 import * as v from 'valibot';
 import { budgetGoalSchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
 import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, CreateBudgetGoalDto } from '~/services/budgetGoalService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
+import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
@@ -30,9 +32,7 @@ const newGoal = reactive<CreateBudgetGoalDto>({
 
 const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 
-const isFormValid = computed(() => {
-  return v.safeParse(budgetGoalSchema, newGoal).success;
-});
+const { isFormValid, unmappedErrors, touch } = useFormValidation(budgetGoalSchema, newGoal);
 
 async function loadGoals() {
   loading.value = true;
@@ -167,18 +167,22 @@ const columns = computed(() => [
             class="flex flex-col flex-1 min-h-0" 
             @submit="createGoal"
           >
-            <div class="flex flex-col gap-6 flex-1 overflow-y-auto pr-2 pb-2">
-              <UFormField label="Target Amount" name="targetAmount" required>
-                <UInput type="number" v-model.number="newGoal.targetAmount" class="w-full" placeholder="e.g. 5000" />
-              </UFormField>
+            <div class="flex flex-col flex-1 overflow-y-auto pr-2 pb-2">
+              <div class="flex flex-col gap-6 flex-1">
+                <UFormField label="Target Amount" name="targetAmount" required>
+                  <UInput type="number" v-model.number="newGoal.targetAmount" class="w-full" placeholder="e.g. 5000" />
+                </UFormField>
 
-              <UFormField label="Start Date" name="startDate" required>
-                <UInput type="date" v-model="newGoal.startDate" class="w-full" />
-              </UFormField>
+                <UFormField label="Start Date" name="startDate" required>
+                  <UInput type="date" v-model="newGoal.startDate" @change="touch" class="w-full" />
+                </UFormField>
 
-              <UFormField label="End Date" name="endDate" required>
-                <UInput type="date" v-model="newGoal.endDate" class="w-full" />
-              </UFormField>
+                <UFormField label="End Date" name="endDate" required>
+                  <UInput type="date" v-model="newGoal.endDate" @change="touch" class="w-full" />
+                </UFormField>
+              </div>
+              
+              <FormGlobalErrors class="" :errors="unmappedErrors" />
             </div>
 
             <div class="mt-auto pt-6">

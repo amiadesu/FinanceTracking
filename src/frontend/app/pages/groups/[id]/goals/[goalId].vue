@@ -3,10 +3,12 @@ import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
 import { budgetGoalSchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
 import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, UpdateBudgetGoalDto, BudgetGoalProgressDto } from '~/services/budgetGoalService';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
+import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
@@ -27,9 +29,7 @@ const editDto = reactive<UpdateBudgetGoalDto>({
   endDate: undefined,
 });
 
-const isFormValid = computed(() => {
-  return v.safeParse(budgetGoalSchema, editDto).success;
-});
+const { isFormValid, unmappedErrors, touch } = useFormValidation(budgetGoalSchema, editDto);
 
 async function load() {
   loading.value = true;
@@ -160,13 +160,15 @@ onMounted(load);
             </UFormField>
 
             <UFormField label="New Start Date" name="startDate" required>
-              <UInput type="date" v-model="editDto.startDate" class="w-full" />
+              <UInput type="date" v-model="editDto.startDate" @change="touch" class="w-full" />
             </UFormField>
 
             <UFormField label="New End Date" name="endDate" required>
-              <UInput type="date" v-model="editDto.endDate" class="w-full" />
+              <UInput type="date" v-model="editDto.endDate" @change="touch" class="w-full" />
             </UFormField>
           </div>
+
+          <FormGlobalErrors :errors="unmappedErrors" />
 
           <div class="mt-8">
             <USeparator class="mb-6" />
