@@ -141,12 +141,13 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full max-w-full">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full lg:h-100 max-w-full">
       <UTable
+        sticky
         :data="historyEntries" 
         :columns="columns" 
         :loading="loading"
-        class="w-full"
+        class="w-full lg:h-100"
       >
         <template #empty>
           <div class="flex flex-col items-center justify-center py-12 gap-3">

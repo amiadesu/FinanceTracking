@@ -124,10 +124,11 @@ const columns = computed(() => [
           </template>
           
           <UTable 
+            sticky
             :data="goals" 
             :columns="columns" 
             :loading="loading"
-            class="flex-1 overflow-y-auto"
+            class="flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
               <UButton 

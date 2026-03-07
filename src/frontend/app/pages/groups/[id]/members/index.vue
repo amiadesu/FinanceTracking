@@ -125,7 +125,7 @@ onMounted(() => loadData());
     />
 
     <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
-      <UTable :data="members" :columns="columns" :loading="loading" class="w-full">
+      <UTable sticky :data="members" :columns="columns" :loading="loading" class="lg:h-100 w-full">
         <template #actions-cell="{ row }">
           <div class="text-right">
             <UButton

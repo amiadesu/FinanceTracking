@@ -158,8 +158,8 @@ const columns = computed(() => [
             sticky
             :data="categories" 
             :columns="columns" 
-            :loading="loading" 
-            class="flex-1 overflow-y-auto"
+            :loading="loading"
+            class="flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
               <UButton 

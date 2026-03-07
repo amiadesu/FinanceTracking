@@ -84,8 +84,8 @@ const handleCancel = async (invitationId: string) => {
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full max-w-full">
-      <UTable :data="invitations" :columns="columns" :loading="pending" class="w-full">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
+      <UTable sticky :data="invitations" :columns="columns" :loading="pending" class="w-full lg:h-100">
         <template #status-cell="{ row }">
           <UBadge 
             :color="row.original.status === 'Pending' ? 'warning' : row.original.status === 'Accepted' ? 'success' : 'error'"
