@@ -127,13 +127,8 @@ onMounted(() => loadData());
       </UButton>
     </div>
 
-    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
-      Loading history...
-    </div>
-
     <UAlert 
-      v-else-if="error" 
+      v-if="error" 
       color="error" 
       variant="soft" 
       icon="i-heroicons-exclamation-triangle"
@@ -141,22 +136,25 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full lg:h-100 max-w-full">
+    <UCard 
+      :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" 
+      class="shadow-sm overflow-hidden flex flex-col w-full lg:h-100 max-w-full"
+    >
       <UTable
         sticky
         :data="historyEntries" 
         :columns="columns" 
         :loading="loading"
-        class="w-full lg:h-100"
+        class="w-full flex-1 min-h-0 overflow-y-auto"
       >
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-12 gap-3">
+          <div class="flex flex-col items-center justify-center py-12 gap-3 h-full">
             <span class="text-gray-500 dark:text-gray-400">No history records found for this group.</span>
           </div>
         </template>
       </UTable>
 
-      <div v-if="totalCount > 0" class="flex flex-col sm:flex-row justify-between items-center p-4 border-t dark:border-gray-800 gap-4">
+      <div v-if="totalCount > 0" class="flex flex-col sm:flex-row justify-between items-center p-4 border-t dark:border-gray-800 gap-4 mt-auto">
         <p class="text-sm text-gray-500">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{ totalCount }} results
         </p>

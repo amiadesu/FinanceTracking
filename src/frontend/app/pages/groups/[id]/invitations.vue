@@ -70,13 +70,8 @@ const handleCancel = async (invitationId: string) => {
       </div>
     </div>
 
-    <div v-if="pending" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
-      Loading invitations...
-    </div>
-
     <UAlert 
-      v-else-if="error" 
+      v-if="error" 
       color="error" 
       variant="soft" 
       icon="i-heroicons-exclamation-triangle"
