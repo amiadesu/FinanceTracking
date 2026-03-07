@@ -6,6 +6,7 @@ import { budgetGoalSchema } from '~/schemas/schemas';
 import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, UpdateBudgetGoalDto, BudgetGoalProgressDto } from '~/services/budgetGoalService';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { formatDate } from '@/utils/formatDate';
 
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
@@ -25,14 +26,6 @@ const editDto = reactive<UpdateBudgetGoalDto>({
   startDate: undefined,
   endDate: undefined,
 });
-
-function formatDate(dateString?: string, includeTime: boolean = false) {
-  if (!dateString) return '';
-  if (includeTime) {
-    return new Date(dateString).toLocaleString();
-  }
-  return dateString.split('T')[0]; 
-}
 
 const isFormValid = computed(() => {
   return v.safeParse(budgetGoalSchema, editDto).success;

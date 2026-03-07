@@ -7,6 +7,7 @@ import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, CreateBudgetGoalDto } from '~/services/budgetGoalService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import { formatDate } from '@/utils/formatDate';
 
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
@@ -76,7 +77,7 @@ const columns = computed(() => [
     cell: ({ row }: any) => {
       const start = row.original?.startDate || row.getValue('startDate');
       const end = row.original?.endDate || row.getValue('endDate');
-      return `${start} → ${end}`;
+      return `${formatDate(start)} → ${formatDate(end)}`;
     }
   },
   { id: 'actions', header: '' }
