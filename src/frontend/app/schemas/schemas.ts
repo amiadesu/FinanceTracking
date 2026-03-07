@@ -41,23 +41,38 @@ export const budgetGoalSchema = v.pipe(
 );
 
 export const memberRoleSchema = v.object({
-  role: v.object({
-    label: v.string(),
-    value: v.number()
-  })
+    role: v.object({
+        label: v.string(),
+        value: v.number()
+    })
 });
 
 export const groupEditSchema = v.object({
-  name: v.pipe(
-    v.string(), 
-    v.minLength(1, 'Group name is required'),
-    v.maxLength(100, 'Group name must be less than 100 characters')
-  )
+    name: v.pipe(
+        v.string(), 
+        v.minLength(1, 'Group name is required'),
+        v.maxLength(100, 'Group name must be less than 100 characters')
+    )
 });
 
 export const groupResetSchema = v.object({
-  selectedOptions: v.pipe(
-    v.array(v.string(), 'An array is required'),
-    v.minLength(1, 'At least 1 option must be selected')
-  )
+    selectedOptions: v.pipe(
+        v.array(v.string(), 'An array is required'),
+        v.minLength(1, 'At least 1 option must be selected')
+    )
+});
+
+export const sellerSchema = v.object({
+    name: v.optional(
+        v.pipe(
+            v.nullish(v.string()),
+            v.check((val) => typeof val !== 'string' || val.length <= 100, 'Seller name must be less than 100 characters')
+        )
+    ),
+    description: v.optional(
+        v.pipe(
+            v.nullish(v.string()),
+            v.check((val) => typeof val !== 'string' || val.length <= 500, 'Description must be less than 500 characters')
+        )
+    )
 });

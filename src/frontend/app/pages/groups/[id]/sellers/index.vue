@@ -4,6 +4,7 @@ import { useRoute, useRouter } from '#imports';
 import { sellerService } from '~/services/sellerService';
 import type { SellerDto } from '~/services/sellerService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
+import type { TableColumn } from '@nuxt/ui';
 
 const route = useRoute();
 const router = useRouter();
@@ -17,6 +18,24 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 
 const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
+
+const columns: TableColumn<SellerDto>[] = [
+  { accessorKey: 'id', header: 'ID' },
+  { 
+    accessorKey: 'name', 
+    header: 'Name',
+    cell: ({ row }) => row.getValue('name') || '-' 
+  },
+  { 
+    accessorKey: 'description', 
+    header: 'Description',
+    cell: ({ row }) => {
+      const desc = row.getValue('description') as string;
+      return desc ? (desc.length > 50 ? desc.substring(0, 50) + '...' : desc) : '-';
+    }
+  },
+  { id: 'actions', header: '' }
+];
 
 async function loadData() {
   loading.value = true;
@@ -36,49 +55,60 @@ async function loadData() {
   }
 }
 
-function goToSeller(id: string) {
-  router.push(`/groups/${groupId}/sellers/${id}`);
-}
-
 onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="p-4">
-    <div class="flex items-center justify-between mb-4">
-      <h1 class="text-xl font-bold">Sellers</h1>
-      <p class="text-sm text-gray-600 mt-1" v-if="!loading">
-        Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
-      </p>
-      <button @click="() => router.push(`/groups/${groupId}/receipts`)" class="text-blue-600 underline text-sm">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sellers</h1>
+        <UBadge v-if="!loading" color="neutral" variant="subtle" size="md">
+          Capacity: {{ limitDisplay }}
+        </UBadge>
+      </div>
+      
+      <UButton 
+        :to="`/groups/${groupId}/receipts`" 
+        color="secondary" 
+        variant="outline" 
+        icon="i-heroicons-arrow-left"
+      >
         Back to Receipts
-      </button>
+      </UButton>
     </div>
+    
+    <UAlert 
+      v-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-4" 
+    />
 
-    <div v-if="loading">Loading…</div>
-    <div v-if="error" class="text-red-600">{{ error }}</div>
-
-    <table v-if="!loading && sellers.length > 0" class="w-full mt-4 table-auto border-collapse">
-      <thead>
-        <tr>
-          <th class="border px-2 py-1 text-left">ID</th>
-          <th class="border px-2 py-1 text-left">Name</th>
-          <th class="border px-2 py-1 text-left">Description</th>
-          <th class="border px-2 py-1">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="s in sellers" :key="s.id">
-          <td class="border px-2 py-1">{{ s.id }}</td>
-          <td class="border px-2 py-1">{{ s.name || '-' }}</td>
-          <td class="border px-2 py-1 text-gray-600 text-sm truncate max-w-xs">{{ s.description || '-' }}</td>
-          <td class="border px-2 py-1 text-center">
-            <button @click="goToSeller(s.id)" class="text-blue-600 underline">Manage</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div v-if="!loading && sellers.length === 0" class="text-gray-500 mt-4">No sellers yet.</div>
+    <UCard v-else :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
+      <UTable sticky :data="sellers" :columns="columns" :loading="loading" class="lg:h-100 w-full">
+        <template #actions-cell="{ row }">
+          <div class="text-right">
+            <UButton
+              :to="`/groups/${groupId}/sellers/${row.original.id}`"
+              color="primary" 
+              variant="outline" 
+              size="sm"
+              icon="i-heroicons-cog"
+            >
+              Manage
+            </UButton>
+          </div>
+        </template>
+        
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-12">
+            <span class="text-gray-500 dark:text-gray-400">No sellers found.</span>
+          </div>
+        </template>
+      </UTable>
+    </UCard>
   </div>
 </template>
