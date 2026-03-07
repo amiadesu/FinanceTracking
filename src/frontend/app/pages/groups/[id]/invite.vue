@@ -1,69 +1,117 @@
-<template>
-  <div class="p-6 max-w-md mx-auto">
-    <h1 class="text-2xl font-bold mb-4">Invite to Group #{{ groupId }}</h1>
-
-    <form @submit.prevent="submitInvite" class="space-y-4">
-      <div>
-        <label class="block font-medium mb-1">Email or Username</label>
-        <input 
-          v-model="targetUserIdentifier" 
-          type="text" 
-          required 
-          class="w-full border p-2 rounded"
-          placeholder="e.g., john_doe or john@example.com"
-        />
-      </div>
-
-      <div>
-        <label class="block font-medium mb-1">Note (Optional)</label>
-        <textarea 
-          v-model="note" 
-          class="w-full border p-2 rounded"
-          placeholder="Come join my finance group!"
-        ></textarea>
-      </div>
-
-      <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
-      <div v-if="successMessage" class="text-green-500">{{ successMessage }}</div>
-
-      <button 
-        type="submit" 
-        :disabled="isSubmitting"
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-      >
-        {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
-      </button>
-    </form>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { invitationService } from '~/services/invitationService'
+import { ref, reactive } from 'vue';
+import { useRoute } from 'vue-router';
+import { invitationService } from '~/services/invitationService';
+import * as v from 'valibot';
+import { inviteSchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
 const route = useRoute()
 const groupId = Number(route.params.id)
 
-const targetUserIdentifier = ref('')
-const note = ref('')
+type Schema = v.InferOutput<typeof inviteSchema>
+
+const state = reactive({
+  targetUserIdentifier: '',
+  note: ''
+})
+
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-const submitInvite = async () => {
+const { isFormValid, unmappedErrors, touch } = useFormValidation(inviteSchema, state);
+
+const submitInvite = async (event: FormSubmitEvent<Schema>) => {
   isSubmitting.value = true
   errorMessage.value = ''
   successMessage.value = ''
 
   try {
-    await invitationService.createInvitation(groupId, targetUserIdentifier.value, note.value)
+    await invitationService.createInvitation(
+        groupId, 
+        event.data.targetUserIdentifier, 
+        event.data.note || ''
+    )
+    
     successMessage.value = 'Invitation sent successfully!'
-    targetUserIdentifier.value = ''
-    note.value = ''
+    state.targetUserIdentifier = ''
+    state.note = ''
   } catch (err: any) {
-    // If your backend throws one of your custom exceptions, the message will show here
     errorMessage.value = err.data?.message || 'An error occurred while sending the invitation.'
   } finally {
     isSubmitting.value = false
   }
 }
 </script>
+
+<template>
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Send Invitation</h1>
+        <UBadge color="neutral" variant="subtle" size="md">#{{ groupId }}</UBadge>
+      </div>
+      
+      <UButton 
+        :to="`/groups/${groupId}/invitations`" 
+        color="secondary" 
+        variant="outline" 
+        icon="i-heroicons-arrow-left"
+      >
+        Back to Invitations
+      </UButton>
+    </div>
+
+    <UAlert 
+      v-if="errorMessage" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="errorMessage" 
+      class="mb-4" 
+    />
+
+    <UAlert 
+      v-if="successMessage" 
+      color="success" 
+      variant="soft" 
+      icon="i-heroicons-check-circle"
+      :title="successMessage" 
+      class="mb-4" 
+    />
+
+    <UCard class="shadow-sm w-full max-w-3xl mx-auto mt-8">
+      <UForm :schema="inviteSchema" :state="state" class="flex flex-col gap-6" @submit="submitInvite">
+        <UFormField label="Email or Username" name="targetUserIdentifier" required>
+          <UInput 
+            v-model="state.targetUserIdentifier" 
+            placeholder="e.g., john_doe or john@example.com" 
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Note (Optional)" name="note">
+          <UTextarea 
+            v-model="state.note" 
+            placeholder="Come join my finance group!" 
+            class="w-full"
+            :rows="3"
+          />
+        </UFormField>
+
+        <FormGlobalErrors :errors="unmappedErrors" />
+
+        <USeparator />
+
+        <div class="flex items-center gap-3">
+          <UButton type="submit" color="primary" :loading="isSubmitting" :disabled="isSubmitting || !isFormValid">
+            {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
+          </UButton>
+        </div>
+      </UForm>
+    </UCard>
+  </div>
+</template>

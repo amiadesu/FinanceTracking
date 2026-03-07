@@ -19,17 +19,23 @@ public class ReceiptService
     private readonly GroupService _groupService;
     private readonly GroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
+    private readonly CategoryService _categoryService;
+    private readonly ProductDataService _productDataService;
 
     public ReceiptService(
         FinanceDbContext context,
         GroupService groupService,
         GroupMemberService groupMemberService, 
-        SellerService sellerService)
+        SellerService sellerService,
+        CategoryService categoryService,
+        ProductDataService productDataService)
     {
         _context = context;
         _groupService = groupService;
         _groupMemberService = groupMemberService;
         _sellerService = sellerService;
+        _categoryService = categoryService;
+        _productDataService = productDataService;
     }
 
     public async Task<ReceiptDto> CreateReceiptAsync(int groupId, Guid? creatorId, CreateReceiptDto dto)
@@ -75,11 +81,11 @@ public class ReceiptService
             if (string.IsNullOrWhiteSpace(prod.Name))
                 throw new BadRequestException(ErrorMessages.ReceiptProductNameRequired);
 
-            var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+            var categories = await _categoryService.GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
             if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
                 throw new BadRequestException(ErrorMessages.TooManyProductCategories);
 
-            var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+            var productData = await _productDataService.FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
 
             receipt.ProductEntries.Add(new ProductEntry
             {
@@ -239,11 +245,11 @@ public class ReceiptService
             if (!prod.Quantity.HasValue)
                 throw new BadRequestException(ErrorMessages.ReceiptProductQuantityRequired);
 
-            var categories = await GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
+            var categories = await _categoryService.GetOrCreateCategoriesAsync(groupId, prod.Categories ?? new List<string>());
             if (categories.Count > ServiceConstants.MaxCategoriesPerProduct)
                 throw new BadRequestException(ErrorMessages.TooManyProductCategories);
 
-            var productData = await FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
+            var productData = await _productDataService.FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
 
             var existingEntry = prod.Id.HasValue 
                 ? receipt.ProductEntries.FirstOrDefault(pe => pe.Id == prod.Id.Value) 
@@ -343,7 +349,7 @@ public class ReceiptService
         var products = r.ProductEntries?.Select(pe => new ReceiptProductDto
         {
             Id = pe.Id,
-            Name = pe.ProductData?.Name,
+            Name = pe.ProductData?.Name!,
             Categories = pe.ProductData?.ProductDataCategories?
                 .Select(pdc => pdc.Category.Name)
                 .ToList() ?? new List<string>(),
@@ -379,86 +385,5 @@ public class ReceiptService
             throw new NotFoundException(ErrorMessages.ReceiptNotFound);
 
         return Map(r);
-    }
-
-    private async Task<List<Category>> GetOrCreateCategoriesAsync(int groupId, List<string> names)
-    {
-        var processed = names
-            .Where(n => !string.IsNullOrWhiteSpace(n))
-            .Select(n => n.Trim())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (!processed.Any())
-            return new List<Category>();
-
-        var existing = await _context.Categories
-            .Where(c => c.GroupId == groupId && processed.Contains(c.Name))
-            .ToListAsync();
-
-        var existingNames = existing.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var toAdd = processed
-            .Where(n => !existingNames.Contains(n))
-            .Select(n => new Category
-            {
-                GroupId = groupId,
-                Name = n,
-                ColorHex = ServiceConstants.DefaultCategoryColor,
-                IsSystem = false,
-                CreatedDate = DateTime.UtcNow,
-                UpdatedDate = DateTime.UtcNow
-            })
-            .ToList();
-
-        if (toAdd.Any())
-        {
-            _context.Categories.AddRange(toAdd);
-            await _context.SaveChangesAsync();
-            existing.AddRange(toAdd);
-        }
-
-        return existing;
-    }
-
-    private async Task<ProductData> FindOrCreateProductDataAsync(int groupId, string name, List<int> categoryIds)
-    {
-        var candidates = await _context.ProductData
-            .Include(pd => pd.ProductDataCategories)
-            .Where(pd => pd.GroupId == groupId && pd.Name == name)
-            .ToListAsync();
-
-        categoryIds.Sort();
-
-        foreach (var pd in candidates)
-        {
-            var ids = pd.ProductDataCategories.Select(pdc => pdc.CategoryId).OrderBy(x => x).ToList();
-            if (ids.SequenceEqual(categoryIds))
-                return pd;
-        }
-
-        var now = DateTime.UtcNow;
-        var product = new ProductData
-        {
-            GroupId = groupId,
-            Name = name,
-            Description = null,
-            CreatedDate = now,
-            UpdatedDate = now,
-            ProductDataCategories = new List<ProductDataCategory>()
-        };
-
-        foreach (var catId in categoryIds.Distinct())
-        {
-            product.ProductDataCategories.Add(new ProductDataCategory
-            {
-                CategoryId = catId,
-                GroupId = groupId
-            });
-        }
-
-        _context.ProductData.Add(product);
-        await _context.SaveChangesAsync();
-
-        return product;
     }
 }

@@ -7,7 +7,7 @@ public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
 {
     public CreateGroupDtoValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(150);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
     }
 }
 
@@ -15,7 +15,7 @@ public class UpdateGroupDtoValidator : AbstractValidator<UpdateGroupDto>
 {
     public UpdateGroupDtoValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(150);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
     }
 }
 

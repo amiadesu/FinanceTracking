@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from '#imports';
 import { groupService } from '@/services/groupService';
 import { type GroupDto } from '@/services/groupService';
 
@@ -51,38 +53,106 @@ onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-6">
-    <div v-if="loading" class="text-gray-500 animate-pulse">Loading group data...</div>
-    <div v-else-if="error" class="bg-red-100 text-red-700 p-4 rounded-md">Error: {{ error }}</div>
+  <UContainer class="max-w-6xl py-6">
+    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+      Loading group data...
+    </div>
+    
+    <UAlert 
+      v-else-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="'Error: ' + error" 
+    />
     
     <div v-else-if="group">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                {{ group.name }}
-                <span v-if="group.isPersonal" class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full font-normal">Personal</span>
+      <div class="flex justify-end mb-4">
+        <UButton 
+          to="/groups" 
+          color="secondary" 
+          variant="outline" 
+          icon="i-heroicons-arrow-left"
+          size="sm"
+        >
+          Back to Groups
+        </UButton>
+      </div>
+
+      <div class="flex flex-col items-center justify-center mb-8 border-b dark:border-gray-800 pb-8 gap-5 text-center">
+        <div class="flex-1 min-w-0 w-full flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 w-full">
+                <span class="whitespace-normal wrap-break-words sm:break-all max-w-full px-4">
+                  {{ group.name }}
+                </span>
+                <UBadge v-if="group.isPersonal" color="info" variant="soft" size="sm" class="font-normal shrink-0">
+                  Personal
+                </UBadge>
             </h1>
-            <p class="text-sm text-gray-500 mt-1">Created on {{ new Date(group.createdDate).toLocaleDateString() }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
+              Created on {{ new Date(group.createdDate).toLocaleDateString() }}
+            </p>
         </div>
         
-        <div class="flex gap-2 mt-4 md:mt-0">
-            <NuxtLink :to="`/groups/${groupId}/edit`" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded text-sm font-medium">Edit</NuxtLink>
-            <NuxtLink :to="`/groups/${groupId}/reset`" class="bg-orange-50 text-orange-600 hover:bg-orange-100 px-3 py-1.5 rounded text-sm font-medium">Reset</NuxtLink>
-            <button v-if="!group.isPersonal" @click="handleLeaveGroup" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded text-sm font-medium">Leave</button>
-            <button v-if="!group.isPersonal" @click="handleDeleteGroup" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded text-sm font-medium">Delete</button>
+        <div class="flex flex-wrap justify-center gap-3 shrink-0 mt-2">
+            <UButton :to="`/groups/${groupId}/edit`" color="primary" variant="soft" size="sm" icon="i-heroicons-pencil">
+              Edit
+            </UButton>
+            <UButton :to="`/groups/${groupId}/reset`" color="warning" variant="soft" size="sm" icon="i-heroicons-arrow-path">
+              Reset
+            </UButton>
+            <UButton v-if="!group.isPersonal" @click="handleLeaveGroup" color="neutral" variant="soft" size="sm" icon="i-heroicons-arrow-right-on-rectangle">
+              Leave
+            </UButton>
+            <UButton v-if="!group.isPersonal" @click="handleDeleteGroup" color="error" variant="soft" size="sm" icon="i-heroicons-trash">
+              Delete
+            </UButton>
         </div>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <NuxtLink :to="`/groups/${groupId}/members`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">👥 Members</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/invitations`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">✉️ Invitations</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/history`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">📜 History</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/categories`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">📁 Categories</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/goals`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">🎯 Budget Goals</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/receipts`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">🧾 Receipts</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/sellers`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">🏪 Sellers</NuxtLink>
-        <NuxtLink :to="`/groups/${groupId}/products`" class="p-4 bg-white border rounded-lg shadow-sm hover:border-blue-500 hover:shadow-md transition text-center font-medium text-gray-700">🛍️ Products</NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/members`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            👥 Members
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/invitations`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            ✉️ Invitations
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/history`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            📜 History
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/categories`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            📁 Categories
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/goals`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            🎯 Budget Goals
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/receipts`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            🧾 Receipts
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/sellers`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            🏪 Sellers
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/products`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            🛍️ Products
+          </UCard>
+        </NuxtLink>
       </div>
     </div>
-  </div>
+  </UContainer>
 </template>

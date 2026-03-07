@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import type { CategoryDto } from '~/services/categoryService';
 
 const props = defineProps<{
@@ -11,91 +11,78 @@ const emit = defineEmits<{
   (e: 'toggle', categoryId: number): void;
 }>();
 
-const isOpen = ref(false);
-const filterText = ref('');
-const pickerRef = ref<HTMLElement | null>(null);
-
-const filteredCategories = computed(() => {
-  if (!filterText.value) return props.categories;
-  return props.categories.filter(c =>
-    c.name.toLowerCase().includes(filterText.value.toLowerCase())
-  );
+const categoryItems = computed(() => {
+  return props.categories.map(c => ({
+    id: c.id,
+    label: c.name,
+    colorHex: c.colorHex
+  }));
 });
 
-function toggleCategory(categoryId: number) {
-  emit('toggle', categoryId);
-}
-
-function handleClickOutside(event: MouseEvent) {
-  if (isOpen.value && pickerRef.value && !pickerRef.value.contains(event.target as Node)) {
-    isOpen.value = false;
+const selectedItems = computed({
+  get: () => categoryItems.value.filter(c => props.selectedCategoryIds.has(c.id)),
+  set: (newSelection) => {
+    const oldSet = props.selectedCategoryIds;
+    const newSet = new Set(newSelection.map(c => c.id));
+    
+    for (const id of newSet) {
+      if (!oldSet.has(id)) emit('toggle', id);
+    }
+    for (const id of oldSet) {
+      if (!newSet.has(id)) emit('toggle', id);
+    }
   }
-}
-
-onMounted(() => {
-  document.addEventListener('mousedown', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
 
 <template>
-  <div ref="pickerRef" class="relative">
-    <button
-      type="button"
-      class="text-blue-600 underline text-sm"
-      @click="isOpen = !isOpen"
+  <div class="space-y-3">
+    <USelectMenu
+      v-model="selectedItems"
+      :items="categoryItems"
+      multiple
+      class="w-full"
     >
-      {{ selectedCategoryIds.size > 0 ? `Categories (${selectedCategoryIds.size})` : 'Add categories' }}
-    </button>
-
-    <div
-      v-if="isOpen"
-      class="absolute top-full left-0 mt-1 bg-white border rounded shadow-lg p-3 z-10 w-64"
-    >
-      <div class="flex justify-between items-center mb-2">
-        <input
-          type="text"
-          v-model="filterText"
-          placeholder="Search categories..."
-          class="border p-1 w-full text-sm"
-        />
-        <button type="button" @click="isOpen = false" class="ml-2 text-gray-500 hover:text-gray-800 font-bold px-2">
-          &times;
-        </button>
-      </div>
+      <template #default>
+        <span v-if="selectedCategoryIds.size" class="truncate">
+          Categories ({{ selectedCategoryIds.size }})
+        </span>
+        <span v-else class="text-gray-500 dark:text-gray-400">Add categories</span>
+      </template>
       
-      <div class="max-h-48 overflow-y-auto">
-        <div v-if="filteredCategories.length === 0" class="text-gray-500 text-sm py-2">
-          No categories found
+      <template #item="{ item }">
+        <div class="flex items-center gap-2 max-w-full">
+          <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700 shrink-0" :style="{ backgroundColor: item.colorHex }"></div>
+          <span class="truncate">{{ item.label }}</span>
         </div>
-        <label
-          v-for="cat in filteredCategories"
-          :key="cat.id"
-          class="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
-        >
-          <input
-            type="checkbox"
-            :checked="selectedCategoryIds.has(cat.id)"
-            @change="toggleCategory(cat.id)"
-            class="w-4 h-4"
-          />
-          <div class="w-4 h-4 rounded border" :style="{ backgroundColor: cat.colorHex }"></div>
-          <span class="text-sm">{{ cat.name }}</span>
-        </label>
-      </div>
-    </div>
+      </template>
+    </USelectMenu>
 
-    <div v-if="selectedCategoryIds.size > 0" class="mt-2 flex flex-wrap gap-1">
-      <span
+    <div v-if="selectedCategoryIds.size > 0" class="flex flex-wrap gap-2 mt-2">
+      <div
         v-for="catId in Array.from(selectedCategoryIds)"
         :key="catId"
-        class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
+        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 max-w-full"
+        :title="categories.find(c => c.id === catId)?.name"
       >
-        {{ categories.find(c => c.id === catId)?.name }}
-      </span>
+        <div 
+          class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" 
+          :style="{ backgroundColor: categories.find(c => c.id === catId)?.colorHex || '#9ca3af' }"
+        ></div>
+        
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-30 sm:max-w-60">
+          {{ categories.find(c => c.id === catId)?.name }}
+        </span>
+
+        <button 
+          type="button"
+          @click="emit('toggle', catId)" 
+          class="ml-1 text-gray-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center"
+          aria-label="Remove category"
+        >
+          <UIcon name="i-heroicons-x-mark" class="w-3 h-3" />
+        </button>
+      </div>
     </div>
   </div>
 </template>

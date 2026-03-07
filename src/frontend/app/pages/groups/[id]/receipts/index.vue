@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, h } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import { receiptService } from '~/services/receiptService';
 import { categoryService } from '~/services/categoryService';
-import type { ReceiptDto, CreateReceiptDto } from '~/services/receiptService';
-import type { CategoryDto } from '~/services/categoryService';
-import CategoryPicker from '~/components/CategoryPicker.vue';
 import { sellerService } from '~/services/sellerService';
+import type { ReceiptDto } from '~/services/receiptService';
+import type { CategoryDto } from '~/services/categoryService';
 import type { SellerDto } from '~/services/sellerService';
-import SellerPicker from '~/components/SellerPicker.vue';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
-
-interface FormProduct {
-  _uid: string;
-  name: string;
-  price: number;
-  quantity: number;
-  categoryIds: Set<number>;
-}
+import type { TableColumn } from '@nuxt/ui';
 
 const route = useRoute();
 const router = useRouter();
@@ -32,30 +23,36 @@ const maxAllowed = ref(0);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const xmlFileInput = ref<HTMLInputElement | null>(null);
-const isUploading = ref(false);
-
 const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 
-function generateUid() {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
-const newReceipt = reactive<{
-  paymentDate: string;
-  sellerId: string;
-  products: FormProduct[];
-}>({
-  paymentDate: new Date().toISOString().split('T')[0]!,
-  sellerId: "",
-  products: [{
-    _uid: generateUid(),
-    name: '',
-    price: 0,
-    quantity: 1,
-    categoryIds: new Set()
-  }]
-});
+const columns: TableColumn<ReceiptDto>[] = [
+  { accessorKey: 'id', header: 'ID' },
+  { 
+    accessorKey: 'paymentDate', 
+    header: 'Date',
+    cell: ({ row }) => new Date(row.original.paymentDate).toLocaleDateString()
+  },
+  { 
+    id: 'seller', 
+    header: 'Seller',
+    cell: ({ row }) => h(
+      'div', 
+      { class: 'whitespace-normal break-words sm:break-all min-w-[120px] max-w-[250px] font-medium text-gray-900 dark:text-white' }, 
+      row.original.sellerName ? row.original.sellerName : (row.original.sellerId ?? '-')
+    )
+  },
+  { 
+    accessorKey: 'totalAmount', 
+    header: 'Total',
+    cell: ({ row }) => row.original.totalAmount.toFixed(2)
+  },
+  { 
+    id: 'productCount', 
+    header: 'Products',
+    cell: ({ row }) => row.original.products.length.toString()
+  },
+  { id: 'actions', header: '' }
+];
 
 async function loadData() {
   loading.value = true;
@@ -79,263 +76,75 @@ async function loadData() {
   }
 }
 
-function addProduct() {
-  newReceipt.products.push({
-    _uid: generateUid(),
-    name: '',
-    price: 0,
-    quantity: 1,
-    categoryIds: new Set()
-  });
-}
-
-function removeProduct(uid: string) {
-  if (newReceipt.products.length <= 1) {
-    alert('A receipt must have at least one product.');
-    return;
-  }
-  newReceipt.products = newReceipt.products.filter(p => p._uid !== uid);
-}
-
-function toggleProductCategory(product: FormProduct, categoryId: number) {
-  if (product.categoryIds.has(categoryId)) {
-    product.categoryIds.delete(categoryId);
-  } else {
-    product.categoryIds.add(categoryId);
-  }
-}
-
-async function createReceipt() {
-  if (!newReceipt.sellerId) {
-    alert('Seller ID is required');
-    return;
-  }
-  
-  if (newReceipt.products.length === 0) {
-    alert('A receipt must have at least one product.');
-    return;
-  }
-
-  if (newReceipt.products.some(p => !p.name || p.price <= 0 || p.quantity <= 0)) {
-    alert('Please fill all product fields with valid values');
-    return;
-  }
-  
-  try {
-    const receiptToSend: CreateReceiptDto = {
-      paymentDate: new Date(newReceipt.paymentDate).toISOString(),
-      sellerId: newReceipt.sellerId,
-      products: newReceipt.products.map(p => ({
-        name: p.name,
-        price: p.price,
-        quantity: p.quantity,
-        categories: Array.from(p.categoryIds)
-          .map(id => categories.value.find(c => c.id === id)?.name)
-          .filter((name): name is string => !!name)
-      }))
-    };
-    
-    await receiptService.createReceipt(groupId, receiptToSend);
-    
-    newReceipt.paymentDate = new Date().toISOString().split('T')[0]!;
-    newReceipt.sellerId = "";
-    newReceipt.products = [{
-      _uid: generateUid(),
-      name: '',
-      price: 0,
-      quantity: 1,
-      categoryIds: new Set()
-    }];
-    
-    await loadData();
-  } catch (err: any) {
-    alert(err.message || 'Error creating receipt');
-  }
-}
-
-function goToReceipt(id: number) {
-  router.push(`/groups/${groupId}/receipts/${id}`);
-}
-
-async function handleXmlUpload(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-
-  isUploading.value = true;
-  try {
-    const parsedData = await receiptService.uploadReceiptXml(groupId, file);
-
-    if (!parsedData || typeof parsedData !== 'object') {
-      throw new Error('Unexpected response format from server');
-    }
-
-    if (parsedData.paymentDate) {
-      newReceipt.paymentDate = parsedData.paymentDate.split('T')[0]!;
-    }
-    
-    if (parsedData.sellerId) {
-      newReceipt.sellerId = parsedData.sellerId;
-    }
-
-    if (parsedData.products && Array.isArray(parsedData.products)) {
-      newReceipt.products = parsedData.products.map((p: any) => {
-        const categoryIds = new Set<number>();
-        if (p.categories) {
-          p.categories.forEach((catName: string) => {
-            const found = categories.value.find(c => 
-              c.name.toLowerCase() === catName.toLowerCase()
-            );
-            if (found) categoryIds.add(found.id);
-          });
-        }
-
-        return {
-          _uid: generateUid(),
-          name: p.name || '',
-          price: p.price || 0,
-          quantity: p.quantity || 1,
-          categoryIds
-        };
-      });
-    }
-
-    alert('XML parsed successfully! Please review the details below.');
-  } catch (err: any) {
-    alert(err.message || 'Failed to parse XML');
-  } finally {
-    isUploading.value = false;
-    if (xmlFileInput.value) xmlFileInput.value.value = '';
-  }
-}
-
-function triggerXmlSelect() {
-  xmlFileInput.value?.click();
-}
-
 onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="p-4">
-    <h1 class="text-xl font-bold">Receipts</h1>
-    <p class="text-sm text-gray-600 mt-1" v-if="!loading">
-      Capacity: <span class="font-mono bg-gray-100 px-1 rounded">{{ limitDisplay }}</span>
-    </p>
-    <button @click="() => router.push(`/groups/${groupId}`)" class="text-blue-600 underline text-sm">
-      Back to Group
-    </button>
-    <div v-if="loading">Loading…</div>
-    <div v-if="error" class="text-red-600">{{ error }}</div>
-
-    <table v-if="!loading && receipts.length > 0" class="w-full mt-4 table-auto border-collapse">
-      <thead>
-        <tr>
-          <th class="border px-2 py-1">ID</th>
-          <th class="border px-2 py-1">Date</th>
-          <th class="border px-2 py-1">Seller</th>
-          <th class="border px-2 py-1">Total</th>
-          <th class="border px-2 py-1">Products</th>
-          <th class="border px-2 py-1">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="r in receipts" :key="r.id">
-          <td class="border px-2 py-1">{{ r.id }}</td>
-          <td class="border px-2 py-1">{{ new Date(r.paymentDate).toLocaleDateString() }}</td>
-          <td class="border px-2 py-1">{{ r.sellerName ? r.sellerName : (r.sellerId ?? '-') }}</td>
-          <td class="border px-2 py-1">{{ r.totalAmount.toFixed(2) }}</td>
-          <td class="border px-2 py-1">{{ r.products.length }}</td>
-          <td class="border px-2 py-1">
-            <button @click="goToReceipt(r.id)" class="text-blue-600 underline">View</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div v-if="!loading && receipts.length === 0" class="text-gray-500 mt-4">No receipts yet</div>
-
-    <div class="mt-6 border-t pt-4">
-      <h2 class="font-semibold">Create new receipt</h2>
-      <div class="mt-6 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold">Import Receipt</h2>
-          <div>
-            <input 
-              type="file" 
-              ref="xmlFileInput" 
-              class="hidden" 
-              accept=".xml" 
-              @change="handleXmlUpload" 
-            />
-            <button 
-              @click="triggerXmlSelect" 
-              :disabled="isUploading"
-              class="text-sm bg-green-600 text-white px-3 py-1 rounded disabled:bg-gray-400"
-            >
-              {{ isUploading ? 'Uploading...' : 'Upload XML Receipt' }}
-            </button>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500">Automatically populate receipt data from a supported XML file.</p>
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Receipts</h1>
+        <UBadge v-if="!loading" color="neutral" variant="subtle" size="md">
+          Capacity: {{ limitDisplay }}
+        </UBadge>
       </div>
-      <div class="flex flex-col gap-4 max-w-2xl">
-        <label class="flex flex-col">
-          Payment Date
-          <input type="date" v-model="newReceipt.paymentDate" class="border p-1" />
-        </label>
-
-        <label class="flex flex-col relative">
-          Seller
-          <SellerPicker :sellers="sellers" v-model="newReceipt.sellerId" />
-        </label>
-
-        <div class="border rounded p-4 bg-gray-50">
-          <h3 class="font-semibold mb-3">Products</h3>
-          
-          <div v-for="product in newReceipt.products" :key="product._uid" class="mb-4 border-b pb-4 last:border-b-0">
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex flex-col">
-                Product Name
-                <input type="text" v-model="product.name" class="border p-1" placeholder="e.g., Milk" />
-              </label>
-              <label class="flex flex-col">
-                Price
-                <input type="number" v-model.number="product.price" step="0.01" class="border p-1" />
-              </label>
-              <label class="flex flex-col">
-                Quantity
-                <input type="number" v-model.number="product.quantity" step="0.01" class="border p-1" />
-              </label>
-            </div>
-
-            <div class="mt-3">
-              <CategoryPicker 
-                :categories="categories"
-                :selectedCategoryIds="product.categoryIds"
-                @toggle="(catId) => toggleProductCategory(product, catId)"
-              />
-            </div>
-
-            <button
-              v-if="newReceipt.products.length > 1"
-              type="button"
-              @click="removeProduct(product._uid)"
-              class="text-red-600 text-sm mt-2 underline"
-            >
-              Remove product
-            </button>
-          </div>
-
-          <button type="button" @click="addProduct" class="text-blue-600 underline text-sm mt-3">
-            + Add product
-          </button>
-        </div>
-
-        <button @click="createReceipt" class="bg-blue-600 text-white px-3 py-2 rounded">
+      
+      <div class="flex items-center gap-3">
+        <UButton 
+          :to="`/groups/${groupId}/receipts/create`" 
+          color="primary" 
+          icon="i-heroicons-plus"
+        >
           Create Receipt
-        </button>
+        </UButton>
+        <UButton 
+          :to="`/groups/${groupId}`" 
+          color="secondary" 
+          variant="outline" 
+          icon="i-heroicons-arrow-left"
+        >
+          Back to Group
+        </UButton>
       </div>
     </div>
+    
+    <UAlert 
+      v-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-4" 
+    />
+
+    <UCard :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" class="shadow-sm overflow-hidden flex flex-col w-full lg:h-100 max-w-full">
+      <UTable 
+        sticky 
+        :data="receipts" 
+        :columns="columns" 
+        :loading="loading" 
+        class="w-full flex-1 min-h-0 overflow-y-auto"
+      >
+        <template #actions-cell="{ row }">
+          <div class="text-right">
+            <UButton 
+              :to="`/groups/${groupId}/receipts/${row.original.id}`" 
+              color="primary" 
+              variant="outline" 
+              size="sm"
+              icon="i-heroicons-cog"
+            >
+              Manage
+            </UButton>
+          </div>
+        </template>
+        
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-12 h-full">
+            <span class="text-gray-500 dark:text-gray-400">No receipts found.</span>
+          </div>
+        </template>
+      </UTable>
+    </UCard>
   </div>
 </template>

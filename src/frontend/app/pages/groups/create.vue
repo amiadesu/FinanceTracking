@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
+import { useRouter } from '#imports';
 import { groupService } from '@/services/groupService';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import * as v from 'valibot';
+import { groupEditSchema } from '~/schemas/schemas';
+import { useFormValidation } from '~/composables/useFormValidation';
+import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
+
+type Schema = v.InferOutput<typeof groupEditSchema>;
 
 const router = useRouter();
 
-const name = ref('');
-const errorMsg = ref('');
 const isCreating = ref(false);
+const errorMsg = ref<string | null>(null);
 
-const handleCreateGroup = async () => {
+const state = reactive({
+    name: ''
+});
+
+const { isFormValid, unmappedErrors, touch } = useFormValidation(groupEditSchema, state);
+
+const handleCreateGroup = async (event: FormSubmitEvent<Schema>) => {
     isCreating.value = true;
-    errorMsg.value = '';
+    errorMsg.value = null;
     
     try {
-        const data = await groupService.createGroup({ name: name.value });
+        const data = await groupService.createGroup({ name: event.data.name });
 
         if (data.id) {
             router.push(`/groups/${data.id}`);
@@ -21,7 +34,7 @@ const handleCreateGroup = async () => {
             router.push('/groups');
         }
     } catch (err: any) {
-        errorMsg.value = err.data?.message || 'An unexpected error occurred while creating the group.';
+        errorMsg.value = err.data?.message || err.message || 'An unexpected error occurred while creating the group.';
     } finally {
         isCreating.value = false;
     }
@@ -29,40 +42,68 @@ const handleCreateGroup = async () => {
 </script>
 
 <template>
-  <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow mt-10">
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Create New Group</h1>
-    
-    <div v-if="errorMsg" class="bg-red-100 text-red-700 p-3 rounded mb-4">
-        {{ errorMsg }}
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create New Group</h1>
+      </div>
+      
+      <UButton 
+        to="/groups" 
+        color="secondary" 
+        variant="outline" 
+        icon="i-heroicons-arrow-left"
+      >
+        Back to Groups
+      </UButton>
     </div>
-    
-    <form @submit.prevent="handleCreateGroup">
-        <div class="mb-5">
-            <label for="groupName" class="block text-gray-700 font-medium mb-2">Group Name</label>
-            <input 
-                id="groupName"
-                v-model="name" 
-                type="text" 
-                required 
-                placeholder="e.g. Family Budget, Vacation Fund..."
-                class="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500 outline-none" 
-            />
-            <p class="text-xs text-gray-500 mt-2">You will be automatically set as the owner of this group.</p>
-        </div>
-        
-        <div class="flex gap-4 mt-6 pt-4 border-t border-gray-100">
-            <button 
-                type="submit" 
-                :disabled="isCreating" 
-                class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium cursor-pointer">
-                {{ isCreating ? 'Creating...' : 'Create Group' }}
-            </button>
-            <NuxtLink 
-                to="/groups" 
-                class="px-5 py-2 text-gray-600 hover:bg-gray-100 rounded transition-colors font-medium">
-                Cancel
-            </NuxtLink>
-        </div>
-    </form>
+
+    <UAlert 
+      v-if="errorMsg" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="errorMsg" 
+      class="mb-4" 
+    />
+
+    <UCard class="shadow-sm w-full max-w-xl mx-auto mt-8">
+        <UForm :schema="groupEditSchema" :state="state" class="flex flex-col gap-6" @submit="handleCreateGroup">
+            <div class="flex flex-col gap-4">
+                <UFormField label="Group Name" name="name" required>
+                    <UInput 
+                        v-model="state.name" 
+                        placeholder="e.g. Family Budget, Vacation Fund..." 
+                        class="w-full"
+                    />
+                </UFormField>
+                <p class="text-xs text-gray-500">You will be automatically set as the owner of this group.</p>
+
+                <FormGlobalErrors :errors="unmappedErrors" />
+            </div>
+
+            <USeparator />
+
+            <div class="flex flex-wrap items-center gap-3">
+                <UButton 
+                    type="submit" 
+                    color="primary"
+                    :loading="isCreating"
+                    :disabled="isCreating || !isFormValid"
+                >
+                    {{ isCreating ? 'Creating...' : 'Create Group' }}
+                </UButton>
+
+                <UButton 
+                    to="/groups" 
+                    color="secondary" 
+                    variant="outline"
+                    :disabled="isCreating"
+                >
+                    Cancel
+                </UButton>
+            </div>
+        </UForm>
+    </UCard>
   </div>
 </template>
