@@ -86,16 +86,9 @@ const selectedSellerDisplay = computed(() => {
     class="w-full"
   >
     <template #default>
-      <UButton
-        color="neutral"
-        variant="outline"
-        class="w-full justify-between"
-        trailing-icon="i-heroicons-chevron-down-20-solid"
-      >
-        <span :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }" class="truncate">
-          {{ selectedSellerDisplay }}
-        </span>
-      </UButton>
+      <span :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }" class="truncate">
+        {{ selectedSellerDisplay }}
+      </span>
     </template>
     
     <template #item="{ item }">
