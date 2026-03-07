@@ -53,7 +53,7 @@ const handleCancel = async (invitationId: string) => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto p-4 mt-8">
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-3">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group Invitations</h1>
@@ -70,15 +70,21 @@ const handleCancel = async (invitationId: string) => {
       </div>
     </div>
 
+    <div v-if="pending" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+      Loading invitations...
+    </div>
+
     <UAlert 
-      v-if="error" 
+      v-else-if="error" 
       color="error" 
       variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
       :title="error.message || 'Failed to load invitations'" 
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full max-w-full">
       <UTable :data="invitations" :columns="columns" :loading="pending" class="w-full">
         <template #status-cell="{ row }">
           <UBadge 
@@ -102,6 +108,12 @@ const handleCancel = async (invitationId: string) => {
             >
               Cancel
             </UButton>
+          </div>
+        </template>
+        
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-12">
+            <span class="text-gray-500 dark:text-gray-400">No invitations found.</span>
           </div>
         </template>
       </UTable>

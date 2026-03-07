@@ -16,7 +16,6 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const totalCount = ref(0);
 
-// Nuxt UI Table Columns definition
 const columns: TableColumn<GroupHistoryDto>[] = [
   {
     accessorKey: 'changedAt',
@@ -50,7 +49,6 @@ const columns: TableColumn<GroupHistoryDto>[] = [
       const original = row.original;
       const detailsContent = [];
 
-      // Build out the dynamic details using Vue's 'h' render function
       if (original.roleIdBefore !== original.roleIdAfter) {
         detailsContent.push(
           h('div', [
@@ -113,46 +111,51 @@ onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-4 mt-6">
-    <UCard class="shadow-sm">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Group History</h1>
-          <UButton 
-            :to="`/groups/${groupId}`"
-            color="secondary" 
-            variant="outline"
-            icon="i-heroicons-arrow-left"
-          >
-            Back to Group
-          </UButton>
-        </div>
-      </template>
+  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group History</h1>
+        <UBadge color="neutral" variant="subtle" size="md">#{{ groupId }}</UBadge>
+      </div>
+      <UButton 
+        :to="`/groups/${groupId}`"
+        color="secondary" 
+        variant="outline"
+        icon="i-heroicons-arrow-left"
+      >
+        Back to Group
+      </UButton>
+    </div>
 
-      <UAlert 
-        v-if="error" 
-        color="error" 
-        variant="soft" 
-        icon="i-heroicons-exclamation-triangle"
-        :title="error" 
-        class="mb-4" 
-      />
+    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+      Loading history...
+    </div>
 
+    <UAlert 
+      v-else-if="error" 
+      color="error" 
+      variant="soft" 
+      icon="i-heroicons-exclamation-triangle"
+      :title="error" 
+      class="mb-4" 
+    />
+
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden w-full max-w-full">
       <UTable
-        sticky
         :data="historyEntries" 
         :columns="columns" 
         :loading="loading"
-        class="w-4xl mt-2 max-h-72"
+        class="w-full"
       >
         <template #empty>
-          <div class="flex flex-col items-center justify-center py-6 gap-3">
-            <span class="italic text-sm text-gray-500">No history records found for this group.</span>
+          <div class="flex flex-col items-center justify-center py-12 gap-3">
+            <span class="text-gray-500 dark:text-gray-400">No history records found for this group.</span>
           </div>
         </template>
       </UTable>
 
-      <div v-if="totalCount > 0" class="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-800">
+      <div v-if="totalCount > 0" class="flex flex-col sm:flex-row justify-between items-center p-4 border-t dark:border-gray-800 gap-4">
         <p class="text-sm text-gray-500">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{ totalCount }} results
         </p>

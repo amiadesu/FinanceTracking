@@ -46,3 +46,18 @@ export const memberRoleSchema = v.object({
     value: v.number()
   })
 });
+
+export const groupEditSchema = v.object({
+  name: v.pipe(
+    v.string(), 
+    v.minLength(1, 'Group name is required'),
+    v.maxLength(100, 'Group name must be less than 100 characters')
+  )
+});
+
+export const groupResetSchema = v.object({
+  selectedOptions: v.pipe(
+    v.array(v.string(), 'An array is required'),
+    v.minLength(1, 'At least 1 option must be selected')
+  )
+});
