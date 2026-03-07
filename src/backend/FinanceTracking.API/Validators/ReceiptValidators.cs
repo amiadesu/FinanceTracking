@@ -7,7 +7,7 @@ public class CreateReceiptProductDtoValidator : AbstractValidator<CreateReceiptP
 {
     public CreateReceiptProductDtoValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Quantity).GreaterThan(0);
         RuleFor(x => x.Categories).NotNull();
@@ -29,7 +29,7 @@ public class UpdateReceiptProductDtoValidator : AbstractValidator<UpdateReceiptP
 {
     public UpdateReceiptProductDtoValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(200).When(x => x.Name != null);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100).When(x => x.Name != null);
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0).When(x => x.Price.HasValue);
         RuleFor(x => x.Quantity).GreaterThan(0).When(x => x.Quantity.HasValue);
     }
