@@ -39,3 +39,10 @@ export const budgetGoalSchema = v.pipe(
         'Start date must be before end date'
     )
 );
+
+export const memberRoleSchema = v.object({
+  role: v.object({
+    label: v.string(),
+    value: v.number()
+  })
+});

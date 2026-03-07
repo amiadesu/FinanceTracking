@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, h } from 'vue';
+import { ref, onMounted, computed, h, resolveComponent } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import { groupMemberService, type GroupMemberDto } from '~/services/groupMemberService';
 import { useConfigStore } from '~/stores/useConfigStore';
@@ -29,44 +29,38 @@ const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 
 function getRoleName(roleValue: number) {
   if (!configStore.config) return 'Unknown';
-  
+
   const roleEntry = Object.entries(configStore.config.groupRoles).find(([_, val]) => val === roleValue);
   return roleEntry ? roleEntry[0] : 'Unknown';
 }
 
 const columns = computed<TableColumn<GroupMemberDto>[]>(() => {
+  const UBadge = resolveComponent('UBadge');
+
   const baseCols: TableColumn<GroupMemberDto>[] = [
     { 
       accessorKey: 'userName', 
       header: 'Name',
-      cell: ({ row }) => row.getValue('userName') || '-'
+      cell: ({ row }) => h('span', { class: 'font-medium text-gray-900 dark:text-white' }, row.original.userName || '-')
     },
     { 
       accessorKey: 'role', 
       header: 'Role',
-      cell: ({ row }) => {
-        const roleVal = row.getValue('role') as number;
-        return getRoleName(roleVal);
-      }
+      cell: ({ row }) => getRoleName(row.original.role)
     },
     { 
       accessorKey: 'joinedDate', 
       header: 'Joined',
-      cell: ({ row }) => {
-        const dateVal = row.getValue('joinedDate') as string;
-        if (!dateVal) return '-';
-        return new Date(dateVal).toLocaleDateString();
-      }
+      cell: ({ row }) => row.original.joinedDate ? new Date(row.original.joinedDate).toLocaleDateString() : '-'
     },
     { 
       accessorKey: 'active', 
       header: 'Status',
-      cell: ({ row }) => {
-        const isActive = row.getValue('active') as boolean;
-        return h('span', { 
-          class: isActive ? 'text-green-600 font-medium' : 'text-red-600 font-medium' 
-        }, isActive ? 'Active' : 'Inactive');
-      }
+      cell: ({ row }) => h(UBadge as any, {
+        color: row.original.active ? 'success' : 'error',
+        variant: 'soft',
+        size: 'sm'
+      }, () => row.original.active ? 'Active' : 'Inactive')
     }
   ];
 
@@ -87,11 +81,11 @@ async function loadData() {
       groupMemberService.getMembers(groupId),
       groupMemberService.getMyRole(groupId)
     ]);
-    
+
     currentCount.value = membersResponse.currentCount;
     maxAllowed.value = membersResponse.maxAllowed;
     members.value = membersResponse.groupMembers;
-    
+
     myRole.value = roleData.role;
   } catch (err: any) {
     error.value = err.message || 'Failed to load group members';
@@ -100,15 +94,11 @@ async function loadData() {
   }
 }
 
-function goToMember(userId: string) {
-  router.push(`/groups/${groupId}/members/${userId}`);
-}
-
 onMounted(() => loadData());
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-4 mt-8">
+  <div class="max-w-6xl mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-3">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group Members</h1>
@@ -134,18 +124,12 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100">
       <UTable :data="members" :columns="columns" :loading="loading" class="w-full">
-        <template #empty>
-          <div class="flex flex-col items-center justify-center py-12">
-            <span class="text-gray-500 dark:text-gray-400">No members found for this group.</span>
-          </div>
-        </template>
-
         <template #actions-cell="{ row }">
           <div class="text-right">
-            <UButton 
-              @click="goToMember(row.original.userId)" 
+            <UButton
+              :to="`/groups/${groupId}/members/${row.original.userId}`"
               color="primary" 
               variant="outline" 
               size="sm"
@@ -153,6 +137,12 @@ onMounted(() => loadData());
             >
               Manage
             </UButton>
+          </div>
+        </template>
+
+        <template #empty>
+          <div class="flex flex-col items-center justify-center py-12">
+            <span class="text-gray-500 dark:text-gray-400">No members found for this group.</span>
           </div>
         </template>
       </UTable>
