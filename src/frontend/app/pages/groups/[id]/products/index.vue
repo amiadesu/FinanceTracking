@@ -77,22 +77,17 @@ onMounted(() => loadData());
       </div>
       
       <UButton 
-        :to="`/groups/${groupId}/receipts`" 
+        :to="`/groups/${groupId}`" 
         color="secondary" 
         variant="outline" 
         icon="i-heroicons-arrow-left"
       >
-        Back to Receipts
+        Back to Group
       </UButton>
-    </div>
-
-    <div v-if="loading" class="text-gray-500 animate-pulse flex items-center gap-2 mb-4">
-      <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
-      Loading products...
     </div>
     
     <UAlert 
-      v-else-if="error" 
+      v-if="error" 
       color="error" 
       variant="soft" 
       icon="i-heroicons-exclamation-triangle"
@@ -100,7 +95,7 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard v-else :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" class="shadow-sm overflow-hidden flex flex-col w-full lg:h-100 max-w-full">
+    <UCard :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" class="shadow-sm overflow-hidden flex flex-col w-full lg:h-100 max-w-full">
       <UTable 
         sticky
         :data="products" 

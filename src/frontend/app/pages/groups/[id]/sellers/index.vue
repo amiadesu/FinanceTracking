@@ -77,12 +77,12 @@ onMounted(() => loadData());
       </div>
       
       <UButton 
-        :to="`/groups/${groupId}/receipts`" 
+        :to="`/groups/${groupId}`" 
         color="secondary" 
         variant="outline" 
         icon="i-heroicons-arrow-left"
       >
-        Back to Receipts
+        Back to Group
       </UButton>
     </div>
     
@@ -95,7 +95,7 @@ onMounted(() => loadData());
       class="mb-4" 
     />
 
-    <UCard v-else :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
+    <UCard :ui="{ body: 'p-0 sm:p-0' }" class="shadow-sm overflow-hidden lg:h-100 w-full max-w-full">
       <UTable sticky :data="sellers" :columns="columns" :loading="loading" class="lg:h-100 w-full">
         <template #actions-cell="{ row }">
           <div class="text-right">
