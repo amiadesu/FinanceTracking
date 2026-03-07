@@ -83,6 +83,45 @@ public class CategoryService
         return category == null ? null : Map(category);
     }
 
+    public async Task<List<Category>> GetOrCreateCategoriesAsync(int groupId, List<string> names)
+    {
+        var processed = names
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Select(n => n.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (!processed.Any())
+            return new List<Category>();
+
+        var existing = await _context.Categories
+            .Where(c => c.GroupId == groupId && processed.Contains(c.Name))
+            .ToListAsync();
+
+        var existingNames = existing.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var toAdd = processed
+            .Where(n => !existingNames.Contains(n))
+            .Select(n => new Category
+            {
+                GroupId = groupId,
+                Name = n,
+                ColorHex = ServiceConstants.DefaultCategoryColor,
+                IsSystem = false,
+                CreatedDate = DateTime.UtcNow,
+                UpdatedDate = DateTime.UtcNow
+            })
+            .ToList();
+
+        if (toAdd.Any())
+        {
+            _context.Categories.AddRange(toAdd);
+            await _context.SaveChangesAsync();
+            existing.AddRange(toAdd);
+        }
+
+        return existing;
+    }
+
     public async Task<CategoryDto> UpdateCategoryAsync(int groupId, int categoryId, UpdateCategoryDto dto)
     {
         var category = await _context.Categories

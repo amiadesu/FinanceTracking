@@ -41,6 +41,48 @@ public class ProductDataService
         return product == null ? null : Map(product);
     }
 
+    public async Task<ProductData> FindOrCreateProductDataAsync(int groupId, string name, List<int> categoryIds)
+    {
+        var candidates = await _context.ProductData
+            .Include(pd => pd.ProductDataCategories)
+            .Where(pd => pd.GroupId == groupId && pd.Name == name)
+            .ToListAsync();
+
+        categoryIds.Sort();
+
+        foreach (var pd in candidates)
+        {
+            var ids = pd.ProductDataCategories.Select(pdc => pdc.CategoryId).OrderBy(x => x).ToList();
+            if (ids.SequenceEqual(categoryIds))
+                return pd;
+        }
+
+        var now = DateTime.UtcNow;
+        var product = new ProductData
+        {
+            GroupId = groupId,
+            Name = name,
+            Description = null,
+            CreatedDate = now,
+            UpdatedDate = now,
+            ProductDataCategories = new List<ProductDataCategory>()
+        };
+
+        foreach (var catId in categoryIds.Distinct())
+        {
+            product.ProductDataCategories.Add(new ProductDataCategory
+            {
+                CategoryId = catId,
+                GroupId = groupId
+            });
+        }
+
+        _context.ProductData.Add(product);
+        await _context.SaveChangesAsync();
+
+        return product;
+    }
+
     public async Task<ProductDataDto?> UpdateProductAsync(int groupId, int productId, UpdateProductDataDto dto)
     {
         var product = await _context.ProductData
