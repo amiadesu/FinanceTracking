@@ -44,48 +44,45 @@ const selectedItems = computed({
       class="w-full"
     >
       <template #default>
-        <UButton
-          color="neutral"
-          variant="outline"
-          class="w-full justify-between"
-          trailing-icon="i-heroicons-chevron-down-20-solid"
-        >
-          <span v-if="selectedCategoryIds.size" class="truncate">
-            Categories ({{ selectedCategoryIds.size }})
-          </span>
-          <span v-else class="text-gray-500 dark:text-gray-400">Add categories</span>
-        </UButton>
+        <span v-if="selectedCategoryIds.size" class="truncate">
+          Categories ({{ selectedCategoryIds.size }})
+        </span>
+        <span v-else class="text-gray-500 dark:text-gray-400">Add categories</span>
       </template>
       
       <template #item="{ item }">
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700" :style="{ backgroundColor: item.colorHex }"></div>
+        <div class="flex items-center gap-2 max-w-full">
+          <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700 shrink-0" :style="{ backgroundColor: item.colorHex }"></div>
           <span class="truncate">{{ item.label }}</span>
         </div>
       </template>
     </USelectMenu>
 
     <div v-if="selectedCategoryIds.size > 0" class="flex flex-wrap gap-2 mt-2">
-      <UBadge
+      <div
         v-for="catId in Array.from(selectedCategoryIds)"
         :key="catId"
-        color="primary"
-        variant="subtle"
-        class="flex items-center gap-1.5 px-2 py-1"
+        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 max-w-full"
+        :title="categories.find(c => c.id === catId)?.name"
       >
         <div 
-          class="w-2 h-2 rounded-full" 
-          :style="{ backgroundColor: categories.find(c => c.id === catId)?.colorHex }"
+          class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" 
+          :style="{ backgroundColor: categories.find(c => c.id === catId)?.colorHex || '#9ca3af' }"
         ></div>
-        {{ categories.find(c => c.id === catId)?.name }}
+        
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-30 sm:max-w-60">
+          {{ categories.find(c => c.id === catId)?.name }}
+        </span>
+
         <button 
+          type="button"
           @click="emit('toggle', catId)" 
-          class="ml-1 text-primary-500 hover:text-primary-700 transition-colors"
+          class="ml-1 text-gray-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center"
           aria-label="Remove category"
         >
           <UIcon name="i-heroicons-x-mark" class="w-3 h-3" />
         </button>
-      </UBadge>
+      </div>
     </div>
   </div>
 </template>
