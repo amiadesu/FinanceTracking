@@ -1,9 +1,9 @@
 <template>
   <UApp>
-    <div class="min-h-screen flex flex-col bg-white text-gray-900">
+    <div class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <NavBar class="h-16" />
 
-      <main class="flex-grow flex flex-col items-center justify-center px-4 py-4 text-center">
+      <main class="grow flex flex-col items-center justify-center px-4 py-8">
         <NuxtLayout>
           <NuxtPage />
         </NuxtLayout>
