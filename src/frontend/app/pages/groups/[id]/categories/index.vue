@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed, h } from 'vue';
 import { useRoute } from '#imports';
+import * as v from 'valibot';
+import { categorySchema } from '~/schemas/schemas';
 import { categoryService } from '~/services/categoryService';
 import type { CategoryDto, CreateCategoryDto } from '~/services/categoryService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
+import type { FormSubmitEvent } from '@nuxt/ui';
+
+type Schema = v.InferOutput<typeof categorySchema>;
 
 const route = useRoute();
 const groupId = Number(route.params.id);
@@ -13,6 +18,7 @@ const currentCount = ref(0);
 const maxAllowed = ref(0);
 
 const loading = ref(false);
+const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 
 const newCategory = reactive<CreateCategoryDto>({
@@ -33,6 +39,10 @@ function onNewColorInput(e: Event) {
   newCategory.colorHex = normalizeColor(v);
 }
 
+const isFormValid = computed(() => {
+  return v.safeParse(categorySchema, newCategory).success;
+});
+
 async function loadCategories() {
   loading.value = true;
   error.value = null;
@@ -52,16 +62,19 @@ async function loadCategories() {
   }
 }
 
-async function createCategory() {
-  if (!newCategory.name.trim()) return;
+async function createCategory(event: FormSubmitEvent<Schema>) {
+  isSubmitting.value = true;
   try {
-    const payload = { ...newCategory, colorHex: normalizeColor(newCategory.colorHex) };
+    const payload = { ...event.data, colorHex: normalizeColor(event.data.colorHex) };
     await categoryService.createCategory(groupId, payload);
+    
     newCategory.name = '';
     newCategory.colorHex = '#000000';
     await loadCategories();
   } catch (err: any) {
     alert(err.message || 'Error creating category');
+  } finally {
+    isSubmitting.value = false;
   }
 }
 
@@ -103,7 +116,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto p-4 mt-8">
+  <div class="max-w-6xl mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
@@ -130,14 +143,24 @@ const columns = computed(() => [
       class="mb-6" 
     />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start lg:items-stretch">
+      
       <div class="lg:col-span-2">
-        <UCard class="shadow-sm">
+        <UCard 
+          class="shadow-sm flex flex-col lg:h-100" 
+          :ui="{ body: 'p-0 sm:p-0 flex-1 overflow-hidden flex flex-col' }"
+        >
           <template #header>
             <h2 class="font-semibold text-gray-900 dark:text-white">Existing Categories</h2>
           </template>
           
-          <UTable :data="categories" :columns="columns" :loading="loading">
+          <UTable
+            sticky
+            :data="categories" 
+            :columns="columns" 
+            :loading="loading" 
+            class="flex-1 overflow-y-auto"
+          >
             <template #actions-cell="{ row }">
               <UButton 
                 :to="`/groups/${groupId}/categories/${row.original?.id || row.id}`"
@@ -149,47 +172,70 @@ const columns = computed(() => [
                 Manage
               </UButton>
             </template>
+
+            <template #empty>
+              <div class="flex flex-col items-center justify-center py-12">
+                <span class="text-gray-500 dark:text-gray-400">No categories found.</span>
+              </div>
+            </template>
           </UTable>
         </UCard>
       </div>
 
       <div class="lg:col-span-1">
-        <UCard class="shadow-sm sticky top-24">
+        <UCard 
+          class="shadow-sm flex flex-col lg:h-100"
+          :ui="{ body: 'flex-1 flex flex-col' }"
+        >
           <template #header>
             <h2 class="font-semibold text-gray-900 dark:text-white">Create Category</h2>
           </template>
 
-          <div class="flex flex-col gap-4">
-            <UFormField label="Name" required>
-              <UInput v-model="newCategory.name" placeholder="e.g. Groceries" class="w-full" />
-            </UFormField>
+          <UForm 
+            :schema="categorySchema" 
+            :state="newCategory" 
+            class="flex flex-col flex-1" 
+            @submit="createCategory"
+          >
+            <div class="flex flex-col gap-6 flex-1">
+              <UFormField label="Name" name="name" required>
+                <UInput v-model="newCategory.name" placeholder="e.g. Groceries" class="w-full" />
+              </UFormField>
 
-            <UFormField label="Color">
-              <div class="flex items-center gap-3 mt-1">
-                <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
-                  <input
-                    type="color"
-                    :value="newCategory.colorHex ?? '#000000'"
-                    @input="onNewColorInput"
-                    class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
-                  />
-                  <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: newCategory.colorHex }"></div>
+              <UFormField label="Color" name="colorHex" required>
+                <div class="flex items-center gap-3 mt-1">
+                  <div class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 transition-shadow">
+                    <input
+                      type="color"
+                      :value="newCategory.colorHex ?? '#000000'"
+                      @input="onNewColorInput"
+                      class="absolute -inset-2 w-[200%] h-[200%] cursor-pointer opacity-0"
+                    />
+                    <div class="absolute inset-0 pointer-events-none" :style="{ backgroundColor: newCategory.colorHex }"></div>
+                  </div>
+                  <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
+                    {{ newCategory.colorHex }}
+                  </span>
                 </div>
-                <span class="text-sm font-mono text-gray-600 dark:text-gray-400 uppercase">
-                  {{ newCategory.colorHex }}
-                </span>
-              </div>
-            </UFormField>
+              </UFormField>
+            </div>
 
-            <UButton 
-              @click="createCategory" 
-              color="primary" 
-              class="w-full justify-center mt-2"
-              :disabled="!newCategory.name.trim()"
-            >
-              Create Category
-            </UButton>
-          </div>
+            <div class="mt-auto pt-6">
+              <USeparator class="mb-6" />
+
+              <div class="flex flex-wrap items-center gap-3 justify-between">
+                <UButton 
+                  type="submit" 
+                  color="primary" 
+                  class="w-full justify-center"
+                  :loading="isSubmitting"
+                  :disabled="isSubmitting || !isFormValid"
+                >
+                  {{ isSubmitting ? 'Creating...' : 'Create Category' }}
+                </UButton>
+              </div>
+            </div>
+          </UForm>
         </UCard>
       </div>
     </div>
