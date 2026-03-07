@@ -127,7 +127,9 @@ function onEditColorInput(e: Event) {
         <div class="text-center">
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Category Name</span>
           <div class="flex items-center justify-center gap-3 mt-2">
-            <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ category.name }}</p>
+            <p class="text-xl font-semibold text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90">
+              {{ category.name }}
+            </p>
             <UBadge v-if="category.isSystem" color="warning" variant="soft" size="sm">System Component</UBadge>
           </div>
         </div>
