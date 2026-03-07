@@ -7,7 +7,7 @@ public class UpdateProductDataDtoValidator : AbstractValidator<UpdateProductData
 {
     public UpdateProductDataDtoValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100).When(x => x.Name != null);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200).When(x => x.Name != null);
         RuleFor(x => x.Description).MaximumLength(1000).When(x => x.Description != null);
     }
 }
