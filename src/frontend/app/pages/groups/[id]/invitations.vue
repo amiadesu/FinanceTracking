@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAsyncData } from '#imports'
 import { invitationService } from '~/services/invitationService'
@@ -13,20 +14,28 @@ const { data: invitations, pending, error, refresh } = useAsyncData(`group-invit
 
 const columns: TableColumn<any>[] = [
   { 
-    accessorKey: 'targetUserName', 
+    id: 'targetUserName', 
     header: 'Invited User',
-    cell: ({ row }) => row.getValue('targetUserName') || '-'
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.targetUserName || '-'
+    )
   },
   { 
-    accessorKey: 'invitedByUserName', 
+    id: 'invitedByUserName', 
     header: 'Invited By',
-    cell: ({ row }) => row.getValue('invitedByUserName') || '-'
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.invitedByUserName || '-'
+    )
   },
   { 
     accessorKey: 'createdDate', 
     header: 'Date',
     cell: ({ row }) => {
-      const dateVal = row.getValue('createdDate') as string;
+      const dateVal = row.original.createdDate;
       if (!dateVal) return '-';
       return new Date(dateVal).toLocaleDateString();
     }

@@ -8,6 +8,7 @@ import { budgetGoalService } from '~/services/budgetGoalService';
 import type { BudgetGoalDto, CreateBudgetGoalDto } from '~/services/budgetGoalService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import type { TableColumn } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
@@ -68,20 +69,20 @@ onMounted(() => {
   loadGoals();
 });
 
-const columns = computed(() => [
+const columns: TableColumn<BudgetGoalDto>[] = [
   { accessorKey: 'id', header: 'ID' },
   { accessorKey: 'targetAmount', header: 'Target' },
   { 
     id: 'period', 
     header: 'Period',
-    cell: ({ row }: any) => {
-      const start = row.original?.startDate || row.getValue('startDate');
-      const end = row.original?.endDate || row.getValue('endDate');
+    cell: ({ row }) => {
+      const start = row.original.startDate;
+      const end = row.original.endDate;
       return `${formatDate(start)} → ${formatDate(end)}`;
     }
   },
   { id: 'actions', header: '' }
-]);
+];
 </script>
 
 <template>

@@ -41,7 +41,11 @@ const columns = computed<TableColumn<GroupMemberDto>[]>(() => {
     { 
       accessorKey: 'userName', 
       header: 'Name',
-      cell: ({ row }) => h('span', { class: 'font-medium text-gray-900 dark:text-white' }, row.original.userName || '-')
+      cell: ({ row }) => h(
+        'span', 
+        { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+        row.original.userName || '-'
+      )
     },
     { 
       accessorKey: 'role', 

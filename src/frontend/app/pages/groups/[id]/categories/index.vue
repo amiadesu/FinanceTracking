@@ -8,6 +8,7 @@ import { categoryService } from '~/services/categoryService';
 import type { CategoryDto, CreateCategoryDto } from '~/services/categoryService';
 import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
+import type { TableColumn } from '@nuxt/ui';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
 type Schema = v.InferOutput<typeof categorySchema>;
@@ -82,14 +83,22 @@ onMounted(() => {
   loadCategories();
 });
 
-const columns = computed(() => [
+const columns: TableColumn<CategoryDto>[] = [
   { accessorKey: 'id', header: 'ID' },
-  { accessorKey: 'name', header: 'Name' },
+  { 
+    id: 'name', 
+    header: 'Name',
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.name || '-'
+    )
+  },
   { 
     accessorKey: 'colorHex', 
     header: 'Color',
-    cell: ({ row }: any) => {
-      const hex = row.getValue('colorHex');
+    cell: ({ row }) => {
+      const hex = row.original.colorHex;
       return h('div', { class: 'flex items-center gap-2' }, [
         h('div', { 
           class: 'w-4 h-4 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm',
@@ -102,8 +111,8 @@ const columns = computed(() => [
   { 
     accessorKey: 'isSystem', 
     header: 'Type',
-    cell: ({ row }: any) => {
-      const isSystem = row.getValue('isSystem');
+    cell: ({ row }) => {
+      const isSystem = row.original.isSystem;
       return h('span', {
         class: isSystem 
           ? 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-600 ring-amber-500/10 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20'
@@ -112,7 +121,7 @@ const columns = computed(() => [
     }
   },
   { id: 'actions', header: '' }
-]);
+];
 </script>
 
 <template>

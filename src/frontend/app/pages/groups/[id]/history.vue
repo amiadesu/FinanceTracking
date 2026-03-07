@@ -21,26 +21,40 @@ const columns: TableColumn<GroupHistoryDto>[] = [
     accessorKey: 'changedAt',
     header: 'Date',
     cell: ({ row }) => {
-      const dateVal = row.getValue('changedAt') as string;
+      const dateVal = row.original.changedAt;
       if (!dateVal) return '-';
       return new Date(dateVal).toLocaleString();
     }
   },
   {
-    accessorKey: 'changedByUserName',
-    header: 'Action By'
+    id: 'changedByUserName',
+    header: 'Action By',
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.changedByUserName || '-'
+    )
   },
   {
-    accessorKey: 'targetUserName',
+    id: 'targetUserName',
     header: 'Target User',
-    cell: ({ row }) => {
-      const targetUser = row.getValue('targetUserName') as string;
-      return targetUser || '-';
-    }
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.targetUserName || '-'
+    )
   },
   {
-    accessorKey: 'note',
-    header: 'Note'
+    id: 'note',
+    header: 'Note',
+    cell: ({ row }) => {
+      const note = row.original.note;
+      return h(
+        'span', 
+        { class: 'whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+        note ? (note.length > 50 ? note.substring(0, 50) + '...' : note) : '-'
+      );
+    }
   },
   {
     id: 'details',
@@ -48,10 +62,12 @@ const columns: TableColumn<GroupHistoryDto>[] = [
     cell: ({ row }) => {
       const original = row.original;
       const detailsContent = [];
+      
+      const wrapClass = 'whitespace-normal break-words sm:break-all min-w-30 max-w-60 sm:max-w-90';
 
       if (original.roleIdBefore !== original.roleIdAfter) {
         detailsContent.push(
-          h('div', [
+          h('div', { class: wrapClass }, [
             h('span', { class: 'font-medium text-gray-700 dark:text-gray-300' }, 'Role: '),
             `${original.roleIdBefore ?? 'None'} ➔ ${original.roleIdAfter ?? 'None'}`
           ])
@@ -60,7 +76,7 @@ const columns: TableColumn<GroupHistoryDto>[] = [
 
       if (original.activeBefore !== original.activeAfter) {
         detailsContent.push(
-          h('div', [
+          h('div', { class: wrapClass }, [
             h('span', { class: 'font-medium text-gray-700 dark:text-gray-300' }, 'Active: '),
             `${original.activeBefore} ➔ ${original.activeAfter}`
           ])
@@ -69,7 +85,7 @@ const columns: TableColumn<GroupHistoryDto>[] = [
 
       if (original.nameBefore !== original.nameAfter) {
         detailsContent.push(
-          h('div', [
+          h('div', { class: wrapClass }, [
             h('span', { class: 'font-medium text-gray-700 dark:text-gray-300' }, 'Name: '),
             `${original.nameBefore} ➔ ${original.nameAfter}`
           ])

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, h } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import { sellerService } from '~/services/sellerService';
 import type { SellerDto } from '~/services/sellerService';
@@ -24,14 +24,22 @@ const columns: TableColumn<SellerDto>[] = [
   { 
     accessorKey: 'name', 
     header: 'Name',
-    cell: ({ row }) => row.getValue('name') || '-' 
+    cell: ({ row }) => h(
+      'span', 
+      { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      row.original.name || '-'
+    )
   },
   { 
     accessorKey: 'description', 
     header: 'Description',
     cell: ({ row }) => {
       const desc = row.getValue('description') as string;
-      return desc ? (desc.length > 50 ? desc.substring(0, 50) + '...' : desc) : '-';
+      return h(
+        'span', 
+        { class: 'whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+        desc ? (desc.length > 50 ? desc.substring(0, 50) + '...' : desc) : '-'
+      );
     }
   },
   { id: 'actions', header: '' }
