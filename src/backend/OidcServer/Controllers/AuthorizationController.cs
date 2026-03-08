@@ -135,7 +135,46 @@ public class AuthorizationController : Controller
             var authenticateResult = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             var principal = authenticateResult.Principal;
 
-            return SignIn(principal!, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            var subject = principal?.GetClaim(OpenIddictConstants.Claims.Subject);
+            if (subject == null)
+            {
+                return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            var user = await _userManager.FindByIdAsync(subject);
+            if (user == null)
+            {
+                return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            var identity = new ClaimsIdentity(
+                TokenOptions.DefaultAuthenticatorProvider, 
+                OpenIddictConstants.Claims.Name, 
+                OpenIddictConstants.Claims.Role);
+
+            identity.AddClaim(OpenIddictConstants.Claims.Subject, await _userManager.GetUserIdAsync(user));
+            identity.AddClaim(OpenIddictConstants.Claims.Email, await _userManager.GetEmailAsync(user));
+            
+            identity.AddClaim(OpenIddictConstants.Claims.Name, await _userManager.GetUserNameAsync(user)); 
+
+            foreach (var claim in identity.Claims)
+            {
+                claim.SetDestinations(claim.Type switch
+                {
+                    OpenIddictConstants.Claims.Name or
+                    OpenIddictConstants.Claims.Email or
+                    OpenIddictConstants.Claims.Subject
+                        => new[] { OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken },
+                    _ => new[] { OpenIddictConstants.Destinations.AccessToken }
+                });
+            }
+
+            var newPrincipal = new ClaimsPrincipal(identity);
+            
+            newPrincipal.SetScopes(principal!.GetScopes());
+            newPrincipal.SetResources(principal.GetResources());
+
+            return SignIn(newPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
         throw new NotImplementedException("The specified grant type is not implemented.");

@@ -1,0 +1,27 @@
+@page
+@model OidcServer.Pages.Account.DeleteAccountModel
+@{
+    ViewData["Title"] = "Delete Account";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div style="background-color: #ffe6e6; border-left: 5px solid red; padding: 10px; margin-bottom: 20px;">
+    <strong>Warning:</strong> Deleting this account is permanent and cannot be undone. All associated data will be removed.
+</div>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" style="color: red;"></div>
+    
+    <div>
+        <label asp-for="Input.Password">Enter your password to confirm:</label>
+        <input asp-for="Input.Password" />
+        <span asp-validation-for="Input.Password" style="color: red;"></span>
+    </div>
+    
+    <button type="submit" style="background-color: red; color: white;">Delete data and close my account</button>
+</form>
+
+<p style="margin-top: 15px;">
+    <a asp-page="./ManageProfile">Cancel</a>
+</p>

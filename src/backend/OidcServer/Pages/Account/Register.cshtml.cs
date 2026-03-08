@@ -30,29 +30,29 @@ public class RegisterModel : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public required InputModel Input { get; set; }
 
     [BindProperty(SupportsGet = true)]
-    public string ReturnUrl { get; set; }
+    public required string ReturnUrl { get; set; }
 
     public class InputModel
     {
         [Required]
         [Display(Name = "Username")]
-        public string Username { get; set; }
+        public string Username { get; set; } = String.Empty;
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = String.Empty;
 
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = String.Empty;
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
+        public string ConfirmPassword { get; set; } = String.Empty;
     }
 
     public void OnGet() { }
@@ -82,11 +82,7 @@ public class RegisterModel : PageModel
                     protocol: Request.Scheme
                 );
 
-                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
-
-                // Development only, remove in production!
-                Console.WriteLine($"\nDevelopment Email link:\n{callbackUrl}\n");
+                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email", callbackUrl!);
 
                 return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = ReturnUrl });
             }

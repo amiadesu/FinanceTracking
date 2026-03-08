@@ -1,0 +1,42 @@
+@page
+@model OidcServer.Pages.Account.ManageProfileModel
+@{
+    ViewData["Title"] = "Manage Profile";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div style="color: green; font-weight: bold; margin-bottom: 15px;">
+        @Model.StatusMessage
+    </div>
+}
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" style="color: red;"></div>
+    
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" disabled />
+    </div>
+    
+    <div>
+        <label asp-for="Input.Username"></label>
+        <input asp-for="Input.Username" />
+        <span asp-validation-for="Input.Username" style="color: red;"></span>
+    </div>
+    
+    <button type="submit">Save Profile</button>
+</form>
+
+<p style="margin-top: 20px;">
+    <a asp-page="./ChangePassword">Change Password</a> | 
+    <a asp-page="./DeleteAccount" style="color: red;">Delete Account</a>
+</p>
+
+<div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #ccc;">
+    <a href="@Model.FrontendUrl?refreshAuth=true" style="font-weight: bold; text-decoration: none;">
+        &larr; Return to FinanceTracker
+    </a>
+</div>
