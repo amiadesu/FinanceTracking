@@ -13,5 +13,5 @@ public record PredictionResponse([property: JsonPropertyName("results")] List<Pr
 
 public record PredictionResultItem(
     [property: JsonPropertyName("text")] string Text,
-    [property: JsonPropertyName("category")] string Category
+    [property: JsonPropertyName("category")] string? Category  // null = below confidence threshold
 );
