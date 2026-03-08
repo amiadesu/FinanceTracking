@@ -64,6 +64,7 @@ export default defineNuxtConfig({
     '@nuxt/icon',
     '@nuxtjs/color-mode',
     'nuxt-oidc-auth',
+    'nuxt-charts',
     '@pinia/nuxt'
   ],
   css: ['~/assets/css/main.css'],
