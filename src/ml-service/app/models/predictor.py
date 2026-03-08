@@ -41,7 +41,7 @@ class ModelPredictor:
             confidence = probs.max()
             if confidence >= PREDICTION_CONFIDENCE_THRESHOLD:
                 class_index = probs.argmax()
-                results.append(self.pipeline.classes_[class_index])
+                results.append(self.model.classes_[class_index])
             else:
                 results.append(None)  # below threshold — no prediction
 
