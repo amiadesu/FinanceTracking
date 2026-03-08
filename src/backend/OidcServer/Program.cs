@@ -37,6 +37,7 @@ builder.Host.UseWolverine(opts =>
     }).AutoProvision();
 
     opts.PublishMessage<UserCreatedEvent>().ToRabbitQueue("user-created");
+    opts.PublishMessage<UserUpdatedEvent>().ToRabbitQueue("user-updated");
     opts.PublishMessage<UserDeletedEvent>().ToRabbitQueue("user-deleted");
 });
 

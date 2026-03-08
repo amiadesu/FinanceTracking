@@ -25,6 +25,14 @@ public class UserEventPublisher
         ));
     }
 
+    public async Task PublishUserUpdated(IdentityUser user)
+    {
+        await _bus.PublishAsync(new UserUpdatedEvent(
+            Guid.Parse(await _userManager.GetUserIdAsync(user)),
+            user.UserName!
+        ));
+    }
+
     public async Task PublishUserDeleted(IdentityUser user)
     {
         await _bus.PublishAsync(new UserDeletedEvent(
