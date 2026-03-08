@@ -38,6 +38,10 @@ export const categoryService = {
     return useApiFetch<CategoryListResponseDto>(`/api/groups/${groupId}/categories`, { method: 'GET' });
   },
 
+  getSystemCategories(groupId: number) {
+    return useApiFetch<CategoryDto[]>(`/api/groups/${groupId}/categories/system`, { method: 'GET' });
+  },
+
   getCategory(groupId: number, categoryId: number) {
     return useApiFetch<CategoryDto>(`/api/groups/${groupId}/categories/${categoryId}`, { method: 'GET' });
   },

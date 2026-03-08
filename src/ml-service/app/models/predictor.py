@@ -1,15 +1,18 @@
 import joblib
 import json
+from sklearn.pipeline import Pipeline
 from pathlib import Path
 from app.core.config import settings
 from app.utils.preprocessing import normalize_ukrainian_text
+
+PREDICTION_CONFIDENCE_THRESHOLD = 0.75 # Threshold pick from train_model.ipynb
 
 class ModelPredictor:
     def __init__(self):
         self.model_path = Path(settings.MODEL_PATH)
         self.categories_path = Path(settings.CATEGORIES_PATH)
         
-        self.model = None
+        self.model: Pipeline = None
         self.categories = []
 
     def load(self):
@@ -22,13 +25,27 @@ class ModelPredictor:
             with open(self.categories_path, "r", encoding="utf-8") as f:
                 self.categories = json.load(f)
 
-    def predict(self, texts: list[str]) -> list[str]:
+    def predict(self, texts: list[str]) -> list[str | None]:
         if self.model is None:
             self.load()
-            
-        cleaned_texts = [normalize_ukrainian_text(text) for text in texts]
+
+        if not texts:
+            return []
         
-        return self.model.predict(cleaned_texts).tolist()
+        cleaned_texts = [normalize_ukrainian_text(text) for text in texts]
+
+        probabilities = self.model.predict_proba(cleaned_texts)
+
+        results = []
+        for probs in probabilities:
+            confidence = probs.max()
+            if confidence >= PREDICTION_CONFIDENCE_THRESHOLD:
+                class_index = probs.argmax()
+                results.append(self.model.classes_[class_index])
+            else:
+                results.append(None)  # below threshold — no prediction
+
+        return results
 
     def get_categories(self) -> list[str]:
         if not self.categories:

@@ -7,6 +7,7 @@ const props = withDefaults(defineProps<{
   modelValue: number | null;
   disabled?: boolean;
   clearable?: boolean;
+  systemCategories?: CategoryDto[];
 }>(), {
   disabled: false,
   clearable: false
@@ -16,11 +17,17 @@ const emit = defineEmits<{
   (e: 'update:modelValue', categoryId: number | null): void;
 }>();
 
+const allCategories = computed<CategoryDto[]>(() => [
+  ...props.categories,
+  ...(props.systemCategories ?? []),
+]);
+
 const categoryItems = computed(() => {
-  return props.categories.map(c => ({
+  return allCategories.value.map(c => ({
     id: c.id,
     label: c.name,
-    colorHex: c.colorHex
+    colorHex: c.colorHex,
+    isSystem: c.isSystem,
   }));
 });
 
@@ -47,11 +54,20 @@ const selectedCategory = computed({
         <div v-if="selectedCategory" class="flex items-center gap-2 truncate">
           <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700 shrink-0" :style="{ backgroundColor: selectedCategory.colorHex }"></div>
           <span class="truncate">{{ selectedCategory.label }}</span>
+          <UBadge
+            v-if="selectedCategory.isSystem"
+            color="warning"
+            variant="subtle"
+            size="xs"
+            class="shrink-0"
+          >
+            System
+          </UBadge>
         </div>
-        
+
         <span v-else class="text-gray-500 dark:text-gray-400 truncate">Select a category</span>
-        
-        <button 
+
+        <button
           v-if="selectedCategory && clearable"
           type="button"
           class="ml-2 text-gray-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center relative z-10"
@@ -62,11 +78,20 @@ const selectedCategory = computed({
         </button>
       </div>
     </template>
-    
+
     <template #item="{ item }">
       <div class="flex items-center gap-2 max-w-full">
         <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700 shrink-0" :style="{ backgroundColor: item.colorHex }"></div>
         <span class="truncate">{{ item.label }}</span>
+        <UBadge
+          v-if="item.isSystem"
+          color="warning"
+          variant="subtle"
+          size="xs"
+          class="ml-auto shrink-0"
+        >
+          System
+        </UBadge>
       </div>
     </template>
   </USelectMenu>

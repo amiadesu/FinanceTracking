@@ -78,9 +78,18 @@ public class CategoryService
     public async Task<CategoryDto?> GetCategoryAsync(int groupId, int categoryId)
     {
         var category = await _context.Categories
-            .FirstOrDefaultAsync(c => c.GroupId == groupId && c.Id == categoryId);
+            .FirstOrDefaultAsync(c => c.Id == categoryId && (c.GroupId == groupId || c.IsSystem));
 
         return category == null ? null : Map(category);
+    }
+
+    public async Task<List<CategoryDto>> GetSystemCategoriesAsync()
+    {
+        return await _context.Categories
+            .Where(c => c.IsSystem)
+            .OrderBy(c => c.Name)
+            .Select(c => Map(c))
+            .ToListAsync();
     }
 
     public async Task<List<Category>> GetOrCreateCategoriesAsync(int groupId, List<string> names)
@@ -95,7 +104,7 @@ public class CategoryService
             return new List<Category>();
 
         var existing = await _context.Categories
-            .Where(c => c.GroupId == groupId && processed.Contains(c.Name))
+            .Where(c => (c.GroupId == groupId || c.IsSystem) && processed.Contains(c.Name))
             .ToListAsync();
 
         var existingNames = existing.Select(c => c.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);

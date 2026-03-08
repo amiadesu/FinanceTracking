@@ -2,6 +2,7 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Extensions;
+using System.Xml;
 
 namespace FinanceTracking.API.Parsers;
 
@@ -9,8 +10,14 @@ public class ReceiptXmlParser
 {
     public async Task<CreateReceiptDto?> ParseAsync(Stream xmlStream)
     {
-        using var reader = new StreamReader(xmlStream, detectEncodingFromByteOrderMarks: true);
-        var xDoc = XDocument.Load(reader);
+        var settings = new XmlReaderSettings 
+        { 
+            Async = true,
+            IgnoreWhitespace = true 
+        };
+
+        using var xmlReader = XmlReader.Create(xmlStream, settings);
+        var xDoc = XDocument.Load(xmlReader);
 
         var datNode = xDoc.Descendants("DAT").FirstOrDefault();
         if (datNode == null) 

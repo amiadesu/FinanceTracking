@@ -19,11 +19,13 @@ type Schema = v.InferOutput<typeof categorySchema>;
 const route = useRoute();
 const groupId = Number(route.params.id);
 
-const categories = ref<CategoryDto[]>([]);
+const customCategories = ref<CategoryDto[]>([]);
+const systemCategories = ref<CategoryDto[]>([]);
 const currentCount = ref(0);
 const maxAllowed = ref(0);
 
 const loading = ref(false);
+const systemLoading = ref(false);
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 
@@ -52,12 +54,11 @@ async function loadCategories() {
   error.value = null;
   try {
     const categoriesResponse = await categoryService.getCategories(groupId);
-    
     currentCount.value = categoriesResponse.currentCount;
     maxAllowed.value = categoriesResponse.maxAllowed;
-    categories.value = categoriesResponse.categories.map(c => ({ 
-      ...c, 
-      colorHex: normalizeColor(c.colorHex) 
+    customCategories.value = categoriesResponse.categories.map(c => ({
+      ...c,
+      colorHex: normalizeColor(c.colorHex)
     }));
   } catch (err: any) {
     error.value = err.message || 'Failed to load categories';
@@ -66,12 +67,26 @@ async function loadCategories() {
   }
 }
 
+async function loadSystemCategories() {
+  systemLoading.value = true;
+  try {
+    const result = await categoryService.getSystemCategories(groupId);
+    systemCategories.value = result.map(c => ({
+      ...c,
+      colorHex: normalizeColor(c.colorHex)
+    }));
+  } catch {
+    // System categories are supplementary - a failure here shouldn't block the page
+  } finally {
+    systemLoading.value = false;
+  }
+}
+
 async function createCategory(event: FormSubmitEvent<Schema>) {
   isSubmitting.value = true;
   try {
     const payload = { ...event.data, colorHex: normalizeColor(event.data.colorHex) };
     await categoryService.createCategory(groupId, payload);
-    
     newCategory.name = '';
     newCategory.colorHex = '#000000';
     await loadCategories();
@@ -85,26 +100,53 @@ async function createCategory(event: FormSubmitEvent<Schema>) {
 
 onMounted(() => {
   loadCategories();
+  loadSystemCategories();
 });
 
-const columns: TableColumn<CategoryDto>[] = [
-  { accessorKey: 'id', header: 'ID' },
-  { 
-    id: 'name', 
+const systemColumns: TableColumn<CategoryDto>[] = [
+  {
+    id: 'name',
     header: 'Name',
     cell: ({ row }) => h(
-      'span', 
-      { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' }, 
+      'span',
+      { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-20 max-w-40 font-medium text-sm' },
       row.original.name || '-'
     )
   },
-  { 
-    accessorKey: 'colorHex', 
+  {
+    accessorKey: 'colorHex',
     header: 'Color',
     cell: ({ row }) => {
       const hex = row.original.colorHex;
       return h('div', { class: 'flex items-center gap-2' }, [
-        h('div', { 
+        h('div', {
+          class: 'w-4 h-4 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm shrink-0',
+          style: { backgroundColor: hex }
+        }),
+        h('span', { class: 'text-xs font-mono text-gray-500 dark:text-gray-400' }, hex)
+      ]);
+    }
+  },
+];
+
+const customColumns: TableColumn<CategoryDto>[] = [
+  { accessorKey: 'id', header: 'ID' },
+  {
+    id: 'name',
+    header: 'Name',
+    cell: ({ row }) => h(
+      'span',
+      { class: 'text-gray-900 dark:text-white whitespace-normal wrap-break-words sm:break-all min-w-30 max-w-60 sm:max-w-90 font-medium' },
+      row.original.name || '-'
+    )
+  },
+  {
+    accessorKey: 'colorHex',
+    header: 'Color',
+    cell: ({ row }) => {
+      const hex = row.original.colorHex;
+      return h('div', { class: 'flex items-center gap-2' }, [
+        h('div', {
           class: 'w-4 h-4 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm',
           style: { backgroundColor: hex }
         }),
@@ -112,24 +154,12 @@ const columns: TableColumn<CategoryDto>[] = [
       ]);
     }
   },
-  { 
-    accessorKey: 'isSystem', 
-    header: 'Type',
-    cell: ({ row }) => {
-      const isSystem = row.original.isSystem;
-      return h('span', {
-        class: isSystem 
-          ? 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-amber-50 text-amber-600 ring-amber-500/10 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20'
-          : 'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-primary-50 text-primary-600 ring-primary-500/10 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/20'
-      }, isSystem ? 'System' : 'Custom');
-    }
-  },
   { id: 'actions', header: '' }
 ];
 </script>
 
 <template>
-  <div class="w-full lg:max-w-4xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
+  <div class="w-full lg:max-w-6xl md:max-w-2xl sm:max-w-lg mx-auto p-4 mt-2">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div class="flex items-center gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
@@ -137,48 +167,74 @@ const columns: TableColumn<CategoryDto>[] = [
           Capacity: {{ limitDisplay }}
         </UBadge>
       </div>
-      <UButton 
+      <UButton
         :to="`/groups/${groupId}`"
-        color="secondary" 
-        variant="outline" 
+        color="secondary"
+        variant="outline"
         icon="i-heroicons-arrow-left"
       >
         Back to Group
       </UButton>
     </div>
 
-    <UAlert 
-      v-if="error" 
-      color="error" 
-      variant="soft" 
+    <UAlert
+      v-if="error"
+      color="error"
+      variant="soft"
       icon="i-heroicons-exclamation-triangle"
-      :title="error" 
-      class="mb-6" 
+      :title="error"
+      class="mb-6"
     />
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start lg:items-stretch w-full max-w-full">
-      
-      <div class="lg:col-span-2 w-full">
-        <UCard 
-          class="shadow-sm flex flex-col lg:h-100" 
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start lg:items-stretch w-full max-w-full">
+      <div class="lg:col-span-1 w-full">
+        <UCard
+          class="shadow-sm flex flex-col lg:h-100"
           :ui="{ body: 'p-0 sm:p-0 flex-1 overflow-hidden flex flex-col' }"
         >
           <template #header>
-            <h2 class="font-semibold text-gray-900 dark:text-white">Existing Categories</h2>
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold text-gray-900 dark:text-white">System Categories</h2>
+            </div>
           </template>
-          
+
           <UTable
             sticky
-            :data="categories" 
-            :columns="columns" 
+            :data="systemCategories"
+            :columns="systemColumns"
+            :loading="systemLoading"
+            class="flex-1 min-h-0 overflow-y-auto"
+          >
+            <template #empty>
+              <div class="flex flex-col items-center justify-center py-12">
+                <span class="text-gray-500 dark:text-gray-400 text-sm">No system categories.</span>
+              </div>
+            </template>
+          </UTable>
+        </UCard>
+      </div>
+
+      <div class="lg:col-span-2 w-full">
+        <UCard
+          class="shadow-sm flex flex-col lg:h-100"
+          :ui="{ body: 'p-0 sm:p-0 flex-1 overflow-hidden flex flex-col' }"
+        >
+          <template #header>
+            <h2 class="font-semibold text-gray-900 dark:text-white">Custom Categories</h2>
+          </template>
+
+          <UTable
+            sticky
+            :data="customCategories"
+            :columns="customColumns"
             :loading="loading"
             class="flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
-              <UButton 
+              <UButton
                 :to="`/groups/${groupId}/categories/${row.original?.id || row.id}`"
-                color="primary" 
-                variant="outline" 
+                color="primary"
+                variant="outline"
                 icon="i-heroicons-cog"
                 size="sm"
               >
@@ -188,7 +244,7 @@ const columns: TableColumn<CategoryDto>[] = [
 
             <template #empty>
               <div class="flex flex-col items-center justify-center py-12">
-                <span class="text-gray-500 dark:text-gray-400">No categories found.</span>
+                <span class="text-gray-500 dark:text-gray-400">No custom categories yet.</span>
               </div>
             </template>
           </UTable>
@@ -196,7 +252,7 @@ const columns: TableColumn<CategoryDto>[] = [
       </div>
 
       <div class="lg:col-span-1 w-full lg:max-w-sm">
-        <UCard 
+        <UCard
           class="shadow-sm flex flex-col lg:h-100"
           :ui="{ body: 'flex-1 flex flex-col min-h-0' }"
         >
@@ -204,10 +260,10 @@ const columns: TableColumn<CategoryDto>[] = [
             <h2 class="font-semibold text-gray-900 dark:text-white">Create Category</h2>
           </template>
 
-          <UForm 
-            :schema="categorySchema" 
-            :state="newCategory" 
-            class="flex flex-col flex-1 min-h-0" 
+          <UForm
+            :schema="categorySchema"
+            :state="newCategory"
+            class="flex flex-col flex-1 min-h-0"
             @submit="createCategory"
           >
             <div class="flex flex-col flex-1 overflow-y-auto pr-2 pb-2">
@@ -241,9 +297,9 @@ const columns: TableColumn<CategoryDto>[] = [
               <USeparator class="mb-6" />
 
               <div class="flex flex-wrap items-center gap-3 justify-between">
-                <UButton 
-                  type="submit" 
-                  color="primary" 
+                <UButton
+                  type="submit"
+                  color="primary"
                   class="w-full justify-center"
                   :loading="isSubmitting"
                   :disabled="isSubmitting || !isFormValid"
