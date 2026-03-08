@@ -37,6 +37,7 @@ builder.Host.UseWolverine(opts =>
     }).AutoProvision();
 
     opts.PublishMessage<UserCreatedEvent>().ToRabbitQueue("user-created");
+    opts.PublishMessage<UserUpdatedEvent>().ToRabbitQueue("user-updated");
     opts.PublishMessage<UserDeletedEvent>().ToRabbitQueue("user-deleted");
 });
 
@@ -105,6 +106,8 @@ builder.Services.AddControllers();
 builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
+
+app.UseStaticFiles();
 
 app.UseRouting();
 app.UseAuthentication();

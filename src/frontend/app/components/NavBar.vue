@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useColorMode } from '#imports';
+import { useColorMode, useRuntimeConfig } from '#imports';
 import { invitationService } from '~/services/invitationService';
 
+const config = useRuntimeConfig();
 const colorMode = useColorMode();
 const isDark = computed(() => colorMode.value === 'dark');
 
@@ -58,6 +59,14 @@ const accountItems = computed(() => {
                 to: '/invitations', 
                 icon: 'i-heroicons-envelope',
                 badge: pendingCount.value > 0 ? pendingCount.value : undefined
+            }
+        ],
+        [
+            {
+                label: 'Manage Profile',
+                to: `${config.public.identityUrl}/Account/ManageProfile`,
+                icon: 'i-heroicons-cog-8-tooth',
+                badge: undefined
             }
         ],
         [

@@ -73,6 +73,7 @@ builder.Host.UseWolverine(opts =>
     }).AutoProvision();
 
     opts.ListenToRabbitQueue("user-created");
+    opts.ListenToRabbitQueue("user-updated");
     opts.ListenToRabbitQueue("user-deleted");
 
     // Listen for ML prediction replies with the interop mapper so Wolverine

@@ -5,7 +5,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiSecret: '',
     public: {
-      apiBase: ''
+      apiBase: '',
+      identityUrl: ''
     },
     oidc: {
       providers: {

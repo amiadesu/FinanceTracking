@@ -13,6 +13,34 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { useRoute, useRouter } from '#imports';
+
+const route = useRoute();
+const router = useRouter();
+
 const configStore = useConfigStore();
 configStore.fetchConfig();
+
+const { loggedIn, login, logout, refresh } = useOidcAuth();
+
+onMounted(async () => {
+  if (loggedIn.value) {
+      if (route.query.refreshAuth === 'true') {
+        router.replace({ query: { ...route.query, refreshAuth: undefined } });
+        
+        try {
+          await login();
+        } catch (error) {
+          console.error('Failed to refresh session after profile update:', error);
+        }
+      }
+
+      if (route.query.accountDeleted === 'true') {
+        router.replace({ query: { ...route.query, accountDeleted: undefined } });
+        
+        await logout();
+      }
+  }
+})
 </script>
