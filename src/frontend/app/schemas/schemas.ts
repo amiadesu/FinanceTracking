@@ -134,3 +134,30 @@ export const receiptSchema = v.object({
         v.minLength(1, 'At least one product is required')
     )
 });
+
+export const statisticsFilterSchema = v.pipe(
+    v.object({
+        startDate: v.pipe(
+            v.string(),
+            v.nonEmpty('Start date is required'),
+            v.isoDate('Start date must be a valid date')
+        ),
+        endDate: v.pipe(
+            v.string(),
+            v.nonEmpty('End date is required'),
+            v.isoDate('End date must be a valid date')
+        ),
+        isPersonalBudgetOnly: v.boolean(),
+        sellerId: v.optional(v.nullable(v.string())),
+        categoryId: v.optional(v.nullable(v.number())),
+        top: v.pipe(
+            v.number(),
+            v.minValue(1, 'Top must be at least 1'),
+            v.maxValue(100, 'Top cannot exceed 100')
+        )
+    }),
+    v.check(
+        (input) => input.startDate <= input.endDate,
+        'Start date cannot be later than end date'
+    )
+);

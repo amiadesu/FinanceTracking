@@ -59,11 +59,16 @@ export default defineNuxtConfig({
   pages: true,
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  sourcemap: {
+    server: false,
+    client: false
+  },
   modules: [
     '@nuxt/ui',
     '@nuxt/icon',
     '@nuxtjs/color-mode',
     'nuxt-oidc-auth',
+    'nuxt-charts',
     '@pinia/nuxt'
   ],
   css: ['~/assets/css/main.css'],

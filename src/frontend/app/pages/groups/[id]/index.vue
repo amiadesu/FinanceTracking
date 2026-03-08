@@ -111,7 +111,7 @@ onMounted(() => loadData());
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <NuxtLink :to="`/groups/${groupId}/members`" class="block group">
           <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
             👥 Members
@@ -150,6 +150,11 @@ onMounted(() => loadData());
         <NuxtLink :to="`/groups/${groupId}/products`" class="block group">
           <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
             🛍️ Products
+          </UCard>
+        </NuxtLink>
+        <NuxtLink :to="`/groups/${groupId}/statistics`" class="block group">
+          <UCard :ui="{ body: 'p-4 sm:p-4' }" class="h-full hover:ring-2 hover:ring-blue-500 hover:shadow-md transition text-center font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+            📊 Statistics
           </UCard>
         </NuxtLink>
       </div>

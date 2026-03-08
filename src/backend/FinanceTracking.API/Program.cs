@@ -40,6 +40,7 @@ builder.Services.AddScoped<ReceiptService>();
 builder.Services.AddScoped<SellerService>();
 builder.Services.AddScoped<ProductDataService>();
 builder.Services.AddScoped<GroupMemberService>();
+builder.Services.AddScoped<StatisticsService>();
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddTransient(typeof(ValidationFilter<>));

@@ -8,6 +8,7 @@ using FinanceTracking.API.DTOs;
 using FinanceTracking.API.Models;
 using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Constants;
+using FinanceTracking.API.Utils;
 
 namespace FinanceTracking.API.Services;
 
@@ -136,6 +137,7 @@ public class BudgetGoalService
                         && r.PaymentDate >= goal.StartDate
                         && r.PaymentDate <= goal.EndDate)
             .SumAsync(r => r.TotalAmount);
+        currentAmount = FinancialCalculator.RoundUpToTwoDecimalPlaces(currentAmount);
 
         return new BudgetGoalProgressDto
         {

@@ -6,3 +6,31 @@
 @source "../../../node_modules/flowbite";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --vis-tooltip-background-color: var(--ui-bg) !important;
+  --vis-tooltip-border-color: var(--ui-border) !important;
+  --vis-tooltip-text-color: var(--ui-text) !important;
+  --vis-tooltip-box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+  --vis-tooltip-border-radius: 8px !important;
+  --vis-tooltip-label-color: var(--ui-text-muted) !important;
+  --vis-tooltip-label-font-size: 0.875rem !important;
+  --vis-tooltip-value-color: var(--ui-text) !important;
+  --vis-tooltip-value-font-size: 0.875rem !important;
+  --vis-tooltip-value-font-weight: 600 !important;
+
+  --vis-legend-spacing: 16px !important;
+  --vis-legend-item-spacing: 0px !important;
+  --vis-legend-label-color: var(--ui-text-muted) !important;
+
+  --vis-axis-grid-color: rgba(0, 0, 0, 0.1) !important;
+  --vis-axis-tick-label-color: var(--ui-text-muted) !important;
+  --vis-axis-label-color: var(--ui-text-muted) !important;
+  --vis-axis-tick-color: var(--ui-text-muted) !important;
+  --vis-axis-domain-line-dasharray: none !important;
+  --vis-axis-tick-label-weight: 400 !important;
+}
+
+.dark {
+  --vis-axis-grid-color: rgba(255, 255, 255, 0.1) !important;
+}

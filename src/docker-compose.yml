@@ -126,6 +126,8 @@ services:
     extra_hosts:
       - "localhost:host-gateway"
     environment:
+      - NODE_OPTIONS=--max-old-space-size=4096
+
       - NODE_ENV=${NODE_ENV}
       - NUXT_HOST=${NUXT_HOST}
       - NUXT_PORT=${NUXT_PORT}
