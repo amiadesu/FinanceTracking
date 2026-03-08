@@ -8,6 +8,7 @@ public class ReceiptDto
     public int Id { get; set; }
     public int GroupId { get; set; }
     public Guid? CreatedByUserId { get; set; }
+    public string? CreatedByUserName { get; set; }
     public string SellerId { get; set; }
     public string? SellerName { get; set; }
     public decimal TotalAmount { get; set; }
