@@ -28,6 +28,15 @@ const limitDisplay = useLimitDisplay(currentCount, maxAllowed);
 const columns: TableColumn<ReceiptDto>[] = [
   { accessorKey: 'id', header: 'ID' },
   { 
+    id: 'creator',
+    header: 'Created By',
+    cell: ({ row }) => h(
+      'div', 
+      { class: 'whitespace-normal break-words sm:break-all min-w-[120px] max-w-[250px] font-medium text-gray-900 dark:text-white' }, 
+      row.original.createdByUserName || 'Unknown'
+    )
+  },
+  { 
     accessorKey: 'paymentDate', 
     header: 'Date',
     cell: ({ row }) => new Date(row.original.paymentDate).toLocaleDateString()

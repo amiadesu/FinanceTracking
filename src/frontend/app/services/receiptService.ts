@@ -10,6 +10,7 @@ export interface ReceiptDto {
   id: number;
   groupId: number;
   createdByUserId?: string;
+  createdByUserName?: string;
   sellerId: string;
   sellerName?: string;
   totalAmount: number;

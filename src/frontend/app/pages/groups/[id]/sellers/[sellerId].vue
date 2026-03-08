@@ -37,6 +37,15 @@ const { isFormValid, unmappedErrors, touch } = useFormValidation(sellerSchema, e
 const receiptColumns: TableColumn<ReceiptDto>[] = [
   { accessorKey: 'id', header: 'Receipt ID' },
   { 
+    id: 'creator',
+    header: 'Created By',
+    cell: ({ row }) => h(
+      'div', 
+      { class: 'whitespace-normal break-words sm:break-all min-w-[120px] max-w-[250px] font-medium text-gray-900 dark:text-white' }, 
+      row.original.createdByUserName || 'Unknown'
+    )
+  },
+  { 
     accessorKey: 'paymentDate', 
     header: 'Date',
     cell: ({ row }) => new Date(row.original.paymentDate).toLocaleDateString()
@@ -198,9 +207,9 @@ onMounted(() => load());
       </UForm>
     </UCard>
 
-    <UModal v-model:open="isModalOpen">
+    <UModal v-model:open="isModalOpen" class="w-full max-w-3xl">
       <template #content>
-        <UCard :ui="{ body: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+        <UCard :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" class="flex flex-col w-full lg:h-100">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
@@ -218,10 +227,10 @@ onMounted(() => load());
           
           <UTable
             sticky
-            class="max-h-96"
             :data="receipts" 
             :columns="receiptColumns" 
             :loading="loadingReceipts"
+            class="w-full flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
               <div class="text-right">
@@ -229,8 +238,8 @@ onMounted(() => load());
                   :to="`/groups/${groupId}/receipts/${row.original.id}`" 
                   color="primary" 
                   variant="outline"
-                  icon="i-heroicons-eye"
                   size="sm"
+                  icon="i-heroicons-eye"
                 >
                   View
                 </UButton>

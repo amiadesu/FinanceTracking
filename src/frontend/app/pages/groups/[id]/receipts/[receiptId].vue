@@ -247,7 +247,13 @@ onMounted(() => load());
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 flex-1 min-h-0 mb-6">
           
-          <div class="lg:col-span-4 flex flex-col gap-6 shrink-0 lg:overflow-y-auto pr-1">
+          <div class="lg:col-span-4 flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 pb-2">
+            <div>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Created By</span>
+              <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1 wrap-break-words sm:break-all max-w-full">
+                {{ receipt.createdByUserName || 'Unknown' }}
+              </p>
+            </div>
             <div>
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payment Date</span>
               <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">
@@ -260,7 +266,7 @@ onMounted(() => load());
                 {{ receipt.totalAmount.toFixed(2) }}
               </p>
             </div>
-            <div class="overflow-hidden">
+            <div>
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Seller</span>
               <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1 wrap-break-words sm:break-all max-w-full">
                 {{ receipt.sellerName ? receipt.sellerName : (receipt.sellerId ?? 'Not specified') }}
