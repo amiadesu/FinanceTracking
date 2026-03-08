@@ -426,3 +426,17 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Python General
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv
+**/venv/
+**/env/
+**/bin/
+**/.pytest_cache/
+
+# Jupyter Notebooks
+**/.ipynb_checkpoints
+*/.ipynb_checkpoints/*
