@@ -17,11 +17,11 @@ namespace FinanceTracking.API.Controllers;
 public class GroupMembersController : ControllerBase
 {
     private readonly GroupMemberService _memberService;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
     public GroupMembersController(
         GroupMemberService memberService, 
-        GroupService groupService)
+        IGroupService groupService)
     {
         _memberService = memberService;
         _groupService = groupService;

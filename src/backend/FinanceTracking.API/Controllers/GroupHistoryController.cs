@@ -17,12 +17,12 @@ public class GroupHistoryController : ControllerBase
 {
     private readonly GroupHistoryService _historyService;
     private readonly GroupHistoryExportService _exportService;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
     public GroupHistoryController(
         GroupHistoryService historyService, 
         GroupHistoryExportService exportService,
-        GroupService groupService)
+        IGroupService groupService)
     {
         _historyService = historyService;
         _exportService = exportService;

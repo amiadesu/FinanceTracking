@@ -19,7 +19,7 @@ namespace FinanceTracking.API.Services;
 public class ReceiptService
 {
     private readonly FinanceDbContext _context;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
     private readonly GroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
     private readonly CategoryService _categoryService;
@@ -29,7 +29,7 @@ public class ReceiptService
 
     public ReceiptService(
         FinanceDbContext context,
-        GroupService groupService,
+        IGroupService groupService,
         GroupMemberService groupMemberService, 
         SellerService sellerService,
         CategoryService categoryService,

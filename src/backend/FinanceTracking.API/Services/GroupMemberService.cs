@@ -12,12 +12,12 @@ namespace FinanceTracking.API.Services;
 public class GroupMemberService
 {
     private readonly FinanceDbContext _dbContext;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
     private readonly GroupHistoryService _historyService;
 
     public GroupMemberService(
         FinanceDbContext dbContext,
-        GroupService groupService,
+        IGroupService groupService,
         GroupHistoryService historyService)
     {
         _dbContext = dbContext;

@@ -18,9 +18,9 @@ namespace FinanceTracking.API.Controllers;
 public class BudgetGoalsController : ControllerBase
 {
     private readonly BudgetGoalService _goalService;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
-    public BudgetGoalsController(BudgetGoalService goalService, GroupService groupService)
+    public BudgetGoalsController(BudgetGoalService goalService, IGroupService groupService)
     {
         _goalService = goalService;
         _groupService = groupService;

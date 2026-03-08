@@ -15,11 +15,11 @@ namespace FinanceTracking.API.Services;
 public class CategoryService
 {
     private readonly FinanceDbContext _context;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
     public CategoryService(
         FinanceDbContext context,
-        GroupService groupService)
+        IGroupService groupService)
     {
         _context = context;
         _groupService = groupService;

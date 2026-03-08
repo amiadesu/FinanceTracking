@@ -15,11 +15,11 @@ namespace FinanceTracking.API.Services;
 public class BudgetGoalService
 {
     private readonly FinanceDbContext _context;
-    private readonly GroupService _groupService;
+    private readonly IGroupService _groupService;
 
     public BudgetGoalService(
         FinanceDbContext context,
-        GroupService groupService)
+        IGroupService groupService)
     {
         _context = context;
         _groupService = groupService;
