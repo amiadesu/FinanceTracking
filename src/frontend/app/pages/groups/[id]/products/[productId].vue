@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from '#imports';
+import { useAppToast } from '~/composables/useAppToast';
 import { productService } from '~/services/productService';
 import { receiptService } from '~/services/receiptService';
 import { categoryService } from '~/services/categoryService';
@@ -14,6 +15,7 @@ import { productDataSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof productDataSchema>;
 
 const route = useRoute();
@@ -106,7 +108,7 @@ async function fetchReceipts() {
     const receiptsDtos = await receiptService.getFilteredReceipts(groupId, { productDataId: productId });
     receipts.value = receiptsDtos;
   } catch (err: any) {
-    alert(err.message || 'Error loading associated receipts');
+    showError(err.message || 'Error loading associated receipts');
   } finally {
     loadingReceipts.value = false;
   }
@@ -117,7 +119,7 @@ function toggleCategory(categoryId: number) {
     editDto.categoryIds.delete(categoryId);
   } else {
     if (editDto.categoryIds.size >= 5) {
-      alert('A product can have a maximum of 5 categories.');
+      showError('A product can have a maximum of 5 categories.');
       return;
     }
     editDto.categoryIds.add(categoryId);
@@ -127,7 +129,7 @@ function toggleCategory(categoryId: number) {
 
 async function save(event: FormSubmitEvent<Schema>) {
   if (editDto.categoryIds.size > 5) {
-    alert('A product can have a maximum of 5 categories.');
+    showError('A product can have a maximum of 5 categories.');
     return;
   }
 
@@ -144,25 +146,32 @@ async function save(event: FormSubmitEvent<Schema>) {
     editDto.name = updated.name ?? '';
     editDto.description = updated.description ?? undefined;
 
-    alert('Product updated successfully.');
+    showSuccess('Product updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating product');
+    showError(err.message || 'Error updating product');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm('Are you sure you want to delete this product? Ensure no receipts are currently using it.')) return;
-  isSubmitting.value = true;
-  try {
-    await productService.deleteProduct(groupId, productId);
-    router.push(`/groups/${groupId}/products`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting product. It might still be in use.');
-  } finally {
-    isSubmitting.value = false;
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Product',
+    description: 'Are you sure you want to delete this product? Ensure no receipts are currently using it.',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Product deleted successfully.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await productService.deleteProduct(groupId, productId);
+        router.push(`/groups/${groupId}/products`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
 onMounted(() => load());

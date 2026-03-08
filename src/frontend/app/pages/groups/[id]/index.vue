@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from '#imports';
+import { useRoute, useRouter, useToast } from '#imports';
+import { useAppToast } from '~/composables/useAppToast'
 import { groupService } from '@/services/groupService';
 import { type GroupDto } from '@/services/groupService';
 
@@ -8,6 +9,7 @@ const group = ref<GroupDto | null>(null);
 
 const route = useRoute();
 const router = useRouter();
+const { withConfirm } = useAppToast();
 const groupId = Number(route.params.id);
 
 const loading = ref(false);
@@ -29,24 +31,36 @@ async function loadData() {
   }
 }
 
-const handleLeaveGroup = async () => {
-    if(!confirm("Are you sure you want to leave this group?")) return;
-    try {
-        await groupService.leaveGroup(groupId);
-        router.push('/groups');
-    } catch (err: any) {
-        alert("Failed to leave group.");
+const handleLeaveGroup = () => {
+  withConfirm({
+    title: 'Leave Group',
+    description: 'Are you sure you want to leave this group?',
+    toastColor: 'warning',
+    confirmLabel: 'Leave',
+    actionColor: 'error',
+    successMsg: 'Left group successfully.',
+    errorMsg: 'Failed to leave group.',
+    onConfirm: async () => {
+      await groupService.leaveGroup(groupId);
+      router.push('/groups');
     }
+  });
 };
 
-const handleDeleteGroup = async () => {
-    if(!confirm("Are you sure you want to permanently delete this group?")) return;
-    try {
-        await groupService.deleteGroup(groupId);
-        router.push('/groups');
-    } catch (err) {
-        alert("Failed to delete group.");
+const handleDeleteGroup = () => {
+  withConfirm({
+    title: 'Delete Group',
+    description: 'Are you sure you want to permanently delete this group?',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Group deleted successfully.',
+    errorMsg: 'Failed to delete group.',
+    onConfirm: async () => {
+      await groupService.deleteGroup(groupId);
+      router.push('/groups');
     }
+  });
 };
 
 onMounted(() => loadData());

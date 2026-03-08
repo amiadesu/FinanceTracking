@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from '#imports';
+import { useAppToast } from '~/composables/useAppToast';
 import { receiptService } from '~/services/receiptService';
 import { categoryService } from '~/services/categoryService';
 import type { CreateReceiptDto } from '~/services/receiptService';
@@ -15,6 +16,7 @@ import { receiptSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { showSuccess, showError } = useAppToast();
 type Schema = v.InferOutput<typeof receiptSchema>;
 
 interface FormProduct {
@@ -90,7 +92,7 @@ function addProduct() {
 
 function removeProduct(uid: string) {
   if (newReceipt.products.length <= 1) {
-    alert('A receipt must have at least one product.');
+    showError('A receipt must have at least one product.');
     return;
   }
   newReceipt.products = newReceipt.products.filter(p => p._uid !== uid);
@@ -125,7 +127,7 @@ async function createReceipt(event: FormSubmitEvent<Schema>) {
     const createdReceipt = await receiptService.createReceipt(groupId, receiptToSend);
     router.push(`/groups/${groupId}/receipts/${createdReceipt.id}`);
   } catch (err: any) {
-    alert(err.message || 'Error creating receipt');
+    showError(err.message || 'Error creating receipt');
   } finally {
     isSubmitting.value = false;
   }
@@ -171,9 +173,9 @@ async function handleXmlUpload(event: Event) {
         };
       });
     }
-    alert(`XML parsed successfully! Loaded ${newReceipt.products.length} products.`);
+    showSuccess(`XML parsed successfully! Loaded ${newReceipt.products.length} products.`);
   } catch (err: any) {
-    alert(err.message || 'Failed to parse XML');
+    showError(err.message || 'Failed to parse XML');
   } finally {
     isUploading.value = false;
     if (xmlFileInput.value) xmlFileInput.value.value = '';

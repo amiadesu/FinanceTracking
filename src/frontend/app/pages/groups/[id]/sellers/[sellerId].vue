@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, h } from 'vue';
 import { useRoute, useRouter } from '#imports';
+import { useAppToast } from '~/composables/useAppToast';
 import { sellerService } from '~/services/sellerService';
 import { receiptService } from '~/services/receiptService';
 import type { SellerDto, UpdateSellerDto } from '~/services/sellerService';
@@ -11,6 +12,7 @@ import { sellerSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof sellerSchema>;
 
 const route = useRoute();
@@ -82,7 +84,7 @@ async function openReceiptsModal() {
   try {
     receipts.value = await receiptService.getFilteredReceipts(groupId, { sellerId });
   } catch (err: any) {
-    alert(err.message || 'Error loading associated receipts');
+    showError(err.message || 'Error loading associated receipts');
   } finally {
     loadingReceipts.value = false;
   }
@@ -93,25 +95,33 @@ async function save(event: FormSubmitEvent<Schema>) {
   try {
     const updated = await sellerService.updateSeller(groupId, sellerId, event.data);
     seller.value = updated;
-    alert('Seller updated successfully.');
+    showSuccess('Seller updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating seller');
+    showError(err.message || 'Error updating seller');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm('Are you sure you want to delete this seller? Ensure no receipts are using it.')) return;
-  isSubmitting.value = true;
-  try {
-    await sellerService.deleteSeller(groupId, sellerId);
-    router.push(`/groups/${groupId}/sellers`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting seller. It might still be in use.');
-  } finally {
-    isSubmitting.value = false;
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Seller',
+    description: 'Are you sure you want to delete this seller? Ensure no receipts are using it.',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Seller deleted successfully.',
+    errorMsg: 'Error deleting seller. It might still be in use.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await sellerService.deleteSeller(groupId, sellerId);
+        router.push(`/groups/${groupId}/sellers`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
 onMounted(() => load());

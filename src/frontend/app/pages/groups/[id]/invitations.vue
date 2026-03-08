@@ -2,8 +2,12 @@
 import { h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAsyncData } from '#imports'
+import { useAppToast } from '~/composables/useAppToast'
 import { invitationService } from '~/services/invitationService'
 import type { TableColumn } from '@nuxt/ui'
+
+
+const { withConfirm } = useAppToast()
 
 const route = useRoute()
 const groupId = Number(route.params.id)
@@ -50,14 +54,23 @@ const columns: TableColumn<any>[] = [
   } 
 ];
 
-const handleCancel = async (invitationId: string) => {
-  if (!confirm('Are you sure you want to cancel this invitation?')) return
-  try {
-    await invitationService.cancelInvitation(groupId, invitationId)
-    refresh() 
-  } catch (err: any) {
-    alert(err.data?.message || 'Failed to cancel the invitation.')
-  }
+const handleCancel = (invitationId: string) => {
+  withConfirm({
+    title: 'Cancel Invitation',
+    description: 'Are you sure you want to cancel this invitation?',
+    toastColor: 'error',
+    confirmLabel: 'Cancel',
+    actionColor: 'error',
+    successMsg: 'Invitation cancelled successfully.',
+    onConfirm: async () => {
+      try {
+        await invitationService.cancelInvitation(groupId, invitationId)
+        refresh() 
+      } catch (err: any) {
+        throw new Error(err.data?.message || 'Failed to cancel the invitation.')
+      }
+    }
+  })
 }
 </script>
 

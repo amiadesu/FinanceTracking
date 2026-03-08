@@ -2,6 +2,7 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { budgetGoalSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { budgetGoalService } from '~/services/budgetGoalService';
@@ -10,6 +11,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
 const route = useRoute();
@@ -64,22 +66,27 @@ async function save(event: FormSubmitEvent<Schema>) {
     const updated = await budgetGoalService.updateGoal(groupId, goalId, payload);
     goal.value = updated;
     await load();
-    alert('Goal updated successfully.');
+    showSuccess('Goal updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating goal');
+    showError(err.message || 'Error updating goal');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm(`Are you sure you want to delete this budget goal?`)) return;
-  try {
-    await budgetGoalService.deleteGoal(groupId, goalId);
-    router.push(`/groups/${groupId}/goals`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting goal');
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Budget Goal',
+    description: 'Are you sure you want to delete this budget goal?',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Goal deleted successfully.',
+    onConfirm: async () => {
+      await budgetGoalService.deleteGoal(groupId, goalId);
+      router.push(`/groups/${groupId}/goals`);
+    }
+  });
 }
 
 onMounted(load);

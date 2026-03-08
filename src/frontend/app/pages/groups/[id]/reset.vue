@@ -3,11 +3,13 @@ import { ref, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { groupService } from '@/services/groupService';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { groupResetSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { withConfirm } = useAppToast();
 const route = useRoute();
 const router = useRouter();
 const groupId = Number(route.params.id);
@@ -19,38 +21,47 @@ const state = reactive({
 });
 
 const options = [
-    { label: 'Reset Members', value: 'resetMembers' },
-    { label: 'Reset Budget Goals', value: 'resetBudgetGoals' },
-    { label: 'Reset Categories', value: 'resetCategories' },
-    { label: 'Reset Receipts, Products & Sellers', value: 'resetReceiptsProductsAndSellers' }
+  { label: 'Reset Members', value: 'resetMembers' },
+  { label: 'Reset Budget Goals', value: 'resetBudgetGoals' },
+  { label: 'Reset Categories', value: 'resetCategories' },
+  { label: 'Reset Receipts, Products & Sellers', value: 'resetReceiptsProductsAndSellers' }
 ];
 
 const errorMsg = ref('');
 const isResetting = ref(false);
 
-const { isFormValid, unmappedErrors, touch } = useFormValidation(groupResetSchema, state);
+const { isFormValid, unmappedErrors } = useFormValidation(groupResetSchema, state);
 
-const resetGroup = async (event: FormSubmitEvent<Schema>) => {
-    if(!confirm("Warning: Resetting will permanently delete the selected data. Continue?")) return;
-    
-    isResetting.value = true;
-    errorMsg.value = '';
+const resetGroup = (event: FormSubmitEvent<Schema>) => {
+  withConfirm({
+    title: 'Reset Group Data',
+    description: 'Warning: Resetting will permanently delete the selected data. This action cannot be undone. Continue?',
+    toastColor: 'error',
+    confirmLabel: 'Execute Reset',
+    actionColor: 'error',
+    successMsg: 'Group data has been reset.',
+    onConfirm: async () => {
+      isResetting.value = true;
+      errorMsg.value = '';
 
-    const payload = {
+      const payload = {
         resetMembers: event.data.selectedOptions.includes('resetMembers'),
         resetBudgetGoals: event.data.selectedOptions.includes('resetBudgetGoals'),
         resetCategories: event.data.selectedOptions.includes('resetCategories'),
         resetReceiptsProductsAndSellers: event.data.selectedOptions.includes('resetReceiptsProductsAndSellers')
-    };
+      };
 
-    try {
+      try {
         await groupService.resetGroup(groupId, payload);
         router.push(`/groups/${groupId}`);
-    } catch (err: any) {
+      } catch (err: any) {
         errorMsg.value = err.data?.message || 'Failed to reset group.';
-    } finally {
+        throw err;
+      } finally {
         isResetting.value = false;
+      }
     }
+  });
 };
 </script>
 
