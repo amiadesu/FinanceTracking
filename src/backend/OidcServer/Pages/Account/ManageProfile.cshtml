@@ -4,39 +4,50 @@
     ViewData["Title"] = "Manage Profile";
 }
 
-<h2>@ViewData["Title"]</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-@if (!string.IsNullOrEmpty(Model.StatusMessage))
-{
-    <div style="color: green; font-weight: bold; margin-bottom: 15px;">
-        @Model.StatusMessage
+                    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @Model.StatusMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control bg-light" disabled />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label asp-for="Input.Username" class="form-label"></label>
+                            <input asp-for="Input.Username" class="form-control" />
+                            <span asp-validation-for="Input.Username" class="text-danger small"></span> 
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Save Profile</button>
+                    </form>
+
+                    <div class="d-flex justify-content-between mb-4 mt-3">
+                        <a asp-page="./ChangePassword" class="btn btn-outline-secondary btn-sm">Change Password</a> 
+                        <a asp-page="./DeleteAccount" class="btn btn-outline-danger btn-sm">Delete Account</a> 
+                    </div>
+
+                    <div class="text-center pt-3 border-top">
+                        <a href="@Model.FrontendUrl?refreshAuth=true" class="text-decoration-none fw-bold">
+                            &larr; Return to FinanceTracker 
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-}
-
-<form method="post">
-    <div asp-validation-summary="ModelOnly" style="color: red;"></div>
-    
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" disabled />
-    </div>
-    
-    <div>
-        <label asp-for="Input.Username"></label>
-        <input asp-for="Input.Username" />
-        <span asp-validation-for="Input.Username" style="color: red;"></span>
-    </div>
-    
-    <button type="submit">Save Profile</button>
-</form>
-
-<p style="margin-top: 20px;">
-    <a asp-page="./ChangePassword">Change Password</a> | 
-    <a asp-page="./DeleteAccount" style="color: red;">Delete Account</a>
-</p>
-
-<div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #ccc;">
-    <a href="@Model.FrontendUrl?refreshAuth=true" style="font-weight: bold; text-decoration: none;">
-        &larr; Return to FinanceTracker
-    </a>
 </div>
