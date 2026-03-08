@@ -6,10 +6,12 @@ interface Props {
   sellers: SellerDto[];
   canCreate?: boolean;
   modelValue: string | null;
+  clearable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  canCreate: true
+  canCreate: true,
+  clearable: false
 });
 
 const emit = defineEmits<{
@@ -92,9 +94,21 @@ const selectedSellerDisplay = computed(() => {
     class="w-full"
   >
     <template #default>
-      <span :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }" class="truncate">
-        {{ selectedSellerDisplay }}
-      </span>
+      <div class="flex items-center justify-between w-full truncate">
+        <span :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }" class="truncate">
+          {{ selectedSellerDisplay }}
+        </span>
+        
+        <button 
+          v-if="modelValue && clearable"
+          type="button"
+          class="ml-2 text-gray-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center relative z-10"
+          @click.stop.prevent="emit('update:modelValue', null)"
+          aria-label="Clear seller"
+        >
+          <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
+        </button>
+      </div>
     </template>
     
     <template #item="{ item }">
