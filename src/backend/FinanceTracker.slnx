@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../../tests/backend/FinanceTracking.API.Tests/FinanceTracking.API.Tests.csproj" />
+  <Project Path="FinanceTracking.API/FinanceTracking.API.csproj" />
+  <Project Path="FinanceTracking.Contracts/FinanceTracking.Contracts.csproj" />
+  <Project Path="OidcServer/OidcServer.csproj" />
+</Solution>
