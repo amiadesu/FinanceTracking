@@ -9,7 +9,7 @@ namespace FinanceTracking.API.Handlers;
 
 public class UserCreatedHandler
 {
-    public async Task Handle(UserCreatedEvent evt, FinanceDbContext db, GroupService groupService)
+    public async Task Handle(UserCreatedEvent evt, FinanceDbContext db, IGroupService groupService)
     {
         var user = new AppUser
         {

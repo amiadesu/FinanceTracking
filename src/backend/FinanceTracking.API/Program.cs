@@ -33,7 +33,7 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<GroupHistoryService>();
 builder.Services.AddScoped<GroupHistoryExportService>();
 builder.Services.AddScoped<GroupInvitationService>();
