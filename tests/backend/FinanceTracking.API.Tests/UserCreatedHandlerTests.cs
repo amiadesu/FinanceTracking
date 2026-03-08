@@ -27,11 +27,11 @@ public class UserCreatedHandlerTests
         var userId = Guid.NewGuid();
         var evt = new UserCreatedEvent(userId, "newuser@test.com", "NewUser");
 
-        var mockGroupService = new Mock<GroupService>();
+        var mockGroupService = new Mock<IGroupService>();
         
         mockGroupService
             .Setup(s => s.CreateGroupAsync(It.IsAny<AppUser>(), "Personal", true))
-            .Returns(Task.CompletedTask)
+            .ReturnsAsync(new Group())
             .Verifiable(); 
 
         var handler = new UserCreatedHandler();
