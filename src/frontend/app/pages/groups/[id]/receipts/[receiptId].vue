@@ -35,6 +35,7 @@ const receiptId = Number(route.params.receiptId);
 
 const receipt = ref<ReceiptDto | null>(null);
 const categories = ref<CategoryDto[]>([]);
+const systemCategories = ref<CategoryDto[]>([]);
 const sellers = ref<SellerDto[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -86,15 +87,17 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [receiptData, categoriesResponse, sellersResponse] = await Promise.all([
+    const [receiptData, categoriesResponse, sellersResponse, systemCats] = await Promise.all([
       receiptService.getReceipt(groupId, receiptId),
       categoryService.getCategories(groupId),
-      sellerService.getSellers(groupId)
+      sellerService.getSellers(groupId),
+      categoryService.getSystemCategories(groupId)
     ]);
     
     receipt.value = receiptData;
     categories.value = categoriesResponse.categories;
     sellers.value = sellersResponse.sellers;
+    systemCategories.value = systemCats;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {
@@ -103,7 +106,7 @@ async function load() {
 }
 
 function getCategoryColor(catName: string) {
-  const cat = categories.value.find(c => c.name === catName);
+  const cat = [...categories.value, ...systemCategories.value].find(c => c.name === catName);
   return cat?.colorHex || '#9ca3af';
 }
 
@@ -117,10 +120,11 @@ function startEdit() {
     
   editDto.sellerId = receipt.value.sellerId ?? '';
   
+  const allCategoriesForEdit = [...categories.value, ...systemCategories.value];
   editDto.products = receipt.value.products.map(p => {
     const catIds = new Set<number>();
     p.categories.forEach(catName => {
-      const catId = categories.value.find(c => c.name === catName)?.id;
+      const catId = allCategoriesForEdit.find(c => c.name === catName)?.id;
       if (catId !== undefined) catIds.add(catId);
     });
 
@@ -176,7 +180,7 @@ async function save(event: FormSubmitEvent<Schema>) {
         price: p.price,
         quantity: p.quantity,
         categories: Array.from(p.categoryIds)
-          .map(id => categories.value.find(c => c.id === id)?.name)
+          .map(id => [...categories.value, ...systemCategories.value].find(c => c.id === id)?.name)
           .filter((name): name is string => !!name)
       }))
     };
@@ -404,6 +408,7 @@ onMounted(() => load());
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</label>
                   <CategoryPicker 
                     :categories="categories"
+                    :systemCategories="systemCategories"
                     :selectedCategoryIds="product.categoryIds"
                     @toggle="(catId) => toggleProductCategory(product, catId)"
                   />

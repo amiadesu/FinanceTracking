@@ -25,6 +25,7 @@ const productId = Number(route.params.productId);
 
 const product = ref<ProductDataDto | null>(null);
 const categories = ref<CategoryDto[]>([]);
+const systemCategories = ref<CategoryDto[]>([]);
 const receipts = ref<ReceiptDto[]>([]);
 
 const loading = ref(false);
@@ -74,21 +75,24 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [productData, categoriesResponse] = await Promise.all([
+    const [productData, categoriesResponse, systemCats] = await Promise.all([
       productService.getProduct(groupId, productId),
-      categoryService.getCategories(groupId)
+      categoryService.getCategories(groupId),
+      categoryService.getSystemCategories(groupId)
     ]);
     
     product.value = productData;
     categories.value = categoriesResponse.categories;
+    systemCategories.value = systemCats;
     
     if (product.value) {
       editDto.name = product.value.name ?? '';
       editDto.description = product.value.description ?? undefined;
       
+      const allCategories = [...categoriesResponse.categories, ...systemCats];
       editDto.categoryIds.clear();
       product.value.categories.forEach(catName => {
-        const found = categories.value.find(c => c.name === catName);
+        const found = allCategories.find(c => c.name === catName);
         if (found) editDto.categoryIds.add(found.id);
       });
     }
@@ -234,6 +238,7 @@ onMounted(() => load());
             </label>
             <CategoryPicker 
               :categories="categories"
+              :systemCategories="systemCategories"
               :selectedCategoryIds="editDto.categoryIds"
               @toggle="toggleCategory"
             />

@@ -5,17 +5,24 @@ import type { CategoryDto } from '~/services/categoryService';
 const props = defineProps<{
   categories: CategoryDto[];
   selectedCategoryIds: Set<number>;
+  systemCategories?: CategoryDto[];
 }>();
 
 const emit = defineEmits<{
   (e: 'toggle', categoryId: number): void;
 }>();
 
+const allCategories = computed<CategoryDto[]>(() => [
+  ...props.categories,
+  ...(props.systemCategories ?? []),
+]);
+
 const categoryItems = computed(() => {
-  return props.categories.map(c => ({
+  return allCategories.value.map(c => ({
     id: c.id,
     label: c.name,
-    colorHex: c.colorHex
+    colorHex: c.colorHex,
+    isSystem: c.isSystem,
   }));
 });
 
@@ -24,7 +31,7 @@ const selectedItems = computed({
   set: (newSelection) => {
     const oldSet = props.selectedCategoryIds;
     const newSet = new Set(newSelection.map(c => c.id));
-    
+
     for (const id of newSet) {
       if (!oldSet.has(id)) emit('toggle', id);
     }
@@ -49,11 +56,20 @@ const selectedItems = computed({
         </span>
         <span v-else class="text-gray-500 dark:text-gray-400">Add categories</span>
       </template>
-      
+
       <template #item="{ item }">
         <div class="flex items-center gap-2 max-w-full">
           <div class="w-3 h-3 rounded-full border border-gray-200 dark:border-gray-700 shrink-0" :style="{ backgroundColor: item.colorHex }"></div>
           <span class="truncate">{{ item.label }}</span>
+          <UBadge
+            v-if="item.isSystem"
+            color="warning"
+            variant="subtle"
+            size="xs"
+            class="ml-auto shrink-0"
+          >
+            System
+          </UBadge>
         </div>
       </template>
     </USelectMenu>
@@ -63,20 +79,20 @@ const selectedItems = computed({
         v-for="catId in Array.from(selectedCategoryIds)"
         :key="catId"
         class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 max-w-full"
-        :title="categories.find(c => c.id === catId)?.name"
+        :title="allCategories.find(c => c.id === catId)?.name"
       >
-        <div 
-          class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" 
-          :style="{ backgroundColor: categories.find(c => c.id === catId)?.colorHex || '#9ca3af' }"
+        <div
+          class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+          :style="{ backgroundColor: allCategories.find(c => c.id === catId)?.colorHex || '#9ca3af' }"
         ></div>
-        
+
         <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-30 sm:max-w-60">
-          {{ categories.find(c => c.id === catId)?.name }}
+          {{ allCategories.find(c => c.id === catId)?.name }}
         </span>
 
-        <button 
+        <button
           type="button"
-          @click="emit('toggle', catId)" 
+          @click="emit('toggle', catId)"
           class="ml-1 text-gray-400 hover:text-red-500 transition-colors shrink-0 flex items-center justify-center"
           aria-label="Remove category"
         >

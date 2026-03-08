@@ -44,6 +44,14 @@ public class CategoriesController : ControllerBase
         }
     }
 
+    [HttpGet("system")]
+    [RequireGroupMembership]
+    public async Task<IActionResult> GetSystemCategories(int groupId)
+    {
+        var categories = await _categoryService.GetSystemCategoriesAsync();
+        return Ok(categories);
+    }
+
     [HttpGet]
     [RequireGroupMembership]
     public async Task<IActionResult> GetCategories(int groupId)

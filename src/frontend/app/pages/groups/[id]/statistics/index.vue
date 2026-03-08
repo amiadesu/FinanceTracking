@@ -26,6 +26,7 @@ const topProducts = ref<ProductStatisticDto[]>([]);
 const spendingHistory = ref<SpendingHistoryDataPointDto[]>([]);
 const availableSellers = ref<SellerDto[]>([]);
 const availableCategories = ref<CategoryDto[]>([]);
+const availableSystemCategories = ref<CategoryDto[]>([]);
 
 const loadingDependencies = ref(false);
 const isSubmitting = ref(false);
@@ -188,12 +189,14 @@ function getDonutCategoryColor(label?: string) {
 async function loadDependencies() {
   loadingDependencies.value = true;
   try {
-    const [sellersRes, categoriesRes] = await Promise.all([
+    const [sellersRes, categoriesRes, systemCats] = await Promise.all([
       sellerService.getSellers(groupId),
-      categoryService.getCategories(groupId)
+      categoryService.getCategories(groupId),
+      categoryService.getSystemCategories(groupId)
     ]);
     availableSellers.value = sellersRes.sellers;
     availableCategories.value = categoriesRes.categories;
+    availableSystemCategories.value = systemCats;
   } catch (err: any) {
     error.value = 'Failed to load filters data.';
   } finally {
@@ -385,6 +388,7 @@ onMounted(async () => {
               <SingleCategoryPicker 
                 v-model="filter.categoryId!" 
                 :categories="availableCategories"
+                :systemCategories="availableSystemCategories"
                 :disabled="loadingDependencies"
                 clearable
               />

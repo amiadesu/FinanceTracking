@@ -32,6 +32,7 @@ const router = useRouter();
 const groupId = Number(route.params.id);
 
 const categories = ref<CategoryDto[]>([]);
+const systemCategories = ref<CategoryDto[]>([]);
 const sellers = ref<SellerDto[]>([]);
 
 const loading = ref(false);
@@ -67,12 +68,14 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [categoriesResponse, sellersResponse] = await Promise.all([
+    const [categoriesResponse, sellersResponse, systemCats] = await Promise.all([
       categoryService.getCategories(groupId),
-      sellerService.getSellers(groupId)
+      sellerService.getSellers(groupId),
+      categoryService.getSystemCategories(groupId)
     ]);
     categories.value = categoriesResponse.categories;
     sellers.value = sellersResponse.sellers;
+    systemCategories.value = systemCats;
   } catch (err: any) {
     error.value = err.message || 'Failed to load data';
   } finally {
@@ -111,6 +114,8 @@ async function createReceipt(event: FormSubmitEvent<Schema>) {
   isSubmitting.value = true;
   
   try {
+    const allCategories = [...categories.value, ...systemCategories.value];
+
     const receiptToSend: CreateReceiptDto = {
       paymentDate: new Date(event.data.paymentDate).toISOString(),
       sellerId: event.data.sellerId,
@@ -119,7 +124,7 @@ async function createReceipt(event: FormSubmitEvent<Schema>) {
         price: p.price,
         quantity: p.quantity,
         categories: Array.from(p.categoryIds)
-          .map(id => categories.value.find(c => c.id === id)?.name)
+          .map(id => allCategories.find(c => c.id === id)?.name)
           .filter((name): name is string => !!name)
       }))
     };
@@ -158,8 +163,9 @@ async function handleXmlUpload(event: Event) {
       newReceipt.products = parsedData.products.map((p: any) => {
         const categoryIds = new Set<number>();
         if (p.categories) {
+          const allCategories = [...categories.value, ...systemCategories.value];
           p.categories.forEach((catName: string) => {
-            const found = categories.value.find(c => c.name.toLowerCase() === catName.toLowerCase());
+            const found = allCategories.find(c => c.name.toLowerCase() === catName.toLowerCase());
             if (found) categoryIds.add(found.id);
           });
         }
@@ -299,6 +305,7 @@ onMounted(() => loadData());
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categories</label>
                                     <CategoryPicker 
                                         :categories="categories"
+                                        :systemCategories="systemCategories"
                                         :selectedCategoryIds="product.categoryIds"
                                         @toggle="(catId) => toggleProductCategory(product, catId)"
                                     />

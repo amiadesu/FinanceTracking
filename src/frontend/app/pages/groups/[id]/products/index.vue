@@ -13,6 +13,7 @@ const groupId = Number(route.params.id);
 
 const products = ref<ProductDataDto[]>([]);
 const categories = ref<CategoryDto[]>([]);
+const systemCategories = ref<CategoryDto[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -47,13 +48,15 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const [productsData, categoriesData] = await Promise.all([
+    const [productsData, categoriesData, systemCats] = await Promise.all([
       productService.getProducts(groupId),
-      categoryService.getCategories(groupId)
+      categoryService.getCategories(groupId),
+      categoryService.getSystemCategories(groupId)
     ]);
 
     products.value = productsData;
     categories.value = categoriesData.categories;
+    systemCategories.value = systemCats;
   } catch (err: any) {
     error.value = err.message || 'Failed to load products';
   } finally {
@@ -62,7 +65,7 @@ async function loadData() {
 }
 
 function getCategoryColor(catName: string) {
-  const cat = categories.value.find(c => c.name === catName);
+  const cat = [...categories.value, ...systemCategories.value].find(c => c.name === catName);
   return cat?.colorHex || '#9ca3af';
 }
 
