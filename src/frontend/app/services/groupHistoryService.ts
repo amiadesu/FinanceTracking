@@ -33,5 +33,14 @@ export const groupHistoryService = {
     return useApiFetch<GroupHistoryListResponseDto>(`/api/groups/${groupId}/history?${query}`, {
       method: 'GET',
     });
+  },
+
+  exportGroupHistory(groupId: number, fileType: 'xlsx' | 'docx') {
+    const query = new URLSearchParams({ fileType }).toString();
+    
+    return useApiFetch<Blob>(`/api/groups/${groupId}/history/export?${query}`, {
+      method: 'GET',
+      responseType: 'blob', 
+    });
   }
 };
