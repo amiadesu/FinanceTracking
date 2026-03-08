@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, h } from 'vue'
 import { useAsyncData } from '#imports'
+import { useAppToast } from '~/composables/useAppToast'
 import { invitationService } from '~/services/invitationService'
 import type { TableColumn } from '@nuxt/ui'
+
+const { showSuccess, showError } = useAppToast()
 
 const { data: invitations, pending, error, refresh } = useAsyncData('my-invitations', () => 
   invitationService.getPendingInvitations()
@@ -47,9 +50,10 @@ const handleAccept = async (id: string) => {
   processingAction.value = 'accept'
   try {
     await invitationService.acceptInvitation(id)
+    showSuccess('Invitation accepted successfully.')
     await refresh()
   } catch (err: any) {
-    alert(err.data?.message || 'Failed to accept invitation')
+    showError(err.data?.message || 'Failed to accept invitation')
   } finally {
     processingId.value = null
     processingAction.value = null
@@ -61,9 +65,10 @@ const handleReject = async (id: string) => {
   processingAction.value = 'reject'
   try {
     await invitationService.rejectInvitation(id)
+    showSuccess('Invitation rejected successfully.')
     await refresh()
   } catch (err: any) {
-    alert(err.data?.message || 'Failed to reject invitation')
+    showError(err.data?.message || 'Failed to reject invitation')
   } finally {
     processingId.value = null
     processingAction.value = null

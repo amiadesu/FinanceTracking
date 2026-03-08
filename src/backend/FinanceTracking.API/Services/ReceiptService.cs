@@ -112,6 +112,7 @@ public class ReceiptService
     {
         var receipts = await _context.Receipts
             .Where(r => r.GroupId == groupId)
+            .Include(r => r.CreatedByUser)
             .Include(r => r.Seller)
             .Include(r => r.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
@@ -130,6 +131,7 @@ public class ReceiptService
     {
         return await _context.Receipts
             .Where(r => r.GroupId == groupId && r.SellerId == sellerId)
+            .Include(r => r.CreatedByUser)
             .Include(r => r.Seller)
             .Include(r => r.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
@@ -142,6 +144,7 @@ public class ReceiptService
     {
         return await _context.Receipts
             .Where(r => r.GroupId == groupId && r.ProductEntries.Any(pe => pe.ProductDataId == productDataId))
+            .Include(r => r.CreatedByUser)
             .Include(r => r.Seller)
             .Include(r => r.ProductEntries)
                 .ThenInclude(pe => pe.ProductData)
@@ -155,6 +158,7 @@ public class ReceiptService
     {
         var r = await _context.Receipts
             .Where(x => x.GroupId == groupId && x.Id == receiptId)
+            .Include(r => r.CreatedByUser)
             .Include(x => x.Seller)
             .Include(x => x.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)
@@ -363,6 +367,7 @@ public class ReceiptService
             Id = r.Id,
             GroupId = r.GroupId,
             CreatedByUserId = r.CreatedByUserId,
+            CreatedByUserName = r.CreatedByUser?.UserName,
             SellerId = r.SellerId,
             SellerName = r.Seller?.Name,
             TotalAmount = r.TotalAmount,
@@ -376,6 +381,7 @@ public class ReceiptService
     private async Task<ReceiptDto> MapReceiptAsync(int receiptId, int groupId)
     {
         var r = await _context.Receipts
+            .Include(r => r.CreatedByUser)
             .Include(x => x.Seller)
             .Include(x => x.ProductEntries)
                 .ThenInclude(pe => pe.ProductData).ThenInclude(pd => pd.ProductDataCategories)

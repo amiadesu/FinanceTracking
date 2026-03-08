@@ -7,6 +7,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  button {
+    cursor: pointer;
+  }
+  
+  button:disabled {
+    cursor: default;
+  }
+}
+
 :root {
   --vis-tooltip-background-color: var(--ui-bg) !important;
   --vis-tooltip-border-color: var(--ui-border) !important;

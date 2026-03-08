@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, h } from 'vue';
 import { useRoute, useRouter } from '#imports';
+import { useAppToast } from '~/composables/useAppToast';
 import { receiptService } from '~/services/receiptService';
 import { categoryService } from '~/services/categoryService';
 import type { ReceiptDto, UpdateReceiptDto } from '~/services/receiptService';
@@ -15,6 +16,7 @@ import { receiptSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof receiptSchema>;
 
 interface FormProduct {
@@ -145,7 +147,7 @@ function addProduct() {
 
 function removeProduct(uid: string) {
   if (editDto.products.length <= 1) {
-    alert('A receipt must have at least one product.');
+    showError('A receipt must have at least one product.');
     return;
   }
   editDto.products = editDto.products.filter(p => p._uid !== uid);
@@ -182,26 +184,33 @@ async function save(event: FormSubmitEvent<Schema>) {
     const updated = await receiptService.updateReceipt(groupId, receiptId, receiptToSend);
     receipt.value = updated;
     editMode.value = false;
-    alert('Receipt updated successfully.');
+    showSuccess('Receipt updated successfully.');
     await load(); 
   } catch (err: any) {
-    alert(err.message || 'Error updating receipt');
+    showError(err.message || 'Error updating receipt');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm('Are you sure you want to delete this receipt?')) return;
-  isSubmitting.value = true;
-  try {
-    await receiptService.deleteReceipt(groupId, receiptId);
-    router.push(`/groups/${groupId}/receipts`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting receipt');
-  } finally {
-    isSubmitting.value = false;
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Receipt',
+    description: 'Are you sure you want to delete this receipt?',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Receipt deleted successfully.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await receiptService.deleteReceipt(groupId, receiptId);
+        router.push(`/groups/${groupId}/receipts`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
 function cancelEdit() {
@@ -247,7 +256,13 @@ onMounted(() => load());
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 flex-1 min-h-0 mb-6">
           
-          <div class="lg:col-span-4 flex flex-col gap-6 shrink-0 lg:overflow-y-auto pr-1">
+          <div class="lg:col-span-4 flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 pb-2">
+            <div>
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Created By</span>
+              <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1 wrap-break-words sm:break-all max-w-full">
+                {{ receipt.createdByUserName || 'Unknown' }}
+              </p>
+            </div>
             <div>
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Payment Date</span>
               <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">
@@ -260,7 +275,7 @@ onMounted(() => load());
                 {{ receipt.totalAmount.toFixed(2) }}
               </p>
             </div>
-            <div class="overflow-hidden">
+            <div>
               <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Seller</span>
               <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1 wrap-break-words sm:break-all max-w-full">
                 {{ receipt.sellerName ? receipt.sellerName : (receipt.sellerId ?? 'Not specified') }}

@@ -2,6 +2,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { memberRoleSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { groupMemberService } from '~/services/groupMemberService';
@@ -10,6 +11,7 @@ import { useConfigStore } from '~/stores/useConfigStore';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof memberRoleSchema>;
 
 const configStore = useConfigStore();
@@ -75,7 +77,7 @@ async function save(event: FormSubmitEvent<Schema>) {
   if (!editDto.role) return;
 
   if (editDto.role.value === ownerRoleId.value) {
-    alert('Please use the Transfer Ownership button to make this user an owner.');
+    showError('Please use the Transfer Ownership button to make this user an owner.');
     return;
   }
   
@@ -83,38 +85,52 @@ async function save(event: FormSubmitEvent<Schema>) {
   try {
     const updated = await groupMemberService.updateRole(groupId, userId, { role: editDto.role.value });
     member.value = updated;
-    alert('Role updated successfully.');
+    showSuccess('Role updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating role');
+    showError(err.message || 'Error updating role');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function transferOwnership() {
-  if (!confirm('Are you sure you want to transfer ownership to this user? You will become an Admin.')) return;
-  isSubmitting.value = true;
-  try {
-    await groupMemberService.transferOwnership(groupId, userId);
-    router.push(`/groups/${groupId}/members`);
-  } catch (err: any) {
-    alert(err.message || 'Error transferring ownership');
-  } finally {
-    isSubmitting.value = false;
-  }
+function transferOwnership() {
+  withConfirm({
+    title: 'Transfer Ownership',
+    description: 'Are you sure you want to transfer ownership to this user? You will become an Admin.',
+    toastColor: 'warning',
+    confirmLabel: 'Transfer',
+    actionColor: 'warning',
+    successMsg: 'Ownership transferred successfully.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await groupMemberService.transferOwnership(groupId, userId);
+        router.push(`/groups/${groupId}/members`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
-async function remove() {
-  if (!confirm(`Are you sure you want to remove ${member.value?.userName} from the group?`)) return;
-  isSubmitting.value = true;
-  try {
-    await groupMemberService.removeMember(groupId, userId);
-    router.push(`/groups/${groupId}/members`);
-  } catch (err: any) {
-    alert(err.message || 'Error removing member. Check your permission level.');
-  } finally {
-    isSubmitting.value = false;
-  }
+function remove() {
+  withConfirm({
+    title: 'Remove Member',
+    description: `Are you sure you want to remove ${member.value?.userName} from the group?`,
+    toastColor: 'error',
+    confirmLabel: 'Remove',
+    actionColor: 'error',
+    successMsg: 'Member removed successfully.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await groupMemberService.removeMember(groupId, userId);
+        router.push(`/groups/${groupId}/members`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
 onMounted(load);

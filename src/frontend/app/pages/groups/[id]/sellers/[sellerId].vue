@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, h } from 'vue';
 import { useRoute, useRouter } from '#imports';
+import { useAppToast } from '~/composables/useAppToast';
 import { sellerService } from '~/services/sellerService';
 import { receiptService } from '~/services/receiptService';
 import type { SellerDto, UpdateSellerDto } from '~/services/sellerService';
@@ -11,6 +12,7 @@ import { sellerSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import FormGlobalErrors from '~/components/FormGlobalErrors.vue';
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof sellerSchema>;
 
 const route = useRoute();
@@ -36,6 +38,15 @@ const { isFormValid, unmappedErrors, touch } = useFormValidation(sellerSchema, e
 
 const receiptColumns: TableColumn<ReceiptDto>[] = [
   { accessorKey: 'id', header: 'Receipt ID' },
+  { 
+    id: 'creator',
+    header: 'Created By',
+    cell: ({ row }) => h(
+      'div', 
+      { class: 'whitespace-normal break-words sm:break-all min-w-[120px] max-w-[250px] font-medium text-gray-900 dark:text-white' }, 
+      row.original.createdByUserName || 'Unknown'
+    )
+  },
   { 
     accessorKey: 'paymentDate', 
     header: 'Date',
@@ -73,7 +84,7 @@ async function openReceiptsModal() {
   try {
     receipts.value = await receiptService.getFilteredReceipts(groupId, { sellerId });
   } catch (err: any) {
-    alert(err.message || 'Error loading associated receipts');
+    showError(err.message || 'Error loading associated receipts');
   } finally {
     loadingReceipts.value = false;
   }
@@ -84,25 +95,33 @@ async function save(event: FormSubmitEvent<Schema>) {
   try {
     const updated = await sellerService.updateSeller(groupId, sellerId, event.data);
     seller.value = updated;
-    alert('Seller updated successfully.');
+    showSuccess('Seller updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating seller');
+    showError(err.message || 'Error updating seller');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm('Are you sure you want to delete this seller? Ensure no receipts are using it.')) return;
-  isSubmitting.value = true;
-  try {
-    await sellerService.deleteSeller(groupId, sellerId);
-    router.push(`/groups/${groupId}/sellers`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting seller. It might still be in use.');
-  } finally {
-    isSubmitting.value = false;
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Seller',
+    description: 'Are you sure you want to delete this seller? Ensure no receipts are using it.',
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Seller deleted successfully.',
+    errorMsg: 'Error deleting seller. It might still be in use.',
+    onConfirm: async () => {
+      isSubmitting.value = true;
+      try {
+        await sellerService.deleteSeller(groupId, sellerId);
+        router.push(`/groups/${groupId}/sellers`);
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+  });
 }
 
 onMounted(() => load());
@@ -198,9 +217,9 @@ onMounted(() => load());
       </UForm>
     </UCard>
 
-    <UModal v-model:open="isModalOpen">
+    <UModal v-model:open="isModalOpen" class="w-full max-w-3xl">
       <template #content>
-        <UCard :ui="{ body: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+        <UCard :ui="{ body: 'p-0 sm:p-0 flex-1 flex flex-col min-h-0' }" class="flex flex-col w-full lg:h-100">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
@@ -218,10 +237,10 @@ onMounted(() => load());
           
           <UTable
             sticky
-            class="max-h-96"
             :data="receipts" 
             :columns="receiptColumns" 
             :loading="loadingReceipts"
+            class="w-full flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
               <div class="text-right">
@@ -229,8 +248,8 @@ onMounted(() => load());
                   :to="`/groups/${groupId}/receipts/${row.original.id}`" 
                   color="primary" 
                   variant="outline"
-                  icon="i-heroicons-eye"
                   size="sm"
+                  icon="i-heroicons-eye"
                 >
                   View
                 </UButton>

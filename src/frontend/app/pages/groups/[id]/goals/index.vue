@@ -2,6 +2,7 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute } from '#imports';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { budgetGoalSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { budgetGoalService } from '~/services/budgetGoalService';
@@ -12,6 +13,7 @@ import type { TableColumn } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
+const { showSuccess, showError } = useAppToast();
 type Schema = v.InferOutput<typeof budgetGoalSchema>;
 
 const route = useRoute();
@@ -58,8 +60,9 @@ async function createGoal(event: FormSubmitEvent<Schema>) {
     newGoal.startDate = '';
     newGoal.endDate = '';
     await loadGoals();
+    showSuccess('Goal created successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error creating goal');
+    showError(err.message || 'Error creating goal');
   } finally {
     isSubmitting.value = false;
   }

@@ -2,6 +2,7 @@
 import { ref, onMounted, reactive, computed, h } from 'vue';
 import { useRoute } from '#imports';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { categorySchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { categoryService } from '~/services/categoryService';
@@ -10,6 +11,8 @@ import { useLimitDisplay } from '~/composables/useLimitDisplay';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { TableColumn } from '@nuxt/ui';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
+
+const { showSuccess, showError } = useAppToast();
 
 type Schema = v.InferOutput<typeof categorySchema>;
 
@@ -72,8 +75,9 @@ async function createCategory(event: FormSubmitEvent<Schema>) {
     newCategory.name = '';
     newCategory.colorHex = '#000000';
     await loadCategories();
+    showSuccess('Category created successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error creating category');
+    showError(err.message || 'Error creating category');
   } finally {
     isSubmitting.value = false;
   }

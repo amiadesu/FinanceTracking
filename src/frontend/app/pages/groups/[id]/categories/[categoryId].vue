@@ -2,6 +2,7 @@
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
+import { useAppToast } from '~/composables/useAppToast';
 import { categorySchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { categoryService } from '~/services/categoryService';
@@ -9,6 +10,7 @@ import type { CategoryDto, UpdateCategoryDto } from '~/services/categoryService'
 import type { FormSubmitEvent } from '@nuxt/ui';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
 
+const { showSuccess, showError, withConfirm } = useAppToast();
 type Schema = v.InferOutput<typeof categorySchema>;
 
 const route = useRoute();
@@ -68,22 +70,27 @@ async function save(event: FormSubmitEvent<Schema>) {
     editDto.name = updated.name;
     editDto.colorHex = updated.colorHex;
     
-    alert('Category updated successfully.');
+    showSuccess('Category updated successfully.');
   } catch (err: any) {
-    alert(err.message || 'Error updating category');
+    showError(err.message || 'Error updating category');
   } finally {
     isSubmitting.value = false;
   }
 }
 
-async function remove() {
-  if (!confirm(`Are you sure you want to delete "${category.value?.name}"?`)) return;
-  try {
-    await categoryService.deleteCategory(groupId, categoryId);
-    router.push(`/groups/${groupId}/categories`);
-  } catch (err: any) {
-    alert(err.message || 'Error deleting category');
-  }
+function remove() {
+  withConfirm({
+    title: 'Delete Category',
+    description: `Are you sure you want to delete "${category.value?.name}"?`,
+    toastColor: 'error',
+    confirmLabel: 'Delete',
+    actionColor: 'error',
+    successMsg: 'Category deleted successfully.',
+    onConfirm: async () => {
+      await categoryService.deleteCategory(groupId, categoryId);
+      router.push(`/groups/${groupId}/categories`);
+    }
+  });
 }
 
 onMounted(load);
