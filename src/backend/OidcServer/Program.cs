@@ -107,6 +107,8 @@ builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
