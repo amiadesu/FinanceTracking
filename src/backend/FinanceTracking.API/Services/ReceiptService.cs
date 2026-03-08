@@ -10,6 +10,7 @@ using FinanceTracking.API.Exceptions;
 using FinanceTracking.API.Constants;
 using FinanceTracking.API.Parsers;
 using FinanceTracking.API.Validators;
+using FinanceTracking.API.Utils;
 
 namespace FinanceTracking.API.Services;
 
@@ -98,7 +99,7 @@ public class ReceiptService
             });
         }
 
-        var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+        var computedTotal = FinancialCalculator.CalculateReceiptTotal(receipt.ProductEntries);
         receipt.TotalAmount = computedTotal;
 
         _context.Receipts.Add(receipt);
@@ -283,7 +284,7 @@ public class ReceiptService
             }
         }
 
-        var computedTotal = receipt.ProductEntries.Sum(pe => pe.Price * pe.Quantity);
+        var computedTotal = FinancialCalculator.CalculateReceiptTotal(receipt.ProductEntries);
         if (receipt.TotalAmount != computedTotal)
         {
             receipt.TotalAmount = computedTotal;
