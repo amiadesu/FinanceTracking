@@ -1,0 +1,17 @@
+# Web Framework
+fastapi[standard]>=0.115.0
+uvicorn>=0.30.0
+
+# Message Broker (RabbitMQ)
+aio-pika>=9.4.0
+
+# Inference & Serialization
+scikit-learn>=1.5.0
+joblib>=1.4.0
+pandas>=2.2.0
+numpy>=1.26.0
+
+# Utils
+python-dotenv>=1.0.1
+transliterate>=1.10.2
+pydantic>=2.7.0
