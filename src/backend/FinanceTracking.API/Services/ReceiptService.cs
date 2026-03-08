@@ -11,6 +11,8 @@ using FinanceTracking.API.Constants;
 using FinanceTracking.API.Parsers;
 using FinanceTracking.API.Validators;
 using FinanceTracking.API.Utils;
+using FinanceTracking.API.Constants;
+using Wolverine;
 
 namespace FinanceTracking.API.Services;
 
@@ -22,6 +24,8 @@ public class ReceiptService
     private readonly SellerService _sellerService;
     private readonly CategoryService _categoryService;
     private readonly ProductDataService _productDataService;
+    private readonly IMessageBus _messageBus;
+    private readonly IPendingPredictionRequests _pendingPredictions;
 
     public ReceiptService(
         FinanceDbContext context,
@@ -29,7 +33,9 @@ public class ReceiptService
         GroupMemberService groupMemberService, 
         SellerService sellerService,
         CategoryService categoryService,
-        ProductDataService productDataService)
+        ProductDataService productDataService,
+        IMessageBus messageBus,
+        IPendingPredictionRequests pendingPredictions)
     {
         _context = context;
         _groupService = groupService;
@@ -37,6 +43,8 @@ public class ReceiptService
         _sellerService = sellerService;
         _categoryService = categoryService;
         _productDataService = productDataService;
+        _messageBus = messageBus;
+        _pendingPredictions = pendingPredictions;
     }
 
     public async Task<ReceiptDto> CreateReceiptAsync(int groupId, Guid? creatorId, CreateReceiptDto dto)
@@ -174,6 +182,38 @@ public class ReceiptService
     {
         var parser = new ReceiptXmlParser();
         var parsed = await parser.ParseAsync(file.OpenReadStream());
+
+        if (parsed == null || parsed.Products == null || !parsed.Products.Any())
+            return parsed;
+
+        try
+        {
+            var productNames = parsed.Products.Select(p => p.Name).ToList();
+            var request = new PredictionRequest(productNames);
+
+            var (correlationId, replyTask) = _pendingPredictions.Register(TimeSpan.FromSeconds(5));
+            await _messageBus.PublishAsync(request,
+                new DeliveryOptions().WithHeader(MLMessagingConstants.CorrelationIdHeader, correlationId));
+            var response = await replyTask;
+
+            if (response?.Results != null)
+            {
+                var predictionDict = response.Results.ToDictionary(r => r.Text, r => r.Category);
+                
+                foreach (var product in parsed.Products)
+                {
+                    if (predictionDict.TryGetValue(product.Name, out var category) && !string.IsNullOrEmpty(category))
+                    {
+                        product.Categories = new List<string> { category };
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // If ML service is down or RabbitMQ times out, fail gracefully
+            // The XML parsing will still succeed, just without predicted categories
+        }
 
         return parsed;
     }
