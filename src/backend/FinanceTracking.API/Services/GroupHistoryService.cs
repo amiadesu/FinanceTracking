@@ -78,6 +78,17 @@ public class GroupHistoryService
         };
     }
 
+    public async Task<List<GroupHistoryDto>> GetAllGroupHistoryAsync(int groupId)
+    {
+        return await _dbContext.GroupMemberHistories
+            .Where(h => h.GroupId == groupId)
+            .Include(h => h.User)
+            .Include(h => h.ChangedByUser)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => Map(h))
+            .ToListAsync();
+    }
+
     private static GroupHistoryDto Map(GroupMemberHistory h) => new GroupHistoryDto
     {
         Id = h.Id,

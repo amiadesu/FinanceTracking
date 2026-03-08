@@ -4,17 +4,36 @@ import { useRoute } from '#imports';
 import { groupHistoryService } from '~/services/groupHistoryService';
 import type { GroupHistoryDto } from '~/services/groupHistoryService';
 import type { TableColumn } from '@nuxt/ui';
+import { badge } from '#build/ui';
 
 const route = useRoute();
 const groupId = Number(route.params.id);
 
 const historyEntries = ref<GroupHistoryDto[]>([]);
 const loading = ref(false);
+const exporting = ref(false);
 const error = ref<string | null>(null);
 
 const currentPage = ref(1);
 const pageSize = ref(10);
 const totalCount = ref(0);
+
+const exportItems = [
+  [
+    {
+      label: 'Export as Excel',
+      icon: 'i-heroicons-table-cells',
+      onSelect: () => handleExport('xlsx'),
+      badge: undefined
+    },
+    {
+      label: 'Export as Word',
+      icon: 'i-heroicons-document-text',
+      onSelect: () => handleExport('docx'),
+      badge: undefined
+    }
+  ]
+];
 
 const columns: TableColumn<GroupHistoryDto>[] = [
   {
@@ -117,6 +136,31 @@ async function loadData() {
   }
 }
 
+async function handleExport(fileType: string) {
+  exporting.value = true;
+  error.value = null;
+  try {
+    const blob = await groupHistoryService.exportGroupHistory(groupId, fileType as 'xlsx' | 'docx');
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const dateStr = new Date().toISOString().replace(/[:.]/g, '-');
+    link.download = `Group_${groupId}_History_${dateStr}.${fileType}`;
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+  } catch (err: any) {
+    error.value = err.message || `Failed to export history as ${fileType.toUpperCase()}`;
+  } finally {
+    exporting.value = false;
+  }
+}
+
 watch(currentPage, (newPage, oldPage) => {
   if (newPage !== oldPage) {
     loadData();
@@ -133,14 +177,36 @@ onMounted(() => loadData());
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Group History</h1>
         <UBadge color="neutral" variant="subtle" size="md">#{{ groupId }}</UBadge>
       </div>
-      <UButton 
-        :to="`/groups/${groupId}`"
-        color="secondary" 
-        variant="outline"
-        icon="i-heroicons-arrow-left"
-      >
-        Back to Group
-      </UButton>
+      
+      <div class="flex items-center gap-2">
+        <UDropdownMenu :items="exportItems" :popper="{ placement: 'bottom-end' }">
+          <UButton 
+            color="primary" 
+            variant="outline" 
+            label="Export"
+            icon="i-heroicons-arrow-down-tray"
+            :loading="exporting"
+          >
+            <template #trailing>
+              <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4 text-gray-500" />
+            </template>
+          </UButton>
+
+          <template #item="{ item }">
+            <span class="truncate">{{ item.label }}</span>
+            <UIcon :name="item.icon" class="shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500 ms-auto" />
+          </template>
+        </UDropdownMenu>
+
+        <UButton 
+          :to="`/groups/${groupId}`"
+          color="secondary" 
+          variant="outline"
+          icon="i-heroicons-arrow-left"
+        >
+          Back to Group
+        </UButton>
+      </div>
     </div>
 
     <UAlert 
