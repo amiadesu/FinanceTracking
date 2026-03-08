@@ -16,13 +16,16 @@ namespace FinanceTracking.API.Controllers;
 public class GroupHistoryController : ControllerBase
 {
     private readonly GroupHistoryService _historyService;
+    private readonly GroupHistoryExportService _exportService;
     private readonly GroupService _groupService;
 
     public GroupHistoryController(
         GroupHistoryService historyService, 
+        GroupHistoryExportService exportService,
         GroupService groupService)
     {
         _historyService = historyService;
+        _exportService = exportService;
         _groupService = groupService;
     }
 
@@ -48,5 +51,42 @@ public class GroupHistoryController : ControllerBase
         var response = await _historyService.GetGroupHistoryAsync(groupId, pageNumber, pageSize);
 
         return Ok(response);
+    }
+
+    [HttpGet("export")]
+    [RequireGroupMembership]
+    [RequireGroupRole(GroupRole.Admin)]
+    public async Task<IActionResult> ExportGroupHistory(
+        int groupId, 
+        [FromQuery] string fileType = "xlsx")
+    {
+        fileType = fileType.ToLower();
+        if (fileType != "xlsx" && fileType != "docx")
+        {
+            return BadRequest("Invalid file type. Supported types are 'xlsx' and 'docx'.");
+        }
+
+        var historyData = await _historyService.GetAllGroupHistoryAsync(groupId);
+
+        byte[] fileBytes;
+        string contentType;
+        string fileExtension;
+
+        if (fileType == "xlsx")
+        {
+            fileBytes = _exportService.ExportToExcel(historyData);
+            contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            fileExtension = "xlsx";
+        }
+        else
+        {
+            fileBytes = _exportService.ExportToWord(historyData);
+            contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            fileExtension = "docx";
+        }
+
+        var fileName = $"Group_{groupId}_History_{DateTime.UtcNow:yyyyMMdd_HHmmss}.{fileExtension}";
+
+        return File(fileBytes, contentType, fileName);
     }
 }
