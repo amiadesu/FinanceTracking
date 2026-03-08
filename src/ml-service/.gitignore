@@ -1,0 +1,12 @@
+notebooks/.env
+
+notebooks/models/*
+notebooks/data/*
+
+dist/
+build/
+*.egg-info/
+
+.jupyter/
+
+!**/.gitkeep

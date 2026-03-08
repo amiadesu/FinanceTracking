@@ -108,6 +108,11 @@ services:
       - Authentication__Authority=https://oidc_server:8081
       - Authentication__ValidIssuer=${IDENTITY_SERVER_URL}
       - Authentication__Audience=${API_RESOURCE_NAME}
+
+      - MlService__BaseUrl=http://ml_service:8000
+
+      - RabbitMq__MlRequestQueue=${ML_QUEUE_NAME}
+      - RabbitMq__MlReplyQueue=${ML_REPLY_QUEUE_NAME}
     ports:
       - "${API_SERVER_HOST_PORT}:8080"
     depends_on:
@@ -117,6 +122,22 @@ services:
         condition: service_healthy
       oidc_server:
         condition: service_started
+
+  ml_service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: financetracking_ml
+    restart: always
+    environment:
+      - RABBITMQ_URL=amqp://${RABBITMQ_USERNAME}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      - ML_QUEUE_NAME=${ML_QUEUE_NAME}
+      - ML_REPLY_QUEUE_NAME=${ML_REPLY_QUEUE_NAME}
+    ports:
+      - "${ML_SERVICE_HOST_PORT}:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   frontend:
     build:

@@ -21,5 +21,6 @@ public static class ServiceConstants
     public const int MaxCategoriesPerProduct = 5;
 
     // Categories
+    public const string SystemCategoryColor = "#fdb8f8";
     public const string DefaultCategoryColor = "#000000";
 }

@@ -13,6 +13,8 @@ using FinanceTracking.Contracts.Events;
 using FinanceTracking.API.Services;
 using System.Reflection;
 using FinanceTracking.API.Filters;
+using FinanceTracking.API.DTOs;
+using FinanceTracking.API.Utils;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -43,8 +45,23 @@ builder.Services.AddScoped<ProductDataService>();
 builder.Services.AddScoped<GroupMemberService>();
 builder.Services.AddScoped<StatisticsService>();
 
+builder.Services.AddHttpClient("MlServiceClient", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["MlService:BaseUrl"] ?? "http://ml_service:8000");
+});
+
+builder.Services.AddHostedService<MlCategorySyncService>();
+
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddTransient(typeof(ValidationFilter<>));
+
+builder.Services.AddSingleton<IPendingPredictionRequests, PendingPredictionRequests>();
+
+var mlRequestQueue = builder.Configuration["RabbitMq:MlRequestQueue"]
+    ?? throw new InvalidOperationException("Configuration key 'RabbitMq:MlRequestQueue' is required but was not set.");
+
+var mlReplyQueue = builder.Configuration["RabbitMq:MlReplyQueue"]
+    ?? throw new InvalidOperationException("Configuration key 'RabbitMq:MlReplyQueue' is required but was not set.");
 
 builder.Host.UseWolverine(opts =>
 {
@@ -57,6 +74,16 @@ builder.Host.UseWolverine(opts =>
 
     opts.ListenToRabbitQueue("user-created");
     opts.ListenToRabbitQueue("user-deleted");
+
+    // Listen for ML prediction replies with the interop mapper so Wolverine
+    // can deserialise the plain-JSON payload the Python service sends back.
+    opts.ListenToRabbitQueue(mlReplyQueue)
+        .UseInterop(new MLInteropMapper(mlReplyQueue));
+
+    // Publish prediction requests to the ML service request queue.
+    opts.PublishMessage<PredictionRequest>()
+        .ToRabbitQueue(mlRequestQueue)
+        .UseInterop(new MLInteropMapper(mlReplyQueue));
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
