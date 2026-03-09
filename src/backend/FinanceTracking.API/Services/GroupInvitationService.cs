@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceTracking.API.Services;
 
-public class GroupInvitationService
+public class GroupInvitationService: IGroupInvitationService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
@@ -105,20 +105,7 @@ public class GroupInvitationService
             .Include(i => i.InvitedByUser)
             .Include(i => i.TargetUser)
             .Where(i => i.TargetUserId == currentUserId && i.Status == InvitationStatus.Pending)
-            .Select(i => new InvitationResponseDto
-            {
-                Id = i.Id,
-                GroupId = i.GroupId,
-                GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(i.Group),
-                InvitedByUserId = i.InvitedByUserId,
-                InvitedByUserName = i.InvitedByUser.UserName,
-                TargetUserId = i.TargetUserId,
-                TargetUserName = i.TargetUser.UserName,
-                Note = i.Note,
-                Status = i.Status.ToString(),
-                CreatedDate = i.CreatedDate
-            })
+            .Select(i => Map(i))
             .ToListAsync();
     }
 
@@ -151,20 +138,7 @@ public class GroupInvitationService
             .Include(i => i.TargetUser)
             .Where(i => i.GroupId == groupId)
             .OrderByDescending(i => i.CreatedDate)
-            .Select(i => new InvitationResponseDto
-            {
-                Id = i.Id,
-                GroupId = i.GroupId,
-                GroupName = i.Group.Name,
-                IsGroupFull = i.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(i.Group),
-                InvitedByUserId = i.InvitedByUserId,
-                InvitedByUserName = i.InvitedByUser.UserName,
-                TargetUserId = i.TargetUserId,
-                TargetUserName = i.TargetUser.UserName,
-                Note = i.Note,
-                Status = i.Status.ToString(),
-                CreatedDate = i.CreatedDate
-            })
+            .Select(i => Map(i))
             .ToListAsync();
     }
 
@@ -179,20 +153,7 @@ public class GroupInvitationService
         if (invite == null) 
             throw new NotFoundException(Constants.ErrorMessages.InvitationNotFound);
 
-        return new InvitationResponseDto
-        {
-            Id = invite.Id,
-            GroupId = invite.GroupId,
-            GroupName = invite.Group.Name,
-            IsGroupFull = invite.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(invite.Group),
-            InvitedByUserId = invite.InvitedByUserId,
-            InvitedByUserName = invite.InvitedByUser.UserName,
-            TargetUserId = invite.TargetUserId,
-            TargetUserName = invite.TargetUser.UserName,
-            Note = invite.Note,
-            Status = invite.Status.ToString(),
-            CreatedDate = invite.CreatedDate
-        };
+        return Map(invite);
     }
 
     public async Task AcceptInvitationAsync(Guid invitationId, Guid currentUserId)
@@ -274,4 +235,19 @@ public class GroupInvitationService
 
         await _context.SaveChangesAsync();
     }
+
+    private static InvitationResponseDto Map(GroupInvitation invitation) => new InvitationResponseDto
+    {
+        Id = invitation.Id,
+        GroupId = invitation.GroupId,
+        GroupName = invitation.Group.Name,
+        IsGroupFull = invitation.Group.Members.Count(m => m.Active) >= GroupService.CalculateMaxMembers(invitation.Group),
+        InvitedByUserId = invitation.InvitedByUserId,
+        InvitedByUserName = invitation.InvitedByUser.UserName,
+        TargetUserId = invitation.TargetUserId,
+        TargetUserName = invitation.TargetUser.UserName,
+        Note = invitation.Note,
+        Status = invitation.Status.ToString(),
+        CreatedDate = invitation.CreatedDate
+    };
 }

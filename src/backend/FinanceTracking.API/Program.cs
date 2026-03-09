@@ -36,7 +36,7 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IGroupHistoryService, GroupHistoryService>();
 builder.Services.AddScoped<IGroupHistoryExportService, GroupHistoryExportService>();
-builder.Services.AddScoped<GroupInvitationService>();
+builder.Services.AddScoped<IGroupInvitationService, GroupInvitationService>();
 builder.Services.AddScoped<IBudgetGoalService, BudgetGoalService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ReceiptService>();

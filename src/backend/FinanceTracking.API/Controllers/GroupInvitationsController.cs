@@ -16,11 +16,11 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/invitations")]
 public class GroupInvitationsController : ControllerBase
 {
-    private readonly GroupInvitationService _invitationService;
+    private readonly IGroupInvitationService _invitationService;
     private readonly IGroupService _groupService;
 
     public GroupInvitationsController(
-        GroupInvitationService invitationService, 
+        IGroupInvitationService invitationService, 
         IGroupService groupService)
     {
         _invitationService = invitationService;
