@@ -16,12 +16,12 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/members")]
 public class GroupMembersController : ControllerBase
 {
-    private readonly GroupMemberService _memberService;
-    private readonly GroupService _groupService;
+    private readonly IGroupMemberService _memberService;
+    private readonly IGroupService _groupService;
 
     public GroupMembersController(
-        GroupMemberService memberService, 
-        GroupService groupService)
+        IGroupMemberService memberService, 
+        IGroupService groupService)
     {
         _memberService = memberService;
         _groupService = groupService;

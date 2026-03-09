@@ -9,14 +9,14 @@ using FinanceTracking.API.DTOs;
 
 namespace FinanceTracking.API.Services;
 
-public class GroupService
+public class GroupService: IGroupService
 {
     private readonly FinanceDbContext _dbContext;
-    private readonly GroupHistoryService _historyService;
+    private readonly IGroupHistoryService _historyService;
 
     public GroupService(
         FinanceDbContext dbContext,
-        GroupHistoryService historyService)
+        IGroupHistoryService historyService)
     {
         _dbContext = dbContext;
         _historyService = historyService;

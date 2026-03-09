@@ -15,9 +15,9 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/statistics")]
 public class StatisticsController : ControllerBase
 {
-    private readonly StatisticsService _statisticsService;
+    private readonly IStatisticsService _statisticsService;
 
-    public StatisticsController(StatisticsService statisticsService)
+    public StatisticsController(IStatisticsService statisticsService)
     {
         _statisticsService = statisticsService;
     }

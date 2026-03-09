@@ -19,7 +19,7 @@ public class NotPersonalGroupAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        var groupService = context.HttpContext.RequestServices.GetRequiredService<GroupService>();
+        var groupService = context.HttpContext.RequestServices.GetRequiredService<IGroupService>();
 
         var isPersonalGroup = await groupService.IsGroupPersonalAsync(groupId);
 

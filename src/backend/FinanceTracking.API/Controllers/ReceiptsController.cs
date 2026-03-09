@@ -17,9 +17,9 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/receipts")]
 public class ReceiptsController : ControllerBase
 {
-    private readonly ReceiptService _receiptService;
+    private readonly IReceiptService _receiptService;
 
-    public ReceiptsController(ReceiptService receiptService)
+    public ReceiptsController(IReceiptService receiptService)
     {
         _receiptService = receiptService;
     }

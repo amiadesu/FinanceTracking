@@ -8,7 +8,7 @@ using FinanceTracking.API.DTOs;
 
 namespace FinanceTracking.API.Services;
 
-public class GroupHistoryExportService
+public class GroupHistoryExportService: IGroupHistoryExportService
 {
     public byte[] ExportToExcel(List<GroupHistoryDto> historyEntries)
     {

@@ -9,7 +9,7 @@ using FinanceTracking.API.DTOs;
 
 namespace FinanceTracking.API.Services;
 
-public class GroupHistoryService
+public class GroupHistoryService: IGroupHistoryService
 {
     private readonly FinanceDbContext _dbContext;
 

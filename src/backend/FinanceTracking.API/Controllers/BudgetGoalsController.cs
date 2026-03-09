@@ -17,10 +17,10 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/budget-goals")]
 public class BudgetGoalsController : ControllerBase
 {
-    private readonly BudgetGoalService _goalService;
-    private readonly GroupService _groupService;
+    private readonly IBudgetGoalService _goalService;
+    private readonly IGroupService _groupService;
 
-    public BudgetGoalsController(BudgetGoalService goalService, GroupService groupService)
+    public BudgetGoalsController(IBudgetGoalService goalService, IGroupService groupService)
     {
         _goalService = goalService;
         _groupService = groupService;

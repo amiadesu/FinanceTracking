@@ -33,17 +33,17 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .UseSnakeCaseNamingConvention());
 
-builder.Services.AddScoped<GroupService>();
-builder.Services.AddScoped<GroupHistoryService>();
-builder.Services.AddScoped<GroupHistoryExportService>();
-builder.Services.AddScoped<GroupInvitationService>();
-builder.Services.AddScoped<BudgetGoalService>();
-builder.Services.AddScoped<CategoryService>();
-builder.Services.AddScoped<ReceiptService>();
-builder.Services.AddScoped<SellerService>();
-builder.Services.AddScoped<ProductDataService>();
-builder.Services.AddScoped<GroupMemberService>();
-builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IGroupHistoryService, GroupHistoryService>();
+builder.Services.AddScoped<IGroupHistoryExportService, GroupHistoryExportService>();
+builder.Services.AddScoped<IGroupInvitationService, GroupInvitationService>();
+builder.Services.AddScoped<IBudgetGoalService, BudgetGoalService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<ISellerService, SellerService>();
+builder.Services.AddScoped<IProductDataService, ProductDataService>();
+builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 builder.Services.AddHttpClient("MlServiceClient", client =>
 {
