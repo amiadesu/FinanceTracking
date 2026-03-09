@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { useRoute } from '#imports';
 import * as v from 'valibot';
 import { useAppToast } from '~/composables/useAppToast';
@@ -135,15 +135,26 @@ const columns: TableColumn<BudgetGoalDto>[] = [
             class="flex-1 min-h-0 overflow-y-auto"
           >
             <template #actions-cell="{ row }">
-              <UButton 
-                :to="`/groups/${groupId}/goals/${row.original?.id || row.id}`"
-                color="primary" 
-                variant="outline" 
-                icon="i-heroicons-cog"
-                size="sm"
-              >
-                Manage
-              </UButton>
+              <div class="flex gap-2 justify-end">
+                <UButton 
+                  :to="`/groups/${groupId}/goals/${row.original?.id || row.id}/progress`"
+                  color="primary" 
+                  variant="outline" 
+                  icon="i-heroicons-chart-bar"
+                  size="sm"
+                >
+                  Progress
+                </UButton>
+                <UButton 
+                  :to="`/groups/${groupId}/goals/${row.original?.id || row.id}`"
+                  color="secondary" 
+                  variant="outline" 
+                  icon="i-heroicons-cog"
+                  size="sm"
+                >
+                  Manage
+                </UButton>
+              </div>
             </template>
 
             <template #empty>
@@ -158,9 +169,7 @@ const columns: TableColumn<BudgetGoalDto>[] = [
       <div class="lg:col-span-1 w-full lg:max-w-sm">
         <UCard 
           class="shadow-sm flex flex-col lg:h-100" 
-          :ui="{ 
-            body: 'flex-1 flex flex-col min-h-0'
-          }"
+          :ui="{ body: 'flex-1 flex flex-col min-h-0' }"
         >
           <template #header>
             <h2 class="font-semibold text-gray-900 dark:text-white">Create Goal</h2>
@@ -186,7 +195,7 @@ const columns: TableColumn<BudgetGoalDto>[] = [
                   <UInput type="date" v-model="newGoal.endDate" @change="touch" class="w-full" />
                 </UFormField>
               </div>
-              
+
               <FormGlobalErrors class="" :errors="unmappedErrors" />
             </div>
 
