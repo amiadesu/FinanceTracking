@@ -10,7 +10,7 @@ using FinanceTracking.API.Utils;
 
 namespace FinanceTracking.API.Services;
 
-public class StatisticsService
+public class StatisticsService: IStatisticsService
 {
     private readonly FinanceDbContext _context;
 
