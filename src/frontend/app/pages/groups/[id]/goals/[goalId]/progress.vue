@@ -56,7 +56,7 @@ const receiptColumns: TableColumn<ReceiptDto>[] = [
   { 
     id: 'totalAmount', 
     header: 'Amount',
-    cell: ({ row }) => `$${row.original.totalAmount.toFixed(2)}`
+    cell: ({ row }) => `${row.original.totalAmount.toFixed(2)}`
   }
 ];
 </script>
@@ -101,7 +101,7 @@ const receiptColumns: TableColumn<ReceiptDto>[] = [
           <div>
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Current / Target</span>
             <p class="text-xl font-semibold text-gray-900 dark:text-white mt-1">
-              ${{ progress.currentAmount }} <span class="text-base font-normal text-gray-500">/ ${{ progress.targetAmount }}</span>
+              {{ progress.currentAmount }} <span class="text-base font-normal text-gray-500">/ {{ progress.targetAmount }}</span>
             </p>
           </div>
           <div>
