@@ -16,9 +16,9 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/sellers")]
 public class SellersController : ControllerBase
 {
-    private readonly SellerService _sellerService;
+    private readonly ISellerService _sellerService;
 
-    public SellersController(SellerService sellerService)
+    public SellersController(ISellerService sellerService)
     {
         _sellerService = sellerService;
     }

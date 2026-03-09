@@ -12,7 +12,7 @@ using FinanceTracking.API.Validators;
 
 namespace FinanceTracking.API.Services;
 
-public class SellerService
+public class SellerService: ISellerService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;

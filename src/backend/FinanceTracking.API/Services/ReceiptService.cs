@@ -21,7 +21,7 @@ public class ReceiptService: IReceiptService
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
     private readonly IGroupMemberService _groupMemberService;
-    private readonly SellerService _sellerService;
+    private readonly ISellerService _sellerService;
     private readonly ICategoryService _categoryService;
     private readonly IProductDataService _productDataService;
     private readonly IMessageBus _messageBus;
@@ -31,7 +31,7 @@ public class ReceiptService: IReceiptService
         FinanceDbContext context,
         IGroupService groupService,
         IGroupMemberService groupMemberService, 
-        SellerService sellerService,
+        ISellerService sellerService,
         ICategoryService categoryService,
         IProductDataService productDataService,
         IMessageBus messageBus,
