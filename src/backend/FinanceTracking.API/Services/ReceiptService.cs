@@ -22,7 +22,7 @@ public class ReceiptService
     private readonly IGroupService _groupService;
     private readonly GroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
-    private readonly CategoryService _categoryService;
+    private readonly ICategoryService _categoryService;
     private readonly ProductDataService _productDataService;
     private readonly IMessageBus _messageBus;
     private readonly IPendingPredictionRequests _pendingPredictions;
@@ -32,7 +32,7 @@ public class ReceiptService
         IGroupService groupService,
         GroupMemberService groupMemberService, 
         SellerService sellerService,
-        CategoryService categoryService,
+        ICategoryService categoryService,
         ProductDataService productDataService,
         IMessageBus messageBus,
         IPendingPredictionRequests pendingPredictions)

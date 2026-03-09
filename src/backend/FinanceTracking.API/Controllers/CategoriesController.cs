@@ -16,9 +16,9 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/categories")]
 public class CategoriesController : ControllerBase
 {
-    private readonly CategoryService _categoryService;
+    private readonly ICategoryService _categoryService;
 
-    public CategoriesController(CategoryService categoryService)
+    public CategoriesController(ICategoryService categoryService)
     {
         _categoryService = categoryService;
     }

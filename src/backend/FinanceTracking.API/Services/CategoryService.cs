@@ -12,7 +12,7 @@ using FinanceTracking.API.Validators;
 
 namespace FinanceTracking.API.Services;
 
-public class CategoryService
+public class CategoryService: ICategoryService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
