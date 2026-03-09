@@ -39,9 +39,9 @@ builder.Services.AddScoped<IGroupHistoryExportService, GroupHistoryExportService
 builder.Services.AddScoped<IGroupInvitationService, GroupInvitationService>();
 builder.Services.AddScoped<IBudgetGoalService, BudgetGoalService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<ReceiptService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
 builder.Services.AddScoped<SellerService>();
-builder.Services.AddScoped<ProductDataService>();
+builder.Services.AddScoped<IProductDataService, ProductDataService>();
 builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
 builder.Services.AddScoped<StatisticsService>();
 

@@ -16,14 +16,14 @@ using Wolverine;
 
 namespace FinanceTracking.API.Services;
 
-public class ReceiptService
+public class ReceiptService: IReceiptService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
     private readonly IGroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
     private readonly ICategoryService _categoryService;
-    private readonly ProductDataService _productDataService;
+    private readonly IProductDataService _productDataService;
     private readonly IMessageBus _messageBus;
     private readonly IPendingPredictionRequests _pendingPredictions;
 
@@ -33,7 +33,7 @@ public class ReceiptService
         IGroupMemberService groupMemberService, 
         SellerService sellerService,
         ICategoryService categoryService,
-        ProductDataService productDataService,
+        IProductDataService productDataService,
         IMessageBus messageBus,
         IPendingPredictionRequests pendingPredictions)
     {

@@ -11,7 +11,7 @@ using FinanceTracking.API.Constants;
 
 namespace FinanceTracking.API.Services;
 
-public class ProductDataService
+public class ProductDataService: IProductDataService
 {
     private readonly FinanceDbContext _context;
 

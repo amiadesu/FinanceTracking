@@ -15,9 +15,9 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly ProductDataService _productService;
+    private readonly IProductDataService _productService;
 
-    public ProductsController(ProductDataService productService)
+    public ProductsController(IProductDataService productService)
     {
         _productService = productService;
     }
