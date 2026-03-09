@@ -9,6 +9,7 @@ public interface IReceiptService
     Task<ReceiptListResponseDto> GetReceiptsAsync(int groupId);
     Task<List<ReceiptDto>> GetReceiptsBySellerAsync(int groupId, string sellerId);
     Task<List<ReceiptDto>> GetReceiptsByProductDataAsync(int groupId, int productDataId);
+    Task<List<ReceiptDto>> GetReceiptsByDateRangeAsync(int groupId, DateTime startDate, DateTime endDate);
     Task<ReceiptDto?> GetReceiptAsync(int groupId, int receiptId);
     Task<CreateReceiptDto?> ParseXMLReceiptAsync(int groupId, IFormFile file);
     Task<ReceiptDto> UpdateReceiptAsync(int groupId, int receiptId, Guid userId, UpdateReceiptDto dto);
