@@ -18,12 +18,12 @@ namespace FinanceTracking.API.Controllers;
 public class GroupsController : ControllerBase
 {
     private readonly IGroupService _groupService;
-    private readonly GroupHistoryService _historyService;
+    private readonly IGroupHistoryService _historyService;
     private readonly GroupMemberService _memberService;
 
     public GroupsController(
         IGroupService groupService,
-        GroupHistoryService historyService,
+        IGroupHistoryService historyService,
         GroupMemberService memberService)
     {
         _groupService = groupService;

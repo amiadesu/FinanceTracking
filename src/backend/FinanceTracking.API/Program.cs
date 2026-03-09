@@ -34,7 +34,7 @@ builder.Services.AddDbContext<FinanceDbContext>(options =>
            .UseSnakeCaseNamingConvention());
 
 builder.Services.AddScoped<IGroupService, GroupService>();
-builder.Services.AddScoped<GroupHistoryService>();
+builder.Services.AddScoped<IGroupHistoryService, GroupHistoryService>();
 builder.Services.AddScoped<IGroupHistoryExportService, GroupHistoryExportService>();
 builder.Services.AddScoped<GroupInvitationService>();
 builder.Services.AddScoped<IBudgetGoalService, BudgetGoalService>();

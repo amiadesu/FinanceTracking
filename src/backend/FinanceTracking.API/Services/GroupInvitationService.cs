@@ -13,12 +13,12 @@ public class GroupInvitationService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
-    private readonly GroupHistoryService _historyService;
+    private readonly IGroupHistoryService _historyService;
 
     public GroupInvitationService(
         FinanceDbContext context, 
         IGroupService groupService, 
-        GroupHistoryService historyService)
+        IGroupHistoryService historyService)
     {
         _context = context;
         _groupService = groupService;

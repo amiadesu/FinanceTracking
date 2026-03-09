@@ -15,12 +15,12 @@ namespace FinanceTracking.API.Controllers;
 [Route("api/groups/{groupId}/history")]
 public class GroupHistoryController : ControllerBase
 {
-    private readonly GroupHistoryService _historyService;
+    private readonly IGroupHistoryService _historyService;
     private readonly IGroupHistoryExportService _exportService;
     private readonly IGroupService _groupService;
 
     public GroupHistoryController(
-        GroupHistoryService historyService, 
+        IGroupHistoryService historyService, 
         IGroupHistoryExportService exportService,
         IGroupService groupService)
     {
