@@ -12,7 +12,7 @@ using FinanceTracking.API.Utils;
 
 namespace FinanceTracking.API.Services;
 
-public class BudgetGoalService
+public class BudgetGoalService: IBudgetGoalService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
