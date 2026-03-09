@@ -124,7 +124,7 @@ const receiptColumns: TableColumn<ReceiptDto>[] = [
         </div>
       </UCard>
 
-      <UCard class="shadow-sm w-full max-h-100 flex flex-col" :ui="{ body: 'p-0 sm:p-0 flex-1' }">
+      <UCard class="shadow-sm w-full lg:h-80 flex flex-col" :ui="{ body: 'p-0 sm:p-0 flex-1 overflow-hidden flex flex-col' }">
         <template #header>
           <div class="flex justify-between items-center">
             <h2 class="font-semibold text-gray-900 dark:text-white">Associated Receipts</h2>
@@ -135,7 +135,7 @@ const receiptColumns: TableColumn<ReceiptDto>[] = [
         <UTable 
           :data="progress.associatedReceipts" 
           :columns="receiptColumns"
-          class="min-h-0 overflow-y-auto"
+          class="flex-1 min-h-0 overflow-y-auto"
         >
           <template #empty>
             <div class="flex flex-col items-center justify-center py-12">
