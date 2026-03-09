@@ -25,7 +25,7 @@ public class NotThemselvesAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<GroupMemberService>();
+        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<IGroupMemberService>();
         var actionUserId = context.HttpContext.User.GetUserId();
         
         if (actionUserId == userId)

@@ -20,7 +20,7 @@ public class ReceiptService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
-    private readonly GroupMemberService _groupMemberService;
+    private readonly IGroupMemberService _groupMemberService;
     private readonly SellerService _sellerService;
     private readonly ICategoryService _categoryService;
     private readonly ProductDataService _productDataService;
@@ -30,7 +30,7 @@ public class ReceiptService
     public ReceiptService(
         FinanceDbContext context,
         IGroupService groupService,
-        GroupMemberService groupMemberService, 
+        IGroupMemberService groupMemberService, 
         SellerService sellerService,
         ICategoryService categoryService,
         ProductDataService productDataService,

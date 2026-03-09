@@ -27,7 +27,7 @@ public class BlacklistGroupRoleAttribute : Attribute, IAsyncActionFilter
             return;
         }
 
-        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<GroupMemberService>();
+        var groupMemberService = context.HttpContext.RequestServices.GetRequiredService<IGroupMemberService>();
         var userId = context.HttpContext.User.GetUserId();
         
         var userRole = await groupMemberService.GetUserRoleInGroupAsync(groupId, userId);

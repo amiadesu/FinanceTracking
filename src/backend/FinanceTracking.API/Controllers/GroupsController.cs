@@ -19,12 +19,12 @@ public class GroupsController : ControllerBase
 {
     private readonly IGroupService _groupService;
     private readonly IGroupHistoryService _historyService;
-    private readonly GroupMemberService _memberService;
+    private readonly IGroupMemberService _memberService;
 
     public GroupsController(
         IGroupService groupService,
         IGroupHistoryService historyService,
-        GroupMemberService memberService)
+        IGroupMemberService memberService)
     {
         _groupService = groupService;
         _historyService = historyService;

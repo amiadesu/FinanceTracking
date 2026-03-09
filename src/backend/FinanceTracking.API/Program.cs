@@ -42,7 +42,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ReceiptService>();
 builder.Services.AddScoped<SellerService>();
 builder.Services.AddScoped<ProductDataService>();
-builder.Services.AddScoped<GroupMemberService>();
+builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
 builder.Services.AddScoped<StatisticsService>();
 
 builder.Services.AddHttpClient("MlServiceClient", client =>
