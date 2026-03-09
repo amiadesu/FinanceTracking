@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import { useRoute, useRouter } from '#imports';
 import * as v from 'valibot';
 import { useAppToast } from '~/composables/useAppToast';
 import { budgetGoalSchema } from '~/schemas/schemas';
 import { useFormValidation } from '~/composables/useFormValidation';
 import { budgetGoalService } from '~/services/budgetGoalService';
-import type { BudgetGoalDto, UpdateBudgetGoalDto, BudgetGoalProgressDto } from '~/services/budgetGoalService';
+import type { BudgetGoalDto, UpdateBudgetGoalDto } from '~/services/budgetGoalService';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { formatDate } from '@/utils/formatDate';
 import FormGlobalErrors from "~/components/FormGlobalErrors.vue";
@@ -20,7 +20,6 @@ const groupId = Number(route.params.id);
 const goalId = Number(route.params.goalId);
 
 const goal = ref<BudgetGoalDto | null>(null);
-const progress = ref<BudgetGoalProgressDto | null>(null);
 const loading = ref(false);
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
@@ -37,13 +36,8 @@ async function load() {
   loading.value = true;
   error.value = null;
   try {
-    const [goalData, progressData] = await Promise.all([
-      budgetGoalService.getGoal(groupId, goalId),
-      budgetGoalService.getProgress(groupId, goalId)
-    ]);
-    
+    const goalData = await budgetGoalService.getGoal(groupId, goalId);
     goal.value = goalData;
-    progress.value = progressData;
 
     if (goal.value) {
       editDto.targetAmount = goal.value.targetAmount;
@@ -120,36 +114,24 @@ onMounted(load);
       class="mb-4" 
     />
 
-    <UCard v-else-if="goal && progress" class="shadow-sm w-full max-w-full flex flex-col" :ui="{ body: 'flex-1 flex flex-col p-6 sm:p-10' }">
+    <UCard v-else-if="goal" class="shadow-sm w-full max-w-full flex flex-col" :ui="{ body: 'flex-1 flex flex-col p-6 sm:p-10' }">
       <div class="flex flex-col gap-10 flex-1">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-8">
           <div>
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Target Amount</span>
             <p class="text-xl font-semibold text-gray-900 dark:text-white mt-1">{{ goal.targetAmount }}</p>
           </div>
-          
+
           <div>
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Start Date</span>
             <p class="text-lg font-medium text-gray-900 dark:text-white mt-1">{{ formatDate(goal.startDate) }}</p>
           </div>
 
           <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Created At</span>
-            <p class="text-base text-gray-900 dark:text-white mt-1">{{ formatDate(goal.createdDate, true) }}</p>
-          </div>
-
-          <div>
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Progress</span>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white mt-1">
-              {{ progress.currentAmount }} <span class="text-base font-normal text-gray-500 dark:text-gray-400">/ {{ progress.targetAmount }}</span>
-            </p>
-          </div>
-
-          <div>
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">End Date</span>
             <p class="text-lg font-medium text-gray-900 dark:text-white mt-1">{{ formatDate(goal.endDate) }}</p>
           </div>
-
+          
           <div>
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Updated At</span>
             <p class="text-base text-gray-900 dark:text-white mt-1">{{ formatDate(goal.updatedDate, true) }}</p>
@@ -159,7 +141,7 @@ onMounted(load);
         <USeparator />
 
         <UForm :schema="budgetGoalSchema" :state="editDto" class="flex-1 flex flex-col" @submit="save">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Edit Goal</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Edit Goal Settings</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1">
             <UFormField label="New Target Amount" name="targetAmount" required>

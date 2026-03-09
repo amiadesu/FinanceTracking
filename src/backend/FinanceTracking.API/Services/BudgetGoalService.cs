@@ -16,13 +16,16 @@ public class BudgetGoalService: IBudgetGoalService
 {
     private readonly FinanceDbContext _context;
     private readonly IGroupService _groupService;
+    private readonly IReceiptService _receiptService;
 
     public BudgetGoalService(
         FinanceDbContext context,
-        IGroupService groupService)
+        IGroupService groupService,
+        IReceiptService receiptService)
     {
         _context = context;
         _groupService = groupService;
+        _receiptService = receiptService;
     }
 
     public async Task<BudgetGoalDto> CreateBudgetGoalAsync(int groupId, CreateBudgetGoalDto dto)
@@ -132,12 +135,17 @@ public class BudgetGoalService: IBudgetGoalService
         if (goal == null)
             throw new NotFoundException(ErrorMessages.BudgetGoalNotFound);
 
-        var currentAmount = await _context.Receipts
-            .Where(r => r.GroupId == groupId
-                        && r.PaymentDate >= goal.StartDate
-                        && r.PaymentDate <= goal.EndDate)
-            .SumAsync(r => r.TotalAmount);
+        var receipts = await _receiptService.GetReceiptsByDateRangeAsync(groupId, goal.StartDate, goal.EndDate);
+
+        var currentAmount = receipts.Sum(r => r.TotalAmount);
         currentAmount = FinancialCalculator.RoundUpToTwoDecimalPlaces(currentAmount);
+
+        decimal percentageCompleted = 0;
+        if (goal.TargetAmount > 0)
+        {
+            percentageCompleted = (currentAmount / goal.TargetAmount) * 100;
+            percentageCompleted = FinancialCalculator.RoundUpToTwoDecimalPlaces(percentageCompleted);
+        }
 
         return new BudgetGoalProgressDto
         {
@@ -145,6 +153,8 @@ public class BudgetGoalService: IBudgetGoalService
             GroupId = groupId,
             TargetAmount = goal.TargetAmount,
             CurrentAmount = currentAmount,
+            PercentageCompleted = percentageCompleted,
+            AssociatedReceipts = receipts,
             StartDate = goal.StartDate,
             EndDate = goal.EndDate
         };

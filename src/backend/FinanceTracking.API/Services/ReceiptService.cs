@@ -162,6 +162,22 @@ public class ReceiptService: IReceiptService
             .ToListAsync();
     }
 
+    public async Task<List<ReceiptDto>> GetReceiptsByDateRangeAsync(int groupId, DateTime startDate, DateTime endDate)
+    {
+        return await _context.Receipts
+            .Where(r => r.GroupId == groupId 
+                        && r.PaymentDate >= startDate 
+                        && r.PaymentDate <= endDate)
+            .Include(r => r.CreatedByUser)
+            .Include(r => r.Seller)
+            .Include(r => r.ProductEntries)
+                .ThenInclude(pe => pe.ProductData)
+                .ThenInclude(pd => pd.ProductDataCategories)
+                    .ThenInclude(pdc => pdc.Category)
+            .Select(r => Map(r))
+            .ToListAsync();
+    }
+
     public async Task<ReceiptDto?> GetReceiptAsync(int groupId, int receiptId)
     {
         var r = await _context.Receipts

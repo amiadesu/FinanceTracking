@@ -27,6 +27,8 @@ public class BudgetGoalProgressDto
     public int GroupId { get; set; }
     public decimal TargetAmount { get; set; }
     public decimal CurrentAmount { get; set; }
+    public decimal PercentageCompleted { get; set; }
+    public List<ReceiptDto> AssociatedReceipts { get; set; } = new();
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 }

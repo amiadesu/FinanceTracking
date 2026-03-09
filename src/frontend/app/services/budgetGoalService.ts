@@ -1,3 +1,5 @@
+import type { ReceiptDto } from './receiptService';
+
 export interface BudgetGoalDto {
   id: number;
   groupId: number;
@@ -19,6 +21,8 @@ export interface BudgetGoalProgressDto {
   groupId: number;
   targetAmount: number;
   currentAmount: number;
+  percentageCompleted: number;
+  associatedReceipts: ReceiptDto[];
   startDate: string;
   endDate: string;
 }

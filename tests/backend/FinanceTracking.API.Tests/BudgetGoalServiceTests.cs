@@ -25,12 +25,14 @@ public class BudgetGoalServiceTests
     {
         var db = GetInMemoryDbContext();
         var mockGroupService = new Mock<IGroupService>();
-        var service = new BudgetGoalService(db, mockGroupService.Object);
+        var mockReceiptService = new Mock<IReceiptService>();
+        
+        var service = new BudgetGoalService(db, mockGroupService.Object, mockReceiptService.Object); 
 
         var dto = new CreateBudgetGoalDto 
         { 
             TargetAmount = 1000,
-            StartDate = DateTime.UtcNow, 
+            StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddDays(-1) // Invalid: End is before Start
         };
 
@@ -40,54 +42,46 @@ public class BudgetGoalServiceTests
     }
 
     [Fact]
-    public async Task GetBudgetGoalProgressAsync_ShouldCalculateSumCorrectly_IgnoringOutdatedReceipts()
+    public async Task GetBudgetGoalProgressAsync_ShouldCalculateProgressCorrectly_UsingReceiptService()
     {
         var db = GetInMemoryDbContext();
         var mockGroupService = new Mock<IGroupService>();
-        var service = new BudgetGoalService(db, mockGroupService.Object);
+        var mockReceiptService = new Mock<IReceiptService>();
+        
+        var service = new BudgetGoalService(db, mockGroupService.Object, mockReceiptService.Object); 
 
+        var startDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(2026, 1, 31, 23, 59, 59, DateTimeKind.Utc);
+        
         var goal = new BudgetGoal 
         { 
-            Id = 1, 
-            GroupId = 1, 
-            TargetAmount = 1000, 
-            StartDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), 
-            EndDate = new DateTime(2026, 1, 31, 23, 59, 59, DateTimeKind.Utc) 
+            Id = 1,
+            GroupId = 1,
+            TargetAmount = 1000,
+            StartDate = startDate, 
+            EndDate = endDate 
         };
         db.BudgetGoals.Add(goal);
-        
-        db.Receipts.AddRange(
-            // Inside the date range
-            new Receipt { 
-                Id = 1, 
-                GroupId = 1,
-                SellerId = "123",
-                TotalAmount = 100.00m, 
-                PaymentDate = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) 
-            },
-            new Receipt { 
-                Id = 2, 
-                GroupId = 1, 
-                SellerId = "456",
-                TotalAmount = 250.50m, 
-                PaymentDate = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) 
-            },
-            
-            // Outside the date range (should be ignored in sum)
-            new Receipt { 
-                Id = 3, 
-                GroupId = 1, 
-                SellerId = "789",
-                TotalAmount = 500.00m, 
-                PaymentDate = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Utc) 
-            } 
-        );
         await db.SaveChangesAsync();
+
+        var mockedReceipts = new List<ReceiptDto>
+        {
+            new ReceiptDto { Id = 1, TotalAmount = 100.00m },
+            new ReceiptDto { Id = 2, TotalAmount = 250.50m }
+        };
+
+        mockReceiptService
+            .Setup(s => s.GetReceiptsByDateRangeAsync(1, startDate, endDate))
+            .ReturnsAsync(mockedReceipts);
 
         var result = await service.GetBudgetGoalProgressAsync(1, 1);
 
         result.Should().NotBeNull();
-        result.CurrentAmount.Should().Be(350.50m); // 100 + 250.50
         result.TargetAmount.Should().Be(1000);
+        result.CurrentAmount.Should().Be(350.50m); // 100 + 250.50
+        
+        result.PercentageCompleted.Should().Be(35.05m); // (350.50 / 1000) * 100 = 35.05%
+        result.AssociatedReceipts.Should().HaveCount(2);
+        result.AssociatedReceipts.Should().BeEquivalentTo(mockedReceipts);
     }
 }
