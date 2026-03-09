@@ -347,7 +347,12 @@ onMounted(async () => {
                       />
                       <span class="text-gray-700 dark:text-gray-300 font-medium leading-snug wrap-break-words">{{ values?.label }}</span>
                     </div>
-                    <span class="text-gray-900 dark:text-white font-bold pl-4">{{ values ? Number(values[values?.label]).toFixed(2) : '' }}</span>
+                    <span class="text-gray-900 dark:text-white font-bold pl-4">
+                      {{ values ? Number(values[values?.label]).toFixed(2) : '' }}
+                      <span v-if="values && totalSpentSum > 0" class="text-gray-500 font-normal text-xs ml-1">
+                        ({{ ((Number(values[values?.label]) / totalSpentSum) * 100).toFixed(2) }}%)
+                      </span>
+                    </span>
                   </div>
                 </template>
               </DonutChart>
