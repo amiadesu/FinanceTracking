@@ -3,25 +3,6 @@ using FinanceTracking.API.DTOs;
 
 namespace FinanceTracking.API.Services;
 
-public interface IPendingPredictionRequests
-{
-    /// <summary>
-    /// Registers a new pending prediction request and returns the correlation ID
-    /// to stamp on the outgoing RabbitMQ message, plus a Task that completes
-    /// when the ML service reply arrives (or faults on timeout/cancellation).
-    /// </summary>
-    (string CorrelationId, Task<PredictionResponse> Task) Register(
-        TimeSpan timeout,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Called by <see cref="Handlers.PredictionResponseHandler"/> when a reply
-    /// arrives on the reply queue. Returns false if the entry was already
-    /// removed (timed out or cancelled).
-    /// </summary>
-    bool TryComplete(string correlationId, PredictionResponse response);
-}
-
 public class PendingPredictionRequests : IPendingPredictionRequests
 {
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PredictionResponse>> _pending = new();
