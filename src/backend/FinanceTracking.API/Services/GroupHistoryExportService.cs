@@ -8,17 +8,21 @@ using FinanceTracking.API.DTOs;
 
 namespace FinanceTracking.API.Services;
 
-public class GroupHistoryExportService: IGroupHistoryExportService
+public class GroupHistoryExportService : IGroupHistoryExportService
 {
+    private static readonly string[] _headers = { 
+        "Date", "Action By", "Target User", "Note", 
+        "Role Before", "Role After", "Active Before", "Active After" 
+    };
+
     public byte[] ExportToExcel(List<GroupHistoryDto> historyEntries)
     {
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Group History");
 
-        var headers = new[] { "Date", "Action By", "Target User", "Note", "Role Before", "Role After", "Active Before", "Active After" };
-        for (int i = 0; i < headers.Length; i++)
+        for (int i = 0; i < _headers.Length; i++)
         {
-            worksheet.Cell(1, i + 1).Value = headers[i];
+            worksheet.Cell(1, i + 1).Value = _headers[i];
             worksheet.Cell(1, i + 1).Style.Font.Bold = true;
         }
 
@@ -55,21 +59,27 @@ public class GroupHistoryExportService: IGroupHistoryExportService
 
             document.InsertParagraph($"Generated on: {DateTime.UtcNow:g} UTC\n").SpacingAfter(20);
 
-            var table = document.AddTable(historyEntries.Count + 1, 4);
+            var table = document.AddTable(historyEntries.Count + 1, _headers.Length);
             table.Design = TableDesign.TableGrid;
 
-            table.Rows[0].Cells[0].Paragraphs[0].Append("Date").Bold();
-            table.Rows[0].Cells[1].Paragraphs[0].Append("Changed By").Bold();
-            table.Rows[0].Cells[2].Paragraphs[0].Append("Target User").Bold();
-            table.Rows[0].Cells[3].Paragraphs[0].Append("Note").Bold();
+            for (int i = 0; i < _headers.Length; i++)
+            {
+                table.Rows[0].Cells[i].Paragraphs[0].Append(_headers[i]).Bold();
+            }
 
             for (int i = 0; i < historyEntries.Count; i++)
             {
                 var entry = historyEntries[i];
-                table.Rows[i + 1].Cells[0].Paragraphs[0].Append(entry.ChangedAt.ToString("g"));
-                table.Rows[i + 1].Cells[1].Paragraphs[0].Append(entry.ChangedByUserName);
-                table.Rows[i + 1].Cells[2].Paragraphs[0].Append(entry.TargetUserName);
-                table.Rows[i + 1].Cells[3].Paragraphs[0].Append(entry.Note);
+                var row = table.Rows[i + 1];
+
+                row.Cells[0].Paragraphs[0].Append(entry.ChangedAt.ToString("g"));
+                row.Cells[1].Paragraphs[0].Append(entry.ChangedByUserName);
+                row.Cells[2].Paragraphs[0].Append(entry.TargetUserName);
+                row.Cells[3].Paragraphs[0].Append(entry.Note);
+                row.Cells[4].Paragraphs[0].Append(entry.RoleIdBefore?.ToString() ?? "-");
+                row.Cells[5].Paragraphs[0].Append(entry.RoleIdAfter?.ToString() ?? "-");
+                row.Cells[6].Paragraphs[0].Append(entry.ActiveBefore?.ToString() ?? "-");
+                row.Cells[7].Paragraphs[0].Append(entry.ActiveAfter?.ToString() ?? "-");
             }
 
             document.InsertTable(table);
