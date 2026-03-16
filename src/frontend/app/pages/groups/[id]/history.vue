@@ -188,7 +188,7 @@ onMounted(() => loadData());
             :loading="exporting"
           >
             <template #trailing>
-              <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4 text-gray-500" />
+              <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4" />
             </template>
           </UButton>
 
