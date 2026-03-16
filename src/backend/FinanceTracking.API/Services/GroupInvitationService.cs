@@ -102,6 +102,7 @@ public class GroupInvitationService: IGroupInvitationService
     {
         return await _context.GroupInvitations
             .Include(i => i.Group)
+                .ThenInclude(g => g.Members)
             .Include(i => i.InvitedByUser)
             .Include(i => i.TargetUser)
             .Where(i => i.TargetUserId == currentUserId && i.Status == InvitationStatus.Pending)
@@ -134,6 +135,7 @@ public class GroupInvitationService: IGroupInvitationService
     {
         return await _context.GroupInvitations
             .Include(i => i.Group)
+                .ThenInclude(g => g.Members)
             .Include(i => i.InvitedByUser)
             .Include(i => i.TargetUser)
             .Where(i => i.GroupId == groupId)
@@ -146,6 +148,7 @@ public class GroupInvitationService: IGroupInvitationService
     {
         var invite = await _context.GroupInvitations
             .Include(i => i.Group)
+                .ThenInclude(g => g.Members)
             .Include(i => i.InvitedByUser)
             .Include(i => i.TargetUser)
             .FirstOrDefaultAsync(i => i.Id == invitationId);
