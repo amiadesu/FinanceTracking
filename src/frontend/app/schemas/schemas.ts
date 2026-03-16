@@ -108,12 +108,12 @@ export const formProductSchema = v.object({
     ),
     price: v.pipe(
         v.number(), 
-        v.minValue(0.01, 'Price must be greater than 0'),
+        v.minValue(0, 'Price must be greater or equal to 0'),
         v.check((val) => maxNDecimals(val, 2), 'Price can have at most 2 decimal places')
     ),
     quantity: v.pipe(
         v.number(), 
-        v.minValue(0.01, 'Quantity must be greater than 0'),
+        v.minValue(0.001, 'Quantity must be greater than 0'),
         v.check((val) => maxNDecimals(val, 3), 'Quantity can have at most 3 decimal places')
     ),
     categoryIds: v.any()
