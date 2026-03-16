@@ -95,7 +95,10 @@ const selectedSellerDisplay = computed(() => {
   >
     <template #default>
       <div class="flex items-center justify-between w-full truncate">
-        <span :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }" class="truncate">
+        <span 
+          class="truncate" 
+          :class="{ 'text-gray-500 dark:text-gray-400': !modelValue }"
+        >
           {{ selectedSellerDisplay }}
         </span>
         
@@ -112,11 +115,14 @@ const selectedSellerDisplay = computed(() => {
     </template>
     
     <template #item="{ item }">
-      <div class="flex flex-col">
-        <span class="font-medium" :class="{ 'text-primary-600 dark:text-primary-400': item.isCustom }">
+      <div class="flex flex-col max-w-full overflow-hidden">
+        <span 
+          class="font-medium truncate" 
+          :class="{ 'text-primary-600 dark:text-primary-400': item.isCustom }"
+        >
           {{ item.displayName }}
         </span>
-        <span class="text-xs text-gray-500 dark:text-gray-400">
+        <span class="text-xs text-gray-500 dark:text-gray-400 truncate">
           {{ item.description }}
         </span>
       </div>
