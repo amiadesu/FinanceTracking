@@ -100,8 +100,8 @@ public class ReceiptService: IReceiptService
             {
                 GroupId = groupId,
                 ProductDataId = productData.Id,
-                Price = prod.Price,
-                Quantity = prod.Quantity,
+                Price = FinancialCalculator.RoundUpToTwoDecimalPlaces(prod.Price),
+                Quantity = FinancialCalculator.RoundUpToThreeDecimalPlaces(prod.Quantity),
                 CreatedDate = now,
                 UpdatedDate = now
             });
@@ -312,18 +312,21 @@ public class ReceiptService: IReceiptService
 
             var productData = await _productDataService.FindOrCreateProductDataAsync(groupId, prod.Name.Trim(), categories.Select(c => c.Id).ToList());
 
+            var roundedPrice = FinancialCalculator.RoundUpToTwoDecimalPlaces(prod.Price.Value);
+            var roundedQuantity = FinancialCalculator.RoundUpToThreeDecimalPlaces(prod.Quantity.Value);
+
             var existingEntry = prod.Id.HasValue 
                 ? receipt.ProductEntries.FirstOrDefault(pe => pe.Id == prod.Id.Value) 
                 : null;
 
             if (existingEntry != null)
             {
-                if (existingEntry.Price != prod.Price.Value || 
-                    existingEntry.Quantity != prod.Quantity.Value || 
+                if (existingEntry.Price != roundedPrice || 
+                    existingEntry.Quantity != roundedQuantity || 
                     existingEntry.ProductDataId != productData.Id)
                 {
-                    existingEntry.Price = prod.Price.Value;
-                    existingEntry.Quantity = prod.Quantity.Value;
+                    existingEntry.Price = roundedPrice;
+                    existingEntry.Quantity = roundedQuantity;
                     existingEntry.ProductDataId = productData.Id;
                     existingEntry.UpdatedDate = now;
                     changed = true;
@@ -335,8 +338,8 @@ public class ReceiptService: IReceiptService
                 {
                     GroupId = groupId,
                     ProductDataId = productData.Id,
-                    Price = prod.Price.Value,
-                    Quantity = prod.Quantity.Value,
+                    Price = roundedPrice,
+                    Quantity = roundedQuantity,
                     CreatedDate = now,
                     UpdatedDate = now
                 });
