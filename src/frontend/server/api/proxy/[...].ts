@@ -18,11 +18,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  console.log("Access token:", accessToken);
-
   const path = event.path.replace(/^\/api\/proxy\//, '')
-
-  console.log('[API Proxy Debug] Path:', path, 'Original:', event.path);
 
   const target = joinURL(backendBaseUrl, path)
 
