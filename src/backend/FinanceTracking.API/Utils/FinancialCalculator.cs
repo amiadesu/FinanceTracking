@@ -20,4 +20,9 @@ public static class FinancialCalculator
     {
         return Math.Ceiling(value * 100) / 100;
     }
+
+    public static decimal RoundUpToThreeDecimalPlaces(decimal value)
+    {
+        return Math.Ceiling(value * 1000) / 1000;
+    }
 }
